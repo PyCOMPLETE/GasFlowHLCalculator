@@ -1,8 +1,10 @@
 from __future__ import division
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp2d
 
+sys.path.append('..')
 from LHCMeasurementTools import TimberManager as tm
 
 from Helium_properties import *
@@ -13,6 +15,9 @@ from Pressure_drop import Pressure_drop
 use_dP = True
 show_plot = True
 filename = './TIMBER_DATA_Fill5416_LHCBEAMSCREEN_TT84x_injec.csv' #Select the timber file you want to extract
+
+if __name__ != '__main__':
+    show_plot = False
 
 timber_data = tm.parse_aligned_csv_file(filename)
 timber_data.timestamps -= timber_data.timestamps[0]
@@ -152,9 +157,8 @@ for k in xrange(8):
     last = arc_index[k,1]
     for i in xrange(Nvalue):
         QBS_ARC_AVG[i,k] = np.mean(Qbs[i,first:last])
-
-plt.close('all')
 if show_plot:
+    plt.close('all')
     t = timber_data.timestamps
 
     tend = t[-1]/3600.
