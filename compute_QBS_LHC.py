@@ -12,7 +12,7 @@ from data_QBS_LHC import *
 from valve_LT import valve_LT
 from Pressure_drop import Pressure_drop
 
-def compute_QBS_LHC(aligned_timber_data, use_dP):
+def compute_QBS_LHC(aligned_timber_data, use_dP, return_qbs=False):
 
     atd_ob = aligned_timber_data
     
@@ -32,52 +32,23 @@ def compute_QBS_LHC(aligned_timber_data, use_dP):
 
     #print(Nvalue, Nlist, len(TT961_list), atd_ob.data.shape)
 
-    for i in xrange(Nlist):
-        j = atd_ob.variables.index(TT961_list[i])
-        T1[:,i] = atd_ob.data[:,j]
-        if T1[0,i] == 0 and i > 0:
-            T1[:,i] = T1[:,i-1]
+    arr_list = [T1, T3, CV, EH, P1, P4]
+    name_list = [TT961_list, TT94x_list, CV94x_list, EH84x_list, PT961_list, PT991_list]
+    if use_dP:
+        arr_list.append(T2)
+        name_list.append(TT84x_list)
 
-        if use_dP:
+    for i in xrange(Nlist):
+        for arr, names in zip(arr_list, name_list):
             try:
-                j = atd_ob.variables.index(TT84x_list[i])
+                j = atd_ob.variables.index(names[i])
             except ValueError as e:
                 print('Warning: %s' % e)
-                T2[:,i] = T2[:,i-1]
+                arr[:,i] = arr[:,i-1]
             else:
-                T2[:,i] = atd_ob.data[:,j]
-
-        try:
-            j = atd_ob.variables.index(TT94x_list[i])
-        except ValueError as e:
-            print('Warning: %s' % e)
-            T3[:,i] = T3[:,i-1]
-        else:
-            T3[:,i] = atd_ob.data[:,j]
-
-        try:
-            j = atd_ob.variables.index(CV94x_list[i])
-        except ValueError as e:
-            print('Warning: %s' % e)
-            CV[:,i] = CV[:,i-1]
-        else:
-            CV[:,i] = atd_ob.data[:,j]
-
-        try:
-            j = atd_ob.variables.index(EH84x_list[i])
-        except ValueError as e:
-            print('Warning: %s' % e)
-            EH[:,i] = EH[:,i-1]
-        else:
-            EH[:,i] = atd_ob.data[:,j]
-
-        j = atd_ob.variables.index(PT961_list[i])
-        P1[:,i] = atd_ob.data[:,j]
-
-        j = atd_ob.variables.index(PT991_list[i])
-        P4[:,i] = atd_ob.data[:,j]
-        if P4[0,i] == 0 and i > 0:
-            P4[:,i] = P4[:,i-1]
+                arr[:,i] = atd_ob.data[:,j]
+                if arr[0,i] == 0 and i > 0:
+                    arr[:,i] = arr[:,i-1]
 
     zeros = lambda *x: np.zeros(shape=(x), dtype=float)
 
@@ -146,7 +117,10 @@ def compute_QBS_LHC(aligned_timber_data, use_dP):
             QBS_ARC_AVG[i,k] = np.mean(Qbs[i,first:last])
     arc_list = ['ARC12','ARC23','ARC34','ARC45','ARC56','ARC67','ARC78','ARC81']
 
-    return QBS_ARC_AVG, arc_list
+    if return_qbs:
+        return QBS_ARC_AVG, arc_list, Qbs
+    else:
+        return QBS_ARC_AVG, arc_list
 
 if __name__ == '__main__':
     show_plot = True
@@ -155,7 +129,7 @@ if __name__ == '__main__':
     atd_ob = tm.parse_aligned_csv_file(filename)
     atd_ob.timestamps -= atd_ob.timestamps[0]
 
-    QBS_ARC_AVG, arc_list = compute_QBS_LHC(use_dP, atd_ob)
+    QBS_ARC_AVG, arc_list, Qbs = compute_QBS_LHC(atd_ob, use_dP, return_qbs=True)
 
     if show_plot:
         plt.close('all')
