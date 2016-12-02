@@ -16,21 +16,19 @@ def compute_QBS_LHC(aligned_timber_data, use_dP, return_qbs=False):
 
     atd_ob = aligned_timber_data
     
-    Nlist = len(TT94x_list) # number of half cells
+    Ncell = len(TT94x_list) # number of half cells
     Nvalue = atd_ob.data.shape[0] # number of data points
-    Ncell = atd_ob.data.shape[1]
+    Nlist = atd_ob.data.shape[1] # Number of variables
 
-    T1 = np.zeros(shape=(Nvalue, Nlist)) #TT961
-    T3 = np.zeros(shape=(Nvalue, Nlist)) #TT94x
-    CV = np.zeros(shape=(Nvalue, Nlist)) #CV94x;
-    EH = np.zeros(shape=(Nvalue, Nlist)) #EH84x;
-    P1 = np.zeros(shape=(Nvalue, Nlist)) #PT961;
-    P4 = np.zeros(shape=(Nvalue, Nlist)) #PT991;
+    T1 = np.zeros(shape=(Nvalue, Ncell)) #TT961
+    T3 = np.zeros(shape=(Nvalue, Ncell)) #TT94x
+    CV = np.zeros(shape=(Nvalue, Ncell)) #CV94x;
+    EH = np.zeros(shape=(Nvalue, Ncell)) #EH84x;
+    P1 = np.zeros(shape=(Nvalue, Ncell)) #PT961;
+    P4 = np.zeros(shape=(Nvalue, Ncell)) #PT991;
                                         
     if use_dP:
-        T2= np.zeros(shape=(Nvalue,Nlist)) ##TT84x
-
-    #print(Nvalue, Nlist, len(TT961_list), atd_ob.data.shape)
+        T2= np.zeros(shape=(Nvalue,Ncell)) ##TT84x
 
     arr_list = [T1, T3, CV, EH, P1, P4]
     name_list = [TT961_list, TT94x_list, CV94x_list, EH84x_list, PT961_list, PT991_list]
@@ -38,7 +36,7 @@ def compute_QBS_LHC(aligned_timber_data, use_dP, return_qbs=False):
         arr_list.append(T2)
         name_list.append(TT84x_list)
 
-    for i in xrange(Nlist):
+    for i in xrange(Ncell):
         for arr, names in zip(arr_list, name_list):
             try:
                 j = atd_ob.variables.index(names[i])
@@ -52,18 +50,18 @@ def compute_QBS_LHC(aligned_timber_data, use_dP, return_qbs=False):
 
     zeros = lambda *x: np.zeros(shape=(x), dtype=float)
 
-    ro= zeros(Nvalue,Nlist)            #density
-    P3_temp= zeros (Nvalue,Nlist)      #temporary intermediate pressure ater the beam screen and before the valve
-    ro_dP= zeros(Nvalue,Nlist)         #Average density in beam screen
-    dP= zeros(Nvalue,Nlist)            #Pressure drop in beam screen
-    gamma= zeros(Nvalue,Nlist)         #ratio of heat capacities
-    mu= zeros(Nvalue,Nlist)            #viscosity
-    m_L= zeros(Nvalue,Nlist)           #massflow
-    Qbs = zeros(Nvalue,Nlist)          #BS heat load per half-cell
+    ro= zeros(Nvalue,Ncell)            #density
+    P3_temp= zeros (Nvalue,Ncell)      #temporary intermediate pressure ater the beam screen and before the valve
+    ro_dP= zeros(Nvalue,Ncell)         #Average density in beam screen
+    dP= zeros(Nvalue,Ncell)            #Pressure drop in beam screen
+    gamma= zeros(Nvalue,Ncell)         #ratio of heat capacities
+    mu= zeros(Nvalue,Ncell)            #viscosity
+    m_L= zeros(Nvalue,Ncell)           #massflow
+    Qbs = zeros(Nvalue,Ncell)          #BS heat load per half-cell
     QBS_ARC_AVG = zeros(Nvalue,8)      #BS Average values per ARC
-    hC= zeros(Nvalue,Nlist)            #enthalpy of line C
-    h3 = zeros(Nvalue,Nlist)           #enthalpy of BS output
-    counter_int= np.zeros(shape=(Nvalue,Nlist),dtype=int)  #internal counter
+    hC= zeros(Nvalue,Ncell)            #enthalpy of line C
+    h3 = zeros(Nvalue,Ncell)           #enthalpy of BS output
+    counter_int= np.zeros(shape=(Nvalue,Ncell),dtype=int)  #internal counter
      
     interp_P_T_hPT = interp2d(P,T,h_PT)
     interp_P_T_DPT = interp2d(P,T,D_PT)
@@ -71,7 +69,7 @@ def compute_QBS_LHC(aligned_timber_data, use_dP, return_qbs=False):
     interp_P_T_mu = interp2d(P,T,mu_PT)
 
     P3 = np.copy(P1) #intermediate pressure ater the beam screen and before the valve
-    for i in xrange(Nlist):
+    for i in xrange(Ncell):
         hC[:,i] = np.diag(interp_P_T_hPT(P1[:,i],T1[:,i]))
         h3[:,i] = np.diag(interp_P_T_hPT(P1[:,i],T3[:,i]))
         ro[:,i] = np.diag(interp_P_T_DPT(P1[:,i],T3[:,i]))
