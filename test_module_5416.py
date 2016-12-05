@@ -18,7 +18,6 @@ filln = 5416
 colstr = {1: 'b', 2:'r'}
 
 arc_keys_list = HL.variable_lists_heatloads['AVG_ARC']
-beams_list = [1, 2]
 with open('../fills_and_bmodes.pkl', 'rb') as fid:
     dict_fill_bmodes = cPickle.load(fid)
 t_ref = dict_fill_bmodes[filln]['t_startfill']
@@ -27,12 +26,11 @@ tref_string = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(t_ref))
 fill_dict = {}
 fill_dict.update(tm.parse_timber_file('../fill_basic_data_csvs/basic_data_fill_%d.csv' % filln, verbose=False))
 fill_dict.update(tm.parse_timber_file('../fill_heatload_data_csvs/heatloads_fill_%d.csv' % filln, verbose=False))
-fill_dict.update(tm.parse_timber_file('../fill_bunchbybunch_data_csvs/bunchbybunch_data_fill_%d.csv' % filln, verbose=False))
 
 heatloads = SetOfHomogeneousNumericVariables(variable_list=arc_keys_list, timber_variables=fill_dict)
 energy = Energy.energy(fill_dict, beam=1)
 bct_bx = {}
-for beam_n in beams_list:
+for beam_n in colstr:
     bct_bx[beam_n] = BCT(fill_dict, beam=beam_n)
 
 plt.close('all')
@@ -49,7 +47,7 @@ plt.subplots_adjust(right=0.7, wspace=0.30)
 sptotint = plt.subplot(2, 1, 1)
 sptotint.set_ylabel('Total intensity [p+]')
 sptotint.grid('on')
-for beam_n in beams_list:
+for beam_n in colstr:
     sptotint.plot((bct_bx[beam_n].t_stamps-t_ref)/3600., bct_bx[beam_n].values, '-', color=colstr[beam_n])
 
 spenergy = sptotint.twinx()

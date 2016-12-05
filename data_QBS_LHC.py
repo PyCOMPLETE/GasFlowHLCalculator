@@ -146,8 +146,8 @@ nc_list = cast_to_np_array([nc_list12,nc_list23,nc_list34,nc_list45,nc_list56,nc
 L_list = cast_to_np_array([L_list12,L_list23,L_list34,L_list45,L_list56,L_list67,L_list78,L_list81])
 
 Nlist = len(Cell_list)
-sector_index = np.zeros(shape=(8,2))
-arc_index = np.zeros(shape=(8,2))
+sector_index = np.zeros(shape=(8,2), dtype=int)
+arc_index = np.zeros(shape=(8,2), dtype=int)
 
 #compute the indexes of each sector
 j=0#sector number

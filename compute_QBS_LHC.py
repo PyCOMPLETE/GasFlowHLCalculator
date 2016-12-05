@@ -1,5 +1,6 @@
 from __future__ import division
 import sys
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp2d
@@ -36,17 +37,28 @@ def compute_QBS_LHC(aligned_timber_data, use_dP, return_qbs=False):
         arr_list.append(T2)
         name_list.append(TT84x_list)
 
+    variables2 = [var.replace('.POSST', '') for var in atd_ob.variables]
+    missing_variables = []
+
+    ctr_err, ctr_empty = 0, 0
     for i in xrange(Ncell):
-        for arr, names in zip(arr_list, name_list):
+        for ctr, arr, names in zip(xrange(len(arr_list)), arr_list, name_list):
             try:
-                j = atd_ob.variables.index(names[i])
+                j = variables2.index(names[i].replace('.POSST',''))
             except ValueError as e:
-                print('Warning: %s' % e)
+                print('Warning for list %i: %s' % (ctr,e))
+                missing_variables.append(names[i])
                 arr[:,i] = arr[:,i-1]
+                ctr_err += 1
             else:
                 arr[:,i] = atd_ob.data[:,j]
-                if arr[0,i] == 0 and i > 0:
+                if ctr in (0,4,5) and arr[0,i] == 0 and i > 0:
                     arr[:,i] = arr[:,i-1]
+                    print('Warning: list %i has been corrected for i = %i' % (ctr, i))
+                    ctr_empty += 1
+
+    print(ctr_err, ctr_empty)
+    print(missing_variables)
 
     zeros = lambda *x: np.zeros(shape=(x), dtype=float)
 
@@ -69,11 +81,13 @@ def compute_QBS_LHC(aligned_timber_data, use_dP, return_qbs=False):
     interp_P_T_mu = interp2d(P,T,mu_PT)
 
     P3 = np.copy(P1) #intermediate pressure ater the beam screen and before the valve
+
     for i in xrange(Ncell):
-        hC[:,i] = np.diag(interp_P_T_hPT(P1[:,i],T1[:,i]))
-        h3[:,i] = np.diag(interp_P_T_hPT(P1[:,i],T3[:,i]))
-        ro[:,i] = np.diag(interp_P_T_DPT(P1[:,i],T3[:,i]))
-        gamma[:,i] = np.diag(interp_P_T_g(P1[:,i],T3[:,i]))
+        for j in xrange(Nvalue):
+            hC[j,i] = interp_P_T_hPT(P1[j,i],T1[j,i])
+            h3[j,i] = interp_P_T_hPT(P1[j,i],T3[j,i])
+            ro[j,i] = interp_P_T_DPT(P1[j,i],T3[j,i])
+    #        gamma[j,i] = np.diag(interp_P_T_g(P1[j,i],T3[j,i])) # not used
 
         #compute the intermediate pressure P3 by iteration
         if use_dP:
@@ -112,22 +126,23 @@ def compute_QBS_LHC(aligned_timber_data, use_dP, return_qbs=False):
         first = arc_index[k,0]
         last = arc_index[k,1]
         for i in xrange(Nvalue):
-            QBS_ARC_AVG[i,k] = np.mean(Qbs[i,first:last])
+            QBS_ARC_AVG[i,k] = np.mean(Qbs[i,first:last+1])
     arc_list = ['ARC12','ARC23','ARC34','ARC45','ARC56','ARC67','ARC78','ARC81']
 
     if return_qbs:
-        return QBS_ARC_AVG, arc_list, Qbs
+        return QBS_ARC_AVG, arc_list, Qbs, locals()
     else:
         return QBS_ARC_AVG, arc_list
 
 if __name__ == '__main__':
     show_plot = True
-    use_dP = True
-    filename = './TIMBER_DATA_Fill5416_LHCBEAMSCREEN_TT84x_injec.csv' #Select the timber file you want to extract
+    use_dP = False
+    filename = os.path.dirname(__file__) + '/TIMBER_DATA_Fill5416_LHCBEAMSCREEN_TT84x_injec.csv' #Select the timber file you want to extract
     atd_ob = tm.parse_aligned_csv_file(filename)
     atd_ob.timestamps -= atd_ob.timestamps[0]
 
-    QBS_ARC_AVG, arc_list, Qbs = compute_QBS_LHC(atd_ob, use_dP, return_qbs=True)
+    QBS_ARC_AVG, arc_list, Qbs, locals = compute_QBS_LHC(atd_ob, use_dP, return_qbs=True)
+    glob = globals().update(locals)
 
     if show_plot:
         plt.close('all')
