@@ -13,54 +13,50 @@ from data_QBS_LHC import *
 from valve_LT import valve_LT
 from Pressure_drop import Pressure_drop
 
-def compute_QBS_LHC(aligned_timber_data, use_dP, return_qbs=False):
+zeros = lambda *x: np.zeros(shape=(x), dtype=float)
+arc_list = ['ARC12','ARC23','ARC34','ARC45','ARC56','ARC67','ARC78','ARC81']
 
-    atd_ob = aligned_timber_data
-    
+def compute_qbs(atd_ob, use_dP):
     Ncell = len(TT94x_list) # number of half cells
     Nvalue = atd_ob.data.shape[0] # number of data points
     Nlist = atd_ob.data.shape[1] # Number of variables
 
-    T1 = np.zeros(shape=(Nvalue, Ncell)) #TT961
-    T3 = np.zeros(shape=(Nvalue, Ncell)) #TT94x
-    CV = np.zeros(shape=(Nvalue, Ncell)) #CV94x;
-    EH = np.zeros(shape=(Nvalue, Ncell)) #EH84x;
-    P1 = np.zeros(shape=(Nvalue, Ncell)) #PT961;
-    P4 = np.zeros(shape=(Nvalue, Ncell)) #PT991;
+    T1 = zeros(Nvalue, Ncell) #TT961
+    T3 = zeros(Nvalue, Ncell) #TT94x
+    CV = zeros(Nvalue, Ncell) #CV94x;
+    EH = zeros(Nvalue, Ncell) #EH84x;
+    P1 = zeros(Nvalue, Ncell) #PT961;
+    P4 = zeros(Nvalue, Ncell) #PT991;
                                         
     if use_dP:
         T2= np.zeros(shape=(Nvalue,Ncell)) ##TT84x
 
     arr_list = [T1, T3, CV, EH, P1, P4]
     name_list = [TT961_list, TT94x_list, CV94x_list, EH84x_list, PT961_list, PT991_list]
+    correct_zeros = [True, False, False, False, True, True]
     if use_dP:
         arr_list.append(T2)
         name_list.append(TT84x_list)
+        correct_zeros.append(False)
 
     variables2 = [var.replace('.POSST', '') for var in atd_ob.variables]
     missing_variables = []
 
-    ctr_err, ctr_empty = 0, 0
-    for i in xrange(Ncell):
-        for ctr, arr, names in zip(xrange(len(arr_list)), arr_list, name_list):
+    for ctr, arr, names, correct_zero in zip(xrange(len(arr_list)), arr_list, name_list, correct_zeros):
+        for i in xrange(Ncell):
             try:
                 j = variables2.index(names[i].replace('.POSST',''))
             except ValueError as e:
                 print('Warning for list %i: %s' % (ctr,e))
                 missing_variables.append(names[i])
                 arr[:,i] = arr[:,i-1]
-                ctr_err += 1
             else:
                 arr[:,i] = atd_ob.data[:,j]
-                if ctr in (0,4,5) and arr[0,i] == 0 and i > 0:
+                if correct_zero and arr[0,i] == 0 and i > 0:
                     arr[:,i] = arr[:,i-1]
-                    print('Warning: list %i has been corrected for i = %i' % (ctr, i))
-                    ctr_empty += 1
-
-    print(ctr_err, ctr_empty)
-    print(missing_variables)
-
-    zeros = lambda *x: np.zeros(shape=(x), dtype=float)
+                    print('Warning: list %i has been corrected for %s' % (ctr, names[i]))
+    if missing_variables:
+        print('Missing variables:', missing_variables)
 
     ro= zeros(Nvalue,Ncell)            #density
     P3_temp= zeros (Nvalue,Ncell)      #temporary intermediate pressure ater the beam screen and before the valve
@@ -69,15 +65,14 @@ def compute_QBS_LHC(aligned_timber_data, use_dP, return_qbs=False):
     gamma= zeros(Nvalue,Ncell)         #ratio of heat capacities
     mu= zeros(Nvalue,Ncell)            #viscosity
     m_L= zeros(Nvalue,Ncell)           #massflow
-    Qbs = zeros(Nvalue,Ncell)          #BS heat load per half-cell
-    QBS_ARC_AVG = zeros(Nvalue,8)      #BS Average values per ARC
+    qbs = zeros(Nvalue,Ncell)          #BS heat load per half-cell
     hC= zeros(Nvalue,Ncell)            #enthalpy of line C
     h3 = zeros(Nvalue,Ncell)           #enthalpy of BS output
     counter_int= np.zeros(shape=(Nvalue,Ncell),dtype=int)  #internal counter
      
     interp_P_T_hPT = interp2d(P,T,h_PT)
     interp_P_T_DPT = interp2d(P,T,D_PT)
-    interp_P_T_g = interp2d(P,T,gamma_PT)
+    #interp_P_T_g = interp2d(P,T,gamma_PT) # not used
     interp_P_T_mu = interp2d(P,T,mu_PT)
 
     P3 = np.copy(P1) #intermediate pressure ater the beam screen and before the valve
@@ -87,7 +82,7 @@ def compute_QBS_LHC(aligned_timber_data, use_dP, return_qbs=False):
             hC[j,i] = interp_P_T_hPT(P1[j,i],T1[j,i])
             h3[j,i] = interp_P_T_hPT(P1[j,i],T3[j,i])
             ro[j,i] = interp_P_T_DPT(P1[j,i],T3[j,i])
-    #        gamma[j,i] = np.diag(interp_P_T_g(P1[j,i],T3[j,i])) # not used
+            #gamma[j,i] = np.diag(interp_P_T_g(P1[j,i],T3[j,i])) # not used
 
         #compute the intermediate pressure P3 by iteration
         if use_dP:
@@ -113,26 +108,33 @@ def compute_QBS_LHC(aligned_timber_data, use_dP, return_qbs=False):
                     P3[j,i] = P3_temp[j,i]
 
         m_L[:,i] = valve_LT(P3[:,i],P4[:,i],ro[:,i],gamma[:,i],Kv_list[i],CV[:,i],R_list[i])
-        Qbs[:,i] = m_L[:,i]*(h3[:,i]-hC[:,i])-Qs_list[i]-EH[:,i]
+        qbs[:,i] = m_L[:,i]*(h3[:,i]-hC[:,i])-Qs_list[i]-EH[:,i]
+    return qbs
 
-    #remove NaN values
-    mask_nan = np.isnan(Qbs)
-    mask_not_nan = np.logical_not(mask_nan)
-    print('There are %i nan out of %i values in Qbs!' % (np.sum(mask_nan), np.sum(mask_not_nan)))
-    Qbs[mask_nan] = 0.
-
-    #compute average per ARC
+#compute average per ARC
+def compute_qbs_arc_avg(qbs):
+    n_timestamps = qbs.shape[0]
+    QBS_ARC_AVG = zeros(n_timestamps,8)
     for k in xrange(8):
         first = arc_index[k,0]
         last = arc_index[k,1]
-        for i in xrange(Nvalue):
-            QBS_ARC_AVG[i,k] = np.mean(Qbs[i,first:last+1])
-    arc_list = ['ARC12','ARC23','ARC34','ARC45','ARC56','ARC67','ARC78','ARC81']
+        QBS_ARC_AVG[:,k] = np.mean(qbs[:,first:last+1], axis=1)
 
-    if return_qbs:
-        return QBS_ARC_AVG, arc_list, Qbs, locals()
-    else:
-        return QBS_ARC_AVG, arc_list
+    return QBS_ARC_AVG
+
+def arc_histograms(qbs, t_stamps, avg_time_hrs, avg_pm_hrs):
+    atd_tt = (t_stamps - t_stamps[0])/3600.
+    atd_mask_mean = np.abs(atd_tt - avg_time_hrs) < avg_pm_hrs
+    arc_hist_dict = {}
+    for ctr, arc_str in enumerate(arc_list):
+        arc = arc_str[-2:]
+        first, last = arc_index[ctr,:]
+        arc_hist_dict[arc] = np.mean(qbs[atd_mask_mean,first:last+1], axis=0)
+        if ctr == 0:
+            arc_hist_total = arc_hist_dict[arc]
+        else:
+            arc_hist_total = np.append(arc_hist_total, arc_hist_dict[arc])
+    return arc_hist_total, arc_hist_dict
 
 if __name__ == '__main__':
     show_plot = True
@@ -141,8 +143,8 @@ if __name__ == '__main__':
     atd_ob = tm.parse_aligned_csv_file(filename)
     atd_ob.timestamps -= atd_ob.timestamps[0]
 
-    QBS_ARC_AVG, arc_list, Qbs, locals = compute_QBS_LHC(atd_ob, use_dP, return_qbs=True)
-    glob = globals().update(locals)
+    qbs = compute_qbs(atd_ob, use_dP)
+    QBS_ARC_AVG, arc_list = compute_qbs_arc_avg(qbs)
 
     if show_plot:
         plt.close('all')
@@ -158,7 +160,7 @@ if __name__ == '__main__':
         #axis([0 tend 0 250])
         plt.legend(arc_list)
         plt.subplot(2,1,2)
-        plt.plot(t/3600,Qbs)
+        plt.plot(t/3600,qbs)
         plt.xlabel('time (hr)')
         plt.ylabel('Qdbs (W)')
         plt.title('Beam screen heat loads over LHC')
