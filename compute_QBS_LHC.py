@@ -1,12 +1,15 @@
 from __future__ import division
 import sys
 import os
+import re
+import h5py
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp2d
 
 sys.path.append('..')
-from LHCMeasurementTools import TimberManager as tm
+import LHCMeasurementTools.TimberManager as tm
 
 from Helium_properties import *
 from data_QBS_LHC import *
@@ -109,58 +112,32 @@ def compute_qbs(atd_ob, use_dP):
 
         m_L[:,i] = valve_LT(P3[:,i],P4[:,i],ro[:,i],gamma[:,i],Kv_list[i],CV[:,i],R_list[i])
         qbs[:,i] = m_L[:,i]*(h3[:,i]-hC[:,i])-Qs_list[i]-EH[:,i]
-    return qbs
-
-#compute average per ARC
-def compute_qbs_arc_avg(qbs):
-    n_timestamps = qbs.shape[0]
-    QBS_ARC_AVG = zeros(n_timestamps,8)
-    for k in xrange(8):
-        first = arc_index[k,0]
-        last = arc_index[k,1]
-        QBS_ARC_AVG[:,k] = np.mean(qbs[:,first:last+1], axis=1)
-
-    return QBS_ARC_AVG
-
-def arc_histograms(qbs, t_stamps, avg_time_hrs, avg_pm_hrs):
-    atd_tt = (t_stamps - t_stamps[0])/3600.
-    atd_mask_mean = np.abs(atd_tt - avg_time_hrs) < avg_pm_hrs
-    arc_hist_dict = {}
-    for ctr, arc_str in enumerate(arc_list):
-        arc = arc_str[-2:]
-        first, last = arc_index[ctr,:]
-        arc_hist_dict[arc] = np.mean(qbs[atd_mask_mean,first:last+1], axis=0)
-        if ctr == 0:
-            arc_hist_total = arc_hist_dict[arc]
-        else:
-            arc_hist_total = np.append(arc_hist_total, arc_hist_dict[arc])
-    return arc_hist_total, arc_hist_dict
+    return tm.AlignedTimberData(atd_ob.timestamps, qbs, Cell_list)
 
 if __name__ == '__main__':
     show_plot = True
     use_dP = False
     filename = os.path.dirname(__file__) + '/TIMBER_DATA_Fill5416_LHCBEAMSCREEN_TT84x_injec.csv' #Select the timber file you want to extract
     atd_ob = tm.parse_aligned_csv_file(filename)
-    atd_ob.timestamps -= atd_ob.timestamps[0]
+    tt = atd_ob.timestamps - atd_ob.timestamps[0]
 
-    qbs = compute_qbs(atd_ob, use_dP)
-    QBS_ARC_AVG, arc_list = compute_qbs_arc_avg(qbs)
+    qbs = compute_qbs(atd_ob, use_dP).data
+    QBS_ARC_AVG = compute_qbs_arc_avg(qbs)
 
     if show_plot:
         plt.close('all')
-        t = atd_ob.timestamps
 
-        tend = t[-1]/3600.
+        tend = tt[-1]/3600.
         plt.figure()
         plt.subplot(2,1,1)
-        plt.plot(t/3600,QBS_ARC_AVG)
+        plt.plot(tt/3600,QBS_ARC_AVG)
         plt.xlabel('time (hr)')
         plt.ylabel('Qdbs (W)')
         plt.title('Average beam screen heat load per ARC')
         #axis([0 tend 0 250])
         plt.legend(arc_list)
         plt.subplot(2,1,2)
-        plt.plot(t/3600,qbs)
+        plt.plot(tt/3600,qbs)
         plt.xlabel('time (hr)')
         plt.ylabel('Qdbs (W)')
         plt.title('Beam screen heat loads over LHC')
