@@ -3,6 +3,15 @@ Reconstruct the LHC heat loads from valves, gas flows and temperatures
 
 Usage of the most important scripts and modules:
 
+qbs_fill.py:
+
+- This module serves as the frontend for other scripts.
+- It only needs the fill number as input.
+- If the corrseponding data is already stored as h5 it returns it. Otherwise the computation is performed.
+- function compute_qbs_fill: Obtain all cell heat loads for a given fill as aligned data.
+- function compute_qbs_arc_avg: Takes aligned data and returns the arc averages.
+- function arc_histograms: Takes aligned data and returns the heat load at a given point in time. This can then be used for histograms.
+
 create_csv.m:
 
 - This GNU Octave script reads the data_QBS_LHC.m file and creates a versioned csv file.
@@ -17,12 +26,6 @@ h5_storage.py:
 
 - The most recent version is defined here.
 - This module controls the read and write access to the directory where the offline recomputed heat loads are stored.
-
-qbs_fill.py:
-
-- This module serves as the frontend for other scripts.
-- It only needs the fill number as input.
-- If the corrseponding data is already stored as h5 it returns it. Otherwise the computation is performed.
 
 compute_QBS_LHC.py, valve_LT.py, Pressure_drop.py
 
