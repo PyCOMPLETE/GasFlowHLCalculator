@@ -5,7 +5,7 @@ import os
 from h5_storage import version
 
 arc_list = ['ARC12','ARC23','ARC34','ARC45','ARC56','ARC67','ARC78','ARC81']
-Radius = 3.7e-3/2  #internal radius of beam screen cooling pipe (D=3.7 mm)
+Radius = 3.7e-3/2.  #internal radius of beam screen cooling pipe (D=3.7 mm)
 rug = 1e-5         #beam screen cooling circuit roughness (10 um)
 arc_index = np.array(
       [[  5,  56],
