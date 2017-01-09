@@ -2,6 +2,7 @@ from __future__ import division
 import sys
 import os
 import re
+import time
 
 if '..' not in sys.path: sys.path.append('..')
 import LHCMeasurementTools.myfilemanager as mfm
@@ -21,8 +22,11 @@ for atd_file in atd_files:
         filln = int(info.group(1))
         this_qbs_file = h5_storage.get_qbs_file(filln)
         if not os.path.isfile(this_qbs_file):
+            time_0 = time.time()
             print('Starting calculation for fill %i.' % filln)
             atd = mfm.h5_to_obj(atd_file)
             qbs_ob = cql.compute_qbs(atd, use_dP)
             h5_storage.store_qbs(filln, qbs_ob, use_dP)
-            print('Calculation for fill %i saved.' % filln)
+            dt = time.time() - time_0
+            n_timesteps = len(qbs_ob.timestamps)
+            print('Calculation for fill %i with %i timesteps finished in %i s.' % (filln, n_timesteps, dt))

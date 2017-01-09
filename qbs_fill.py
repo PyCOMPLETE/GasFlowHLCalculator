@@ -13,8 +13,8 @@ h5_dir = h5_storage.h5_dir
 
 # Load data for one fill
 def compute_qbs_fill(filln, use_dP=True, version=version):
-    h5_file = h5_storage.get_qbs_file(filln, version)
     if use_dP:
+        h5_file = h5_storage.get_qbs_file(filln, version)
         if os.path.isfile(h5_file):
             return h5_storage.load_qbs(filln, version=version)
 

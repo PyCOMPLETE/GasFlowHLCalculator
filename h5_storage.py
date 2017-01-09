@@ -6,7 +6,7 @@ sys.path.append('..')
 import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.myfilemanager as mfm
 
-# latest version, default
+# latest, default version
 version = 3
 h5_dir = '/eos/user/l/lhcscrub/timber_data_h5/cryo_heat_load_data/'
 
