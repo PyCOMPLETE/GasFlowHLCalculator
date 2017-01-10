@@ -1,12 +1,13 @@
 import sys
 import os
-import h5py
 import numpy as np
 
 sys.path.append('..')
 import LHCMeasurementTools.myfilemanager as mfm
 import h5_storage
 from data_QBS_LHC import arc_index, arc_list
+from compute_QBS_special import compute_qbs_special
+import compute_QBS_LHC as cql
 
 version = h5_storage.version
 h5_dir = h5_storage.h5_dir
@@ -18,13 +19,16 @@ def compute_qbs_fill(filln, use_dP=True, version=version):
         if os.path.isfile(h5_file):
             return h5_storage.load_qbs(filln, version=version)
 
-    import compute_QBS_LHC as cql
     atd_ob = mfm.h5_to_obj(h5_dir + 'cryo_data_fill_%i.h5' % filln)
     qbs_ob = cql.compute_qbs(atd_ob, use_dP)
     if use_dP:
         h5_storage.store_qbs(filln, qbs_ob, use_dP, version=version)
         print('Stored h5 for fill %i.' % filln)
     return qbs_ob
+
+def special_qbs_fill(filln):
+    atd_ob = mfm.h5_to_obj(h5_dir + 'special_cells/special_data_fill_%i.h5' % filln)
+    return compute_qbs_special(atd_ob)
 
 # Compute average per ARC
 def compute_qbs_arc_avg(qbs_ob):

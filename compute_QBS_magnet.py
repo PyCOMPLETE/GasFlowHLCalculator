@@ -9,7 +9,7 @@ class QbsMagnetCalculator(object):
     def __init__(self, interp_P_T_hPT, atd, P1, m_L):
         self.P1 = P1
         self.m_L = m_L
-        self.variables = atd.variables
+        self.variables = list(atd.variables)
         self.n_tt = len(atd.timestamps)
         self.data = atd.data
         self.interp_P_T_hPT = interp_P_T_hPT

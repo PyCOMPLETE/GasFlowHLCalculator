@@ -1,5 +1,6 @@
+# Note: There are different naming conventions for the special cells.
+# For exampsle 12R4 or 13R4.
 import sys
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import interp2d
 
@@ -7,8 +8,6 @@ from Helium_properties import *
 from data_S45_details import *
 from compute_QBS_magnet import QbsMagnetCalculator
 from valve_LT import valve_LT
-from RcParams import init_pyplot
-init_pyplot()
 
 import LHCMeasurementTools.TimberManager as tm
 from LHCMeasurementTools.SetOfHomogeneousVariables import SetOfHomogeneousNumericVariables as shnv
@@ -33,10 +32,11 @@ def compute_qbs_special(atd):
 
     arr_list = [T1, T3, CV, EH, P1, P4]
     name_list = [TT961_list, TT94x_list, CV94x_list, EH84x_list, PT961_list, PT991_list]
+    varlist = list(atd.variables)
 
     for names, arr in zip(name_list, arr_list):
         for ii, var in enumerate(names):
-            index = atd.variables.index(var)
+            index = varlist.index(var)
             arr[:,ii] = atd.data[:,index]
 
     interp_P_T_hPT = interp2d(P,T,h_PT)
@@ -52,7 +52,7 @@ def compute_qbs_special(atd):
     Compute_QBS_magnet = QbsMagnetCalculator(interp_P_T_hPT, atd, P1, m_L).Compute_QBS_magnet
     qbs_special = {}
     qbs_special['timestamps'] = atd.timestamps
-    qbs_special['cells'] = ['12R4', '32R4', '13L5']
+    qbs_special['cells'] = ['13R4', '33L5', '13L5']
 
     #compute each magnet QBS
     QBS_Q1_12R4 = Compute_QBS_magnet(0,Q1_Tin_12R4,Q1_Tout_12R4)
@@ -60,12 +60,12 @@ def compute_qbs_special(atd):
     QBS_D3_12R4 = Compute_QBS_magnet(0,D3_Tin_12R4,D3_Tout_12R4)
     QBS_D4_12R4 = Compute_QBS_magnet(0,D4_Tin_12R4,D4_Tout_12R4)
     QBS_12R4_sum = QBS_Q1_12R4 + QBS_D2_12R4 + QBS_D3_12R4 + QBS_D4_12R4
-    qbs_special['12R4'] = {
+    qbs_special['13R4'] = {
             'Q1': QBS_Q1_12R4,
             'D2': QBS_D2_12R4,
             'D3': QBS_D3_12R4,
             'D4': QBS_D4_12R4,
-            'sum': QBS_12R4_sum,
+            'Sum': QBS_12R4_sum,
             'qbs': Qbs[:,0],
             }
 
@@ -74,12 +74,12 @@ def compute_qbs_special(atd):
     QBS_D3_32R4 = Compute_QBS_magnet(1,D3_Tin_32R4,D3_Tout_32R4)
     QBS_D4_32R4 = Compute_QBS_magnet(1,D4_Tin_32R4,D4_Tout_32R4)
     QBS_32R4_sum = QBS_Q1_32R4 + QBS_D2_32R4 + QBS_D3_32R4 + QBS_D4_32R4
-    qbs_special['32R4'] = {
+    qbs_special['33L5'] = {
             'Q1': QBS_Q1_32R4,
             'D2': QBS_D2_32R4,
             'D3': QBS_D3_32R4,
             'D4': QBS_D4_32R4,
-            'sum': QBS_32R4_sum,
+            'Sum': QBS_32R4_sum,
             'qbs': Qbs[:,1],
             }
 
@@ -100,13 +100,12 @@ def compute_qbs_special(atd):
 
 if __name__ == '__main__':
     import os
+    import matplotlib.pyplot as plt
     plt.close('all')
     dt_seconds = 30
     filename = os.path.dirname(os.path.abspath(__file__)) + '/TIMBER_DATA_special_5030.csv'   #Select the timber file you want to extract
-    #extract_dataAll            #extract timber data
     tv = tm.parse_timber_file(filename)
     atd = shnv(tv.keys(), tv).aligned_object(dt_seconds)
-
     qbs_special = compute_qbs_special(atd)
     tt = (qbs_special['timestamps'] - qbs_special['timestamps'][0]) / 3600.
 
