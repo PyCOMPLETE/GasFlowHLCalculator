@@ -4,7 +4,7 @@ import sys
 import os
 from h5_storage import version
 
-arc_list = ['ARC12','ARC23','ARC34','ARC45','ARC56','ARC67','ARC78','ARC81']
+arc_list = ['S12','S23','S34','S45','S56','S67','S78','S81']
 Radius = 3.7e-3/2.  #internal radius of beam screen cooling pipe (D=3.7 mm)
 rug = 1e-5         #beam screen cooling circuit roughness (10 um)
 arc_index = np.array(
@@ -44,6 +44,10 @@ class Data_qbs(object):
         self.arc_list = arc_list
         self.Radius = Radius
         self.rug = rug
+
+# Default object
+data_qbs = Data_qbs()
+
 
 ## This is how a csv file can be created from python
 
