@@ -21,18 +21,18 @@ class Data_qbs(object):
     def __init__(self, version=version):
         csv_file_name = os.path.dirname(os.path.abspath(__file__)) + '/data_qbs_lhc_%i.csv' % version
         with open(csv_file_name, 'r') as f:
-            data_qbs = {}
+            data_qbs = []
             ww = csv.reader(f, delimiter='\t')
             for ctr, row in enumerate(ww):
                 if ctr == 0:
                     first_row = row
-                    for ii, item in enumerate(first_row):
-                        data_qbs[item] = []
+                    for ii in xrange(len(first_row)):
+                        data_qbs.append([])
                 else:
                     for ii, item in enumerate(row):
-                        data_qbs[first_row[ii]].append(item)
+                        data_qbs[ii].append(item)
 
-        for key, value in data_qbs.iteritems():
+        for key, value in zip(first_row, data_qbs):
             if key != 'Sector_list': # Sector list remains a list of strings
                 try:
                     value = np.array(value, float)
