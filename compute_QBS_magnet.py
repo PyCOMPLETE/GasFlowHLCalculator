@@ -15,6 +15,10 @@ class QbsMagnetCalculator(object):
         self.interp_P_T_hPT = interp_P_T_hPT
 
     def Compute_QBS_magnet(self, n, Tin_list, Tout_list):
+        if not isinstance(Tin_list, list):
+            Tin_list = [Tin_list]
+        if not isinstance(Tout_list, list):
+            Tout_list = [Tout_list]
 
         n_tt = self.n_tt
         n_in = len(Tin_list)

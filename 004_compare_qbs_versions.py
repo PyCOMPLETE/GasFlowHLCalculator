@@ -1,3 +1,5 @@
+# OUTDATED
+
 from __future__ import division
 import sys
 import matplotlib.pyplot as plt
@@ -6,10 +8,9 @@ import h5_storage
 import qbs_fill as qf
 
 import data_QBS_LHC as dql
-import data_qbs as dq
-from data_qbs import *
+import data_qbs as dqbs
 
-dq = Data_qbs()
+dq = dqbs.data_qbs
 this_module = sys.modules[__name__]
 for key,value in dq.__dict__.iteritems():
     setattr(this_module, key, value)
