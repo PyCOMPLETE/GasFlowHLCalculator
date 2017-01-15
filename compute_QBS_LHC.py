@@ -13,13 +13,13 @@ import LHCMeasurementTools.TimberManager as tm
 from Helium_properties import P, T, D_PT, h_PT, mu_PT
 from valve_LT import valve_LT
 from Pressure_drop import Pressure_drop
-from data_qbs import Data_qbs
+from data_qbs import Data_qbs, data_qbs
 import h5_storage
 
 zeros = lambda *x: np.zeros(shape=(x), dtype=float)
-dq_latest = Data_qbs()
+dq_latest = data_qbs
 
-def compute_qbs(atd_ob, use_dP, version=h5_storage.version):
+def compute_qbs(atd_ob, use_dP, version=h5_storage.version, strict=True):
 
     if version != h5_storage.version:
         dq = Data_qbs(version)
@@ -51,7 +51,7 @@ def compute_qbs(atd_ob, use_dP, version=h5_storage.version):
     missing_variables = []
     corrected_variables = []
 
-    for ctr, arr, names, correct_zero in zip(xrange(len(arr_list)), arr_list, name_list, correct_zeros):
+    for ctr, (arr, names, correct_zero) in enumerate(zip(arr_list, name_list, correct_zeros)):
         for i in xrange(Ncell):
             try:
                 j = variables.index(names[i])
@@ -65,7 +65,8 @@ def compute_qbs(atd_ob, use_dP, version=h5_storage.version):
                     corrected_variables.append(names[i])
     if missing_variables:
         print('Missing variables:', missing_variables)
-        raise ValueError('There have been missing variables!')
+        if strict:
+            raise ValueError('There have been missing variables!')
     if corrected_variables:
         print('Corrected variables:', corrected_variables)
 
@@ -136,32 +137,3 @@ def compute_qbs(atd_ob, use_dP, version=h5_storage.version):
 
     return tm.AlignedTimberData(atd_ob.timestamps, qbs, dq.Cell_list)
 
-if __name__ == '__main__':
-    from qbs_fill import compute_qbs_arc_avg
-    show_plot = True
-    use_dP = False
-    filename = os.path.dirname(__file__) + '/TIMBER_DATA_Fill5416_LHCBEAMSCREEN_TT84x_injec.csv'
-    atd_ob = tm.parse_aligned_csv_file(filename)
-    tt = atd_ob.timestamps - atd_ob.timestamps[0]
-
-    qbs_ob = compute_qbs(atd_ob, use_dP)
-    QBS_ARC_AVG = compute_qbs_arc_avg(qbs_ob)
-
-    if show_plot:
-        plt.close('all')
-
-        tend = tt[-1]/3600.
-        plt.figure()
-        plt.subplot(2,1,1)
-        plt.plot(tt/3600,QBS_ARC_AVG)
-        plt.xlabel('time (hr)')
-        plt.ylabel('Qdbs (W)')
-        plt.title('Average beam screen heat load per ARC')
-        plt.legend(arc_list)
-        plt.subplot(2,1,2)
-        plt.plot(tt/3600,qbs_ob.data)
-        plt.xlabel('time (hr)')
-        plt.ylabel('Qdbs (W)')
-        plt.title('Beam screen heat loads over LHC')
-
-        plt.show()
