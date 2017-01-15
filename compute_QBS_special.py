@@ -9,12 +9,9 @@ from data_S45_details import *
 from compute_QBS_magnet import QbsMagnetCalculator
 from valve_LT import valve_LT
 
-import LHCMeasurementTools.TimberManager as tm
-from LHCMeasurementTools.SetOfHomogeneousVariables import SetOfHomogeneousNumericVariables as shnv
-
 zeros = lambda *x: np.zeros(shape=(x), dtype=float)
 
-def compute_qbs_special(atd):
+def mass_flow(atd):
     n_tt = len(atd.timestamps)
     n_list = len(TT94x_list)
 
@@ -50,6 +47,9 @@ def compute_qbs_special(atd):
         Qbs[:,i] = m_L[:,i]*(h3[:,i] - hC[:,i]) - Qs_list[i] - EH[:,i]
 
     Compute_QBS_magnet = QbsMagnetCalculator(interp_P_T_hPT, atd, P1, m_L).Compute_QBS_magnet
+    return Compute_QBS_magnet, Qbs
+
+def make_dict(Compute_QBS_magnet, Qbs, atd):
     qbs_special = {}
     qbs_special['timestamps'] = atd.timestamps
     qbs_special['cells'] = ['13R4', '33L5', '13L5']
@@ -60,7 +60,8 @@ def compute_qbs_special(atd):
     QBS_D3_12R4 = Compute_QBS_magnet(0,D3_Tin_12R4,D3_Tout_12R4)
     QBS_D4_12R4 = Compute_QBS_magnet(0,D4_Tin_12R4,D4_Tout_12R4)
     QBS_12R4_sum = QBS_Q1_12R4 + QBS_D2_12R4 + QBS_D3_12R4 + QBS_D4_12R4
-    qbs_special['13R4'] = {
+    # Be careful of naming conventions for cells!
+    qbs_special['13L5'] = {
             'Q1': QBS_Q1_12R4,
             'D2': QBS_D2_12R4,
             'D3': QBS_D3_12R4,
@@ -69,11 +70,13 @@ def compute_qbs_special(atd):
             'qbs': Qbs[:,0],
             }
 
+    # This is the cell with the faulty temperature sensor
     QBS_Q1_32R4 = Compute_QBS_magnet(1,Q1_Tin_32R4,Q1_Tout_32R4)
     QBS_D2_32R4 = Compute_QBS_magnet(1,D2_Tin_32R4,D2_Tout_32R4)
     QBS_D3_32R4 = Compute_QBS_magnet(1,D3_Tin_32R4,D3_Tout_32R4)
     QBS_D4_32R4 = Compute_QBS_magnet(1,D4_Tin_32R4,D4_Tout_32R4)
     QBS_32R4_sum = QBS_Q1_32R4 + QBS_D2_32R4 + QBS_D3_32R4 + QBS_D4_32R4
+    # Be careful of naming conventions for cells!
     qbs_special['33L5'] = {
             'Q1': QBS_Q1_32R4,
             'D2': QBS_D2_32R4,
@@ -83,12 +86,14 @@ def compute_qbs_special(atd):
             'qbs': Qbs[:,1],
             }
 
+    # This is the reversed cell
     QBS_Q1_13L5 = Compute_QBS_magnet(2,Q1_Tin_13L5,Q1_Tout_13L5)
     QBS_D2_13L5 = Compute_QBS_magnet(2,D2_Tin_13L5,D2_Tout_13L5)
     QBS_D3_13L5 = Compute_QBS_magnet(2,D3_Tin_13L5,D3_Tout_13L5)
     QBS_D4_13L5 = Compute_QBS_magnet(2,D4_Tin_13L5,D4_Tout_13L5)
     QBS_13L5_sum = QBS_Q1_13L5 + QBS_D2_13L5 + QBS_D3_13L5 + QBS_D4_13L5
-    qbs_special['13L5'] = {
+    # Be careful of naming conventions for cells!
+    qbs_special['13R4'] = {
             'Q1': QBS_Q1_13L5,
             'D2': QBS_D2_13L5,
             'D3': QBS_D3_13L5,
@@ -98,12 +103,78 @@ def compute_qbs_special(atd):
             }
     return qbs_special
 
+def make_dict_separate(Compute_QBS_magnet, Qbs, atd, qbs_special):
+    top, bot = 0, 1 #826 and 824 temp sensors
+
+    #compute each magnet QBS
+
+    QBS_Q1_12R4_b2 = Compute_QBS_magnet(0,Q1_Tin_12R4,Q1_Tout_12R4[top])
+    QBS_Q1_12R4_b1 = Compute_QBS_magnet(0,Q1_Tin_12R4,Q1_Tout_12R4[bot])
+    QBS_D2_12R4_b2 = Compute_QBS_magnet(0,D2_Tin_12R4[bot],D2_Tout_12R4[top])
+    QBS_D2_12R4_b1 = Compute_QBS_magnet(0,D2_Tin_12R4[top],D2_Tout_12R4[bot])
+    QBS_D3_12R4_b2 = Compute_QBS_magnet(0,D3_Tin_12R4[bot],D3_Tout_12R4[top])
+    QBS_D3_12R4_b1 = Compute_QBS_magnet(0,D3_Tin_12R4[top],D3_Tout_12R4[bot])
+
+    # Be careful of naming conventions for cells!
+    qbs_special['13L5'].update({
+            'Q1_b2': QBS_Q1_12R4_b2,
+            'Q1_b1': QBS_Q1_12R4_b1,
+            'D2_b2': QBS_D2_12R4_b2,
+            'D2_b1': QBS_D2_12R4_b1,
+            'D3_b1': QBS_D3_12R4_b1,
+            'D3_b2': QBS_D3_12R4_b2,
+            })
+
+    # This is the cell with the faulty temperature sensor
+    QBS_Q1_32R4_b2 = Compute_QBS_magnet(1,Q1_Tin_32R4,Q1_Tout_32R4[top])
+    QBS_Q1_32R4_b1 = Compute_QBS_magnet(1,Q1_Tin_32R4,Q1_Tout_32R4[bot])
+    QBS_D2_32R4_b2 = Compute_QBS_magnet(1,D2_Tin_32R4[bot],D2_Tout_32R4[top])
+    QBS_D2_32R4_b1 = Compute_QBS_magnet(1,D2_Tin_32R4[top],D2_Tout_32R4[bot])
+    QBS_D3_32R4_b1 = Compute_QBS_magnet(1,D3_Tin_32R4[top],D3_Tout_32R4)
+    # Be careful of naming conventions for cells!
+    qbs_special['33L5'].update({
+            'Q1_b1': QBS_Q1_32R4_b1,
+            'Q1_b2': QBS_Q1_32R4_b2,
+            'D2_b1': QBS_D2_32R4_b1,
+            'D2_b2': QBS_D2_32R4_b2,
+            'D3_b1': QBS_D3_32R4_b1,
+            })
+
+    # This is the reversed cell
+    QBS_D4_13L5_b1 = Compute_QBS_magnet(2,D4_Tin_13L5,D4_Tout_13L5[top])
+    QBS_D4_13L5_b2 = Compute_QBS_magnet(2,D4_Tin_13L5,D4_Tout_13L5[bot])
+    QBS_D3_13L5_b1 = Compute_QBS_magnet(2,D3_Tin_13L5[bot],D3_Tout_13L5[top])
+    QBS_D3_13L5_b2 = Compute_QBS_magnet(2,D3_Tin_13L5[top],D3_Tout_13L5[bot])
+    QBS_D2_13L5_b1 = Compute_QBS_magnet(2,D2_Tin_13L5[bot],D2_Tout_13L5[top])
+    QBS_D2_13L5_b2 = Compute_QBS_magnet(2,D2_Tin_13L5[top],D2_Tout_13L5[bot])
+    # Be careful of naming conventions for cells!
+    qbs_special['13R4'].update({
+            'D2_b1': QBS_D2_13L5_b1,
+            'D2_b2': QBS_D2_13L5_b2,
+            'D3_b1': QBS_D3_13L5_b1,
+            'D3_b2': QBS_D3_13L5_b2,
+            'D4_b1': QBS_D4_13L5_b1,
+            'D4_b2': QBS_D4_13L5_b2,
+            })
+    return qbs_special
+
+def compute_qbs_special(atd, separate=False):
+    Compute_QBS_magnet, Qbs = mass_flow(atd)
+    special_dict = make_dict(Compute_QBS_magnet, Qbs, atd)
+    if not separate:
+        return special_dict
+    else:
+        return make_dict_separate(Compute_QBS_magnet, Qbs, atd, special_dict)
+
 if __name__ == '__main__':
     import os
     import matplotlib.pyplot as plt
+    if '..' not in sys.path: sys.path.append('..')
+    import LHCMeasurementTools.TimberManager as tm
+    from LHCMeasurementTools.SetOfHomogeneousVariables import SetOfHomogeneousNumericVariables as shnv
     plt.close('all')
     dt_seconds = 30
-    filename = os.path.dirname(os.path.abspath(__file__)) + '/TIMBER_DATA_special_5030.csv'   #Select the timber file you want to extract
+    filename = os.path.dirname(os.path.abspath(__file__)) + '/TIMBER_DATA_special_5030.csv'
     tv = tm.parse_timber_file(filename)
     atd = shnv(tv.keys(), tv).aligned_object(dt_seconds)
     qbs_special = compute_qbs_special(atd)
