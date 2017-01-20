@@ -8,9 +8,11 @@ qbs_fill.py:
 - This module serves as the frontend for other scripts.
 - It only needs the fill number as input.
 - If the corrseponding data is already stored as h5 it returns it. Otherwise the computation is performed.
-- function compute_qbs_fill: Obtain all cell heat loads for a given fill as aligned data.
-- function compute_qbs_arc_avg: Takes aligned data and returns the arc averages.
-- function arc_histograms: Takes aligned data and returns the heat load at a given point in time. This can then be used for histograms.
+- Functions:
+  - compute_qbs_fill: Obtain all cell heat loads for a given fill as aligned data.
+  - compute_qbs_arc_avg: Takes aligned data and returns the arc averages as aligned data.
+  - arc_histograms: Takes recomputed cell heat loads and groups them to the arcs in form of a dictionary. This can then be used for histograms.
+  - get_fill_dict: This can be used to replace (update) the old fill dicts that are used in the 016\_ and other scripts. Currently only works for the arcs.
 
 create_csv.m:
 
@@ -40,7 +42,7 @@ compute_QBS_LHC.py, valve_LT.py, Pressure_drop.py
 
 - This not polished script can compare the results from 2 versions of csv files.
 
-data_qbs_lhc_*.csv
+data_qbs_lhc\_*.csv
 
 - Tab separated values
 - Timber variables
@@ -51,3 +53,18 @@ data_qbs_lhc_*.csv
 variable_list.txt
 
 - Used by the 001f script (not part of this module) that downloads the necessary timber data.
+
+Issues:
+
+- The naming convention of the special instrumented cells can be confusing.
+  - Notation in the original MATLAB scripts:
+    - 12R4
+    - 32R4 (broken sensor)
+    - 13L5 (reversed gas flow)
+  - Notation of the special cell timber variables:
+    - 13L5
+    - 33L5 (broken sensor)
+    - 13R4 (reversed gas flow)
+- There are duplicate cell names in the data_qbs_lhc\_\*.csv
+  - These only affect the LSS, not the arcs
+- The Quadrupoles are not yet identified, the logged data of those can not yet be replaced.
