@@ -50,9 +50,9 @@ def get_fill_dict(filln_or_obj):
     for arc_ctr, arc in enumerate(arc_list):
         key = '%s_QBS_AVG_ARC.POSST' % arc
         tvl = tm.timber_variable_list()
-        tvl.t_stamps = qbs_ob.timestamps
-        tvl.ms = np.zeros_like(qbs_ob.timestamps)
-        tvl.values = qbs_arc_avg[:,arc_ctr]
+        tvl.t_stamps = qbs_arc_avg.timestamps
+        tvl.ms = np.zeros_like(tvl.t_stamps)
+        tvl.values = qbs_arc_avg.dictionary[arc]
         output[key] = tvl
     return output
 
