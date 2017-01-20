@@ -67,4 +67,5 @@ Issues:
     - 13R4 (reversed gas flow)
 - There are duplicate cell names in the data_qbs_lhc\_\*.csv
   - These only affect the LSS, not the arcs
+  -  ['05L4_947', '05R4_947', '05L6_947', '05R6_947']
 - The Quadrupoles are not yet identified, the logged data of those can not yet be replaced.
