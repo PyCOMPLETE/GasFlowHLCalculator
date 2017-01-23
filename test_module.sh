@@ -8,3 +8,4 @@ python 005_test_qbs_lhc.py --noshow
 cd ..
 python ./027_special_instrumented_cells.py 5219 --pdsave
 python ./026_recalculate_heat_loads.py 5219 --pdsave
+python ./016_heat_load_arcs_vs_SAMs.py 5219

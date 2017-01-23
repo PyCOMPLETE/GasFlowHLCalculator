@@ -48,6 +48,20 @@ class Data_qbs(object):
 # Default object
 data_qbs = Data_qbs()
 
+def assert_arc_index(data_qbs=data_qbs):
+    arc_index_2 = np.zeros_like(arc_index)
+    j = 0 #sector number
+    Type_list = data_qbs.Type_list
+    for i in xrange(len(Type_list)):
+        if Type_list[i-1] == 'LSS' and  Type_list[i] == 'ARC':   #begining of ARC
+            arc_index_2[j,0] = i
+        elif Type_list[i-1] == 'ARC' and Type_list[i] == 'LSS':  #end of ARC
+            arc_index_2[j,1] = i-1
+            j += 1
+    assert np.all(arc_index_2 == arc_index)
+
+assert_arc_index()
+
 
 ## This is how a csv file can be created from python
 
@@ -80,11 +94,3 @@ data_qbs = Data_qbs()
 
 ## This is how the arc_index is created:
 
-#j = 0 #sector number
-#        Type_list = self.Type_list
-#        for i in xrange(len(Type_list)):
-#            if Type_list[i-1] == 'LSS' and  Type_list[i] == 'ARC':   #begining of ARC
-#                arc_index[j,0] = i
-#            elif Type_list[i-1] == 'ARC' and Type_list[i] == 'LSS':  #end of ARC
-#                arc_index[j,1] = i-1
-#                j += 1

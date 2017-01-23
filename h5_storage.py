@@ -2,7 +2,6 @@ import h5py
 import time
 import sys
 import os
-sys.path.append('..')
 import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.myfilemanager as mfm
 
@@ -16,8 +15,16 @@ def get_qbs_file(filln, version=version):
 def get_data_file(filln):
     return h5_dir + 'cryo_data_fill_%i.h5' % filln
 
+def load_data_file(filln):
+    ob =  mfm.h5_to_obj(get_data_file(filln))
+    return tm.AlignedTimberData(ob.timestamps, ob.data, ob.variables)
+
 def get_special_data_file(filln):
     return h5_dir + 'special_cells/special_data_fill_%i.h5' % filln
+
+def load_special_data_file(filln):
+    ob = mfm.h5_to_obj(get_special_data_file(filln))
+    return tm.AlignedTimberData(ob.timestamps, ob.data, ob.variables)
 
 def store_qbs(filln, qbs_ob, use_dP, version=version):
     qbs_file = get_qbs_file(filln, version)

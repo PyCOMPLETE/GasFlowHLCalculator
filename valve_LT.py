@@ -30,8 +30,6 @@ def valve_LT_single(pin,pout,rho,gamma,kv,u,R):
     #valve equation from Laurent Tavian
     #u = u-10;              #old formulation with constant pre-constraint.
     u = u-10.*(1-u/100);   #new formulation with variable pre-constraint.
-    K = 0.
-    x = 0.
 
     if pin > pout:
         x = pout/pin
