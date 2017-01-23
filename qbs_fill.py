@@ -3,7 +3,6 @@ import os
 import numpy as np
 
 if '..' not in sys.path: sys.path.append('..')
-import LHCMeasurementTools.myfilemanager as mfm
 import LHCMeasurementTools.TimberManager as tm
 import h5_storage
 from data_qbs import data_qbs, arc_index, arc_list
@@ -19,7 +18,7 @@ def compute_qbs_fill(filln, use_dP=True, version=version):
         if os.path.isfile(h5_file):
             return h5_storage.load_qbs(filln, version=version)
 
-    atd_ob = mfm.h5_to_obj(h5_storage.get_data_file(filln))
+    atd_ob = h5_storage.load_data_file(filln)
     qbs_ob = cql.compute_qbs(atd_ob, use_dP)
     if use_dP:
         h5_storage.store_qbs(filln, qbs_ob, use_dP, version=version)
@@ -28,7 +27,7 @@ def compute_qbs_fill(filln, use_dP=True, version=version):
 
 # Special cells
 def special_qbs_fill(filln):
-    atd_ob = mfm.h5_to_obj(h5_storage.get_special_data_file(filln))
+    atd_ob = h5_storage.load_special_data_file(filln)
     return compute_qbs_special(atd_ob)
 
 # Compute average per ARC
@@ -56,8 +55,10 @@ def get_fill_dict(filln_or_obj):
         output[key] = tvl
     return output
 
-# Returns data for histograms, not histograms itself!
 def lhc_histograms(qbs_ob, avg_time, avg_pm, in_hrs=True):
+    """
+    Returns data for histograms, not histograms itself!
+    """
     if in_hrs:
         qbs_tt = (qbs_ob.timestamps - qbs_ob.timestamps[0])/3600.
     else:
@@ -80,3 +81,11 @@ def lhc_histograms(qbs_ob, avg_time, avg_pm, in_hrs=True):
     lhc_hist_dict['variables'] = varlist
     return lhc_hist_dict
 
+def lhc_arcs(qbs_ob):
+    lhc_hl_dict = {}
+    for arc_ctr, arc in enumerate(arc_list):
+        first, last = arc_index[arc_ctr,:]
+        data = qbs_ob.data[:,first:last+1]
+        variables = qbs_ob.variables[first:last+1]
+        lhc_hl_dict[arc] = tm.AlignedTimberData(qbs_ob.timestamps, data, variables)
+    return lhc_hl_dict
