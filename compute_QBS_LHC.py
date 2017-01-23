@@ -131,6 +131,10 @@ def compute_qbs(atd_ob, use_dP, version=h5_storage.version, strict=True):
         m_L[:,i] = valve_LT(P3[:,i],P4[:,i],ro[:,i],gamma[:,i],Kv_list[i],CV[:,i],R_list[i])
         qbs[:,i] = m_L[:,i]*(h3[:,i]-hC[:,i])-Qs_list[i]-EH[:,i]
 
+    # Protect against P1 == 0
+    mask_0 = P1 == 0
+    qbs[mask_0] = 0
+
     n_max_iterations = np.sum(counter_int == max_iterations)
     if n_max_iterations != 0:
         print('Warning: Maximum iterations were reached %i times!' % n_max_iterations)
