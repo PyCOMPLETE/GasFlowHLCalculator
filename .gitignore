@@ -5,3 +5,5 @@
 /matlab
 *.pkl
 *.png
+LHCMeasurementTools
+.ropeproject/

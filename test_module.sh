@@ -4,6 +4,8 @@ set -e
 cd $(dirname "$0")
 
 python 005_test_qbs_lhc.py --noshow
+python valve_LT.py
+python Pressure_drop.py
 
 cd ..
 python ./027_special_instrumented_cells.py 5219 --pdsave

@@ -1,8 +1,6 @@
-import sys
 import os
 import numpy as np
 
-if '..' not in sys.path: sys.path.append('..')
 import LHCMeasurementTools.TimberManager as tm
 import h5_storage
 from data_qbs import data_qbs, arc_index, arc_list
@@ -13,17 +11,31 @@ version = h5_storage.version
 
 # Load data for one fill
 def compute_qbs_fill(filln, use_dP=True, version=version):
+    """
+    Arguments:
+        -filln
+        -use_dP = True
+        -version = h5_storage.version
+        -force_recompute = False
+    """
     if use_dP:
         h5_file = h5_storage.get_qbs_file(filln, version)
         if os.path.isfile(h5_file):
             return h5_storage.load_qbs(filln, version=version)
 
     atd_ob = h5_storage.load_data_file(filln)
-    qbs_ob = cql.compute_qbs(atd_ob, use_dP)
+    qbs_ob = cql.compute_qbs(atd_ob, use_dP, version=version)
     if use_dP:
         h5_storage.store_qbs(filln, qbs_ob, use_dP, version=version)
         print('Stored h5 for fill %i.' % filln)
     return qbs_ob
+
+def test_compute_qbs(filln, use_dP=True, version=version):
+    """
+    Never loads or saves recomputed data.
+    """
+    atd_ob = h5_storage.load_data_file(filln)
+    return cql.compute_qbs(atd_ob, use_dP, version=version)
 
 # Special cells
 def special_qbs_fill(filln):
@@ -35,7 +47,7 @@ def compute_qbs_arc_avg(qbs_ob):
     qbs_arc_avg = np.zeros((len(qbs_ob.timestamps),8), dtype=float)
     for k in xrange(8):
         first, last = arc_index[k,:]
-        qbs_arc_avg[:,k] = np.mean(qbs_ob.data[:,first:last+1], axis=1)
+        qbs_arc_avg[:,k] = np.nanmean(qbs_ob.data[:,first:last+1], axis=1)
     return tm.AlignedTimberData(qbs_ob.timestamps, qbs_arc_avg, arc_list)
 
 # plug-in replacement of old heat load procedure, the fill dict
@@ -71,8 +83,11 @@ def lhc_histograms(qbs_ob, avg_time, avg_pm, in_hrs=True):
     varlist = []
     for ctr, arc in enumerate(arc_list):
         first, last = arc_index[ctr,:]
-        varlist.extend(data_qbs.Cell_list[first:last+1])
-        arc_hist_dict[arc] = np.mean(qbs_ob.data[mask_mean,first:last+1], axis=0)
+        cell_names = data_qbs.Cell_list[first:last+1]
+        mean = np.nanmean(qbs_ob.data[mask_mean,first:last+1], axis=0)
+        mask_nan = np.logical_not(np.isnan(mean))
+        arc_hist_dict[arc] = mean[mask_nan]
+        varlist.extend(np.array(cell_names)[mask_nan])
         if ctr == 0:
             arc_hist_total = arc_hist_dict[arc]
         else:

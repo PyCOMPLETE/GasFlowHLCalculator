@@ -1,6 +1,5 @@
 import h5py
 import time
-import sys
 import os
 import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.myfilemanager as mfm
@@ -27,6 +26,13 @@ def load_special_data_file(filln):
     return tm.AlignedTimberData(ob.timestamps, ob.data, ob.variables)
 
 def store_qbs(filln, qbs_ob, use_dP, version=version):
+    """
+    Arguments:
+        -filln
+        - qbs_ob
+        - use_dP
+        - version=version
+    """
     qbs_file = get_qbs_file(filln, version)
     if not os.path.isdir(os.path.dirname(qbs_file)):
         os.mkdir(os.path.dirname(qbs_file))
