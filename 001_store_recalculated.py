@@ -4,8 +4,8 @@ import os
 import re
 import time
 import argparse
+import random
 
-if '..' not in sys.path: sys.path.append('..')
 import LHCMeasurementTools.myfilemanager as mfm
 import compute_QBS_LHC as cql
 import h5_storage
@@ -23,7 +23,8 @@ re_file = re.compile('cryo_data_fill_(\d{4}).h5')
 
 atd_files = os.listdir(h5_dir)
 if args.r:
-    atd_files = atd_files[::-1]
+    random.shuffle(atd_files)
+
 for atd_file in atd_files:
     info = re_file.search(atd_file)
     if info is not None:
