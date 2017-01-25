@@ -5,7 +5,7 @@ import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.myfilemanager as mfm
 
 # latest, default version
-version = 4
+version = 5
 h5_dir = '/eos/user/l/lhcscrub/timber_data_h5/cryo_heat_load_data/'
 
 def get_qbs_file(filln, version=version):
