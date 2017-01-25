@@ -1,14 +1,11 @@
 from __future__ import division
 import numpy as np
 
-debug = True
 
 def valve_LT_arr(pin,pout,rho, kv,u,R):
     #valve equation from Laurent Tavian
     #u = u-10;              #old formulation with constant pre-constraint.
 
-    if debug and np.any(pin == 0) or np.any(pout == 0):
-        import pdb; pdb.set_trace()
     u = u-10.*(1-u/100);   #new formulation with variable pre-constraint.
     N = len(pin)
     K = np.zeros(N);
@@ -18,9 +15,6 @@ def valve_LT_arr(pin,pout,rho, kv,u,R):
     K = np.where(x <= .42, 1, np.sqrt(9.57 * x**1.2 * (1-x**0.4)))
 
     m = np.sign(pin-pout) * K*1.25e-5*np.sqrt(rho*1e5*pin) * kv/R* np.exp(u/100*np.log(R))
-    if debug:
-        if np.any(m < 0):
-            import pdb; pdb.set_trace()
     return m
 
 def valve_LT(pin, pout, rho, kv, u, R):
@@ -45,7 +39,7 @@ def valve_LT(pin, pout, rho, kv, u, R):
     return m
 
 if __name__ == '__main__':
-    r = lambda : np.random.random(10000)
+    r = lambda : np.random.random(1000)
     n_args = 6
     function = valve_LT
     args = [ r() for i in xrange(n_args)]
