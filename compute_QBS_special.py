@@ -43,7 +43,7 @@ def mass_flow(atd):
             hC[j,i] = interp_P_T_hPT(P1[j,i],T1[j,i])
             h3[j,i] = interp_P_T_hPT(P1[j,i],T3[j,i])
             ro[j,i] = interp_P_T_DPT(P1[j,i],T3[j,i])
-        m_L[:,i] = valve_LT(P1[:,i], P4[:,i], ro[:,i], None, Kv_list[i], CV[:,i], R_list[i])
+        m_L[:,i] = valve_LT(P1[:,i], P4[:,i], ro[:,i], Kv_list[i], CV[:,i], R_list[i])
         Qbs[:,i] = m_L[:,i]*(h3[:,i] - hC[:,i]) - Qs_list[i] - EH[:,i]
 
     Compute_QBS_magnet = QbsMagnetCalculator(interp_P_T_hPT, atd, P1, m_L).Compute_QBS_magnet

@@ -15,6 +15,8 @@ if '..' not in sys.path: sys.path.append('..')
 import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.mystyle as ms
 
+trusted_version = 3
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--noshow', help='Do not call plt.show().', action='store_true')
 parser.add_argument('--ref', help='Create pickle for reference run.', action='store_true')
@@ -32,7 +34,7 @@ for use_dP in (True, False):
     else:
         dp = 'without_dP'
 
-    ref_run_file = 'reference_5416_v%i_%s.pkl' % (h5_storage.version, dp)
+    ref_run_file = 'reference_5416_v%i_%s.pkl' % (trusted_version, dp)
 
     filename = os.path.abspath(os.path.dirname(__file__)) + '/TIMBER_DATA_Fill5416_LHCBEAMSCREEN_TT84x_injec.csv'
     atd_ob = tm.parse_aligned_csv_file(filename)
