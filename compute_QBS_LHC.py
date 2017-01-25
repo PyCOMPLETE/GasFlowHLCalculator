@@ -1,4 +1,5 @@
 from __future__ import division
+import sys
 import numpy as np
 import LHCMeasurementTools.TimberManager as tm
 
@@ -147,6 +148,12 @@ class HeatLoadComputer(VarGetter):
             else:
                 m_L[:,i] = valve_LT_arr(P3[:,i],P4[:,i],ro[:,i],Kv_list[i],CV[:,i],R_list[i])
                 qbs[:,i] = m_L[:,i]*(h3[:,i]-hC[:,i])-Qs_list[i]-EH[:,i]
+                print(np.mean(m_L[:,i]))
+                print(np.mean(qbs[:,i]))
+                print(np.mean(h3[:,i]))
+                print(np.mean(ro[:,i]))
+                print(np.mean(hC[:,i]))
+                sys.exit()
 
         self.computed_values['m_L'] = m_L
         self.computed_values['qbs'] = qbs
