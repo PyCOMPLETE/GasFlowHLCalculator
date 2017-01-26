@@ -119,9 +119,8 @@ class VarGetter(object):
                 break
         else:
             raise ValueError('Cell not found!')
-        for key, dd in self.var_data_dict.iteritems():
-            name = dd['vars'][index]
-            output_dict[key] = self.atd_ob.dictionary[name]
+        for key, arr in self.data_dict.iteritems():
+            output_dict[key] = arr[:,index]
         return output_dict
 
     def _insert_to_problem_cells(self, cell_ctr, var, type_):

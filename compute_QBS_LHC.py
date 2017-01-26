@@ -1,5 +1,4 @@
 from __future__ import division, print_function
-import sys
 import numpy as np
 import LHCMeasurementTools.TimberManager as tm
 
@@ -14,9 +13,12 @@ zeros = lambda *x: np.zeros(shape=(x), dtype=float)
 max_iterations = 5
 
 class HeatLoadComputer(VarGetter):
-    __doc__ = VarGetter.__doc__ + '\t-use_dP: Improved, iterative calculation. Default: True'
 
-    def __init__(self, atd_ob, dq, strict=True, report=False, use_dP=True):
+    def __init__(self, atd_ob, version=h5_storage.version, strict=True, report=False, use_dP=True):
+        if version == h5_storage.version:
+            dq = data_qbs
+        else:
+            dq = Data_qbs(version)
         super(HeatLoadComputer,self).__init__(atd_ob, dq, strict, report=False)
 
         self.use_dP = use_dP
@@ -151,16 +153,23 @@ class HeatLoadComputer(VarGetter):
         self.computed_values['m_L'] = m_L
         self.computed_values['qbs'] = qbs
 
+    # Override
+    def get_single_cell_data(self, cell):
+        output_dict = {}
+        for index, c in enumerate(self.dq.Cell_list):
+            if cell in c:
+                break
+        else:
+            raise ValueError('Cell not found!')
+        for key, arr in self.computed_values.iteritems():
+            output_dict[key] = arr[:,index]
+        output_dict.update(super(HeatLoadComputer, self).get_single_cell_data(cell))
+
+        return output_dict
+
+
 def compute_qbs(atd_ob, use_dP, version=h5_storage.version, strict=True):
-
-    if version != h5_storage.version:
-        print((version, h5_storage.version))
-        dq = Data_qbs(version)
-    else:
-        dq = data_qbs
-
-    hl_comp = HeatLoadComputer(atd_ob, dq, strict=strict, use_dP=use_dP)
+    hl_comp = HeatLoadComputer(atd_ob, version=version, strict=strict, use_dP=use_dP)
     hl_comp.report()
-
     return hl_comp.qbs_atd
 
