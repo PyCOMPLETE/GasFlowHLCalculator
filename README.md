@@ -29,10 +29,10 @@ h5_storage.py:
 - The most recent version is defined here.
 - This module controls the read and write access to the directory where the offline recomputed heat loads are stored.
 
-compute_QBS_LHC.py, valve_LT.py, Pressure_drop.py
+compute_QBS_LHC.py, valve_LT.py, Pressure_drop.py, var_getter.py
 
 - The main calculations are performed here. 
-- These modules are translations of Benjmain Bradu's matlab scripts.
+- These modules are based on Benjmain Bradu's matlab scripts.
 
 001_store_recalculated.py
 
@@ -41,6 +41,14 @@ compute_QBS_LHC.py, valve_LT.py, Pressure_drop.py
 004_compare_qbs_versions.py
 
 - This not polished script can compare the results from 2 versions of csv files.
+
+006_get_cell_details.py
+
+- Show all the raw and computed data for a list of cells
+
+007_compare_to_older_version.py
+
+- Compare the arc averages for two versions of the computation.
 
 data_qbs_lhc\_*.csv
 
