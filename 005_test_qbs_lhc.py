@@ -11,10 +11,10 @@ from config_qbs import arc_list
 from compute_QBS_LHC import compute_qbs
 
 if '..' not in sys.path: sys.path.append('..')
-import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.mystyle as ms
 
-trusted_version = 3
+trusted_version = 5
+filln = 5219
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--noshow', help='Do not call plt.show().', action='store_true')
@@ -35,8 +35,7 @@ for use_dP in (True, False):
 
     ref_run_file = 'reference_5416_v%i_%s.pkl' % (trusted_version, dp)
 
-    filename = os.path.abspath(os.path.dirname(__file__)) + '/TIMBER_DATA_Fill5416_LHCBEAMSCREEN_TT84x_injec.csv'
-    atd_ob = tm.parse_aligned_csv_file(filename)
+    atd_ob = h5_storage.load_data_file(filln)
     tt = atd_ob.timestamps - atd_ob.timestamps[0]
 
     qbs_ob = compute_qbs(atd_ob, use_dP, strict=False)
@@ -73,7 +72,8 @@ for use_dP in (True, False):
     sp.set_title('Beam screen heat loads over LHC')
     sp.grid(True)
 
-    fig.savefig('./cell_qbs_reference_%s.png' % dp, dpi=200)
+    if reference_run:
+        fig.savefig('./cell_qbs_reference_%i_%s.png' % (trusted_version, dp), dpi=200)
 
 if not args.noshow:
     plt.show()
