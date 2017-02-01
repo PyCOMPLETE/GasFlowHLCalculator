@@ -4,7 +4,7 @@ import LHCMeasurementTools.TimberManager as tm
 
 import h5_storage
 from Helium_properties import interp_P_T_hPT, interp_P_T_DPT, interp_P_T_mu
-from valve_LT import valve_LT, valve_LT_arr
+from valve_LT import valve_LT
 from Pressure_drop import Pressure_drop
 from config_qbs import Config_qbs, config_qbs
 from var_getter import VarGetter
@@ -144,7 +144,7 @@ class HeatLoadComputer(VarGetter):
                 m_L[:,i] = np.nan
                 qbs[:,i] = np.nan
             else:
-                m_L[:,i] = valve_LT_arr(P3[:,i], P4[:,i], ro[:,i], Kv_list[i], CV[:,i], R_list[i])
+                m_L[:,i] = valve_LT(P3[:,i], P4[:,i], ro[:,i], Kv_list[i], CV[:,i], R_list[i])
                 qbs[:,i] = m_L[:,i]*(h3[:,i]-hC[:,i])-Qs_list[i]-EH[:,i]
 
         self.computed_values['m_L'] = m_L
