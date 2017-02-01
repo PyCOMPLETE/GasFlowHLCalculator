@@ -10,7 +10,7 @@ from config_qbs import Config_qbs, config_qbs
 from var_getter import VarGetter
 
 zeros = lambda *x: np.zeros(shape=(x), dtype=float)
-max_iterations = 5
+max_iterations = 5 # For pressure drop
 
 class HeatLoadComputer(VarGetter):
 
@@ -24,9 +24,10 @@ class HeatLoadComputer(VarGetter):
         self.use_dP = use_dP
 
         self.computed_values = {}
-        self._compute_H()
+        self._compute_ro()
         if self.use_dP:
             self._compute_P3()
+        self._compute_H()
         self._compute_heat_load()
         if report:
             self.report()
@@ -35,29 +36,42 @@ class HeatLoadComputer(VarGetter):
 
     def _compute_H(self):
         """
-        Computes h3, hC, ro
+        Computes h3, hC
         """
         P1 = self.data_dict['P1']
         T1 = self.data_dict['T1']
         T3 = self.data_dict['T3']
+        if self.use_dP:
+            P3 = self.computed_values['P3']
+        else:
+            P3 = P1
 
         hC = zeros(self.Nvalue, self.Ncell)
         h3 = zeros(self.Nvalue, self.Ncell)
-        ro = zeros(self.Nvalue, self.Ncell)
 
         for i, isnan in enumerate(self.nan_arr):
             if isnan:
                 hC[:,i] = np.nan
                 h3[:,i] = np.nan
-                ro[:,i] = np.nan
             else:
                 for j in xrange(self.Nvalue):
                     hC[j,i] = interp_P_T_hPT(P1[j,i],T1[j,i])
-                    h3[j,i] = interp_P_T_hPT(P1[j,i],T3[j,i])
-                    ro[j,i] = interp_P_T_DPT(P1[j,i],T3[j,i])
+                    h3[j,i] = interp_P_T_hPT(P3[j,i],T3[j,i])
 
         self.computed_values['hC'] = hC
         self.computed_values['h3'] = h3
+
+    def _compute_ro(self):
+        P1 = self.data_dict['P1']
+        T1 = self.data_dict['T1']
+        ro = zeros(self.Nvalue, self.Ncell)
+        for i, isnan in enumerate(self.nan_arr):
+            if isnan:
+                ro[:,i] = np.nan
+            else:
+                for j in xrange(self.Nvalue):
+                    ro[j,i] = interp_P_T_hPT(P1[j,i],T1[j,i])
+
         self.computed_values['ro'] = ro
 
     def _compute_P3(self):
@@ -138,7 +152,7 @@ class HeatLoadComputer(VarGetter):
             P3 = self.data_dict['P1']
 
         m_L = zeros(self.Nvalue, self.Ncell)
-        qbs     = zeros(self.Nvalue, self.Ncell)
+        qbs = zeros(self.Nvalue, self.Ncell)
         for i, isnan in enumerate(self.nan_arr):
             if isnan:
                 m_L[:,i] = np.nan
