@@ -6,7 +6,7 @@ import h5_storage
 from Helium_properties import interp_P_T_hPT, interp_P_T_DPT, interp_P_T_mu
 from valve_LT import valve_LT, valve_LT_arr
 from Pressure_drop import Pressure_drop
-from data_qbs import Data_qbs, data_qbs
+from config_qbs import Config_qbs, config_qbs
 from var_getter import VarGetter
 
 zeros = lambda *x: np.zeros(shape=(x), dtype=float)
@@ -16,10 +16,10 @@ class HeatLoadComputer(VarGetter):
 
     def __init__(self, atd_ob, version=h5_storage.version, strict=True, report=False, use_dP=True):
         if version == h5_storage.version:
-            dq = data_qbs
+            cq = config_qbs
         else:
-            dq = Data_qbs(version)
-        super(HeatLoadComputer,self).__init__(atd_ob, dq, strict, report=False)
+            cq = Config_qbs(version)
+        super(HeatLoadComputer,self).__init__(atd_ob, cq, strict, report=False)
 
         self.use_dP = use_dP
 
@@ -31,7 +31,7 @@ class HeatLoadComputer(VarGetter):
         if report:
             self.report()
 
-        self.qbs_atd = tm.AlignedTimberData(atd_ob.timestamps, self.computed_values['qbs'], dq.Cell_list)
+        self.qbs_atd = tm.AlignedTimberData(atd_ob.timestamps, self.computed_values['qbs'], cq.Cell_list)
 
     def _compute_H(self):
         """
@@ -72,19 +72,19 @@ class HeatLoadComputer(VarGetter):
         P4 = self.data_dict['P4']
         CV = self.data_dict['CV']
         ro = self.computed_values['ro']
-        dq      = self.dq
-        Radius  = dq.Radius
-        rug     = dq.rug
+        cq      = self.cq
+        Radius  = cq.Radius
+        rug     = cq.rug
 
         for i, isnan in enumerate(self.nan_arr):
             if isnan:
                 P3_arr[:,i] = np.nan
                 continue
 
-            Kv = dq.Kv_list[i]
-            R  = dq.R_list[i]
-            nc = dq.nc_list[i]
-            L  = dq.L_list[i]
+            Kv = cq.Kv_list[i]
+            R  = cq.R_list[i]
+            nc = cq.nc_list[i]
+            L  = cq.L_list[i]
 
             T_avg = (T2 + T3)/2.
 
@@ -120,9 +120,9 @@ class HeatLoadComputer(VarGetter):
 
     def _compute_heat_load(self):
 
-        Qs_list = self.dq.Qs_list
-        Kv_list = self.dq.Kv_list
-        R_list  = self.dq.R_list
+        Qs_list = self.cq.Qs_list
+        Kv_list = self.cq.Kv_list
+        R_list  = self.cq.R_list
 
         EH = self.data_dict['EH']
         P4 = self.data_dict['P4']
@@ -147,16 +147,12 @@ class HeatLoadComputer(VarGetter):
                 m_L[:,i] = valve_LT_arr(P3[:,i], P4[:,i], ro[:,i], Kv_list[i], CV[:,i], R_list[i])
                 qbs[:,i] = m_L[:,i]*(h3[:,i]-hC[:,i])-Qs_list[i]-EH[:,i]
 
-                if np.any(m_L[:,i] < 0):
-                    self._insert_to_problem_cells(i, 'm_L', 'negative')
-
         self.computed_values['m_L'] = m_L
         self.computed_values['qbs'] = qbs
 
-    # Override
     def get_single_cell_data(self, cell):
         output_dict = {}
-        for index, c in enumerate(self.dq.Cell_list):
+        for index, c in enumerate(self.cq.Cell_list):
             if cell in c:
                 break
         else:
@@ -167,9 +163,24 @@ class HeatLoadComputer(VarGetter):
 
         return output_dict
 
+    def assure(self):
+        """
+        m_L > 0
+        qbs > 0
+        """
+        super(HeatLoadComputer, self).assure()
+
+        m_L = self.computed_values['m_L']
+        qbs = self.computed_values['qbs']
+        for cell_ctr, isnan in enumerate(self.nan_arr):
+            if not isnan:
+                if np.any(m_L[:,cell_ctr] < 0):
+                    self._insert_to_problem_cells(cell_ctr, 'm_L', 'negative')
+                if np.any(qbs[:,cell_ctr] < 0):
+                    self._insert_to_problem_cells(cell_ctr, 'qbs', 'negative')
+
 
 def compute_qbs(atd_ob, use_dP, version=h5_storage.version, strict=True):
-    hl_comp = HeatLoadComputer(atd_ob, version=version, strict=strict, use_dP=use_dP)
-    hl_comp.report()
+    hl_comp = HeatLoadComputer(atd_ob, version=version, strict=strict, use_dP=use_dP, report=True)
     return hl_comp.qbs_atd
 

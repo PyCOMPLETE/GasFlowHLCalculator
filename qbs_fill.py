@@ -2,8 +2,9 @@ import os
 import numpy as np
 
 import LHCMeasurementTools.TimberManager as tm
+import LHCMeasurementTools.LHC_Heatloads as HL
 import h5_storage
-from data_qbs import data_qbs, arc_index, arc_list
+from config_qbs import config_qbs, arc_index, arc_list
 from compute_QBS_special import compute_qbs_special
 import compute_QBS_LHC as cql
 
@@ -51,21 +52,43 @@ def compute_qbs_arc_avg(qbs_ob):
     return tm.AlignedTimberData(qbs_ob.timestamps, qbs_arc_avg, arc_list)
 
 # plug-in replacement of old heat load procedure, the fill dict
-def get_fill_dict(filln_or_obj):
+def get_fill_dict(filln_or_obj, version=version):
     if isinstance(filln_or_obj, int):
-        qbs_ob = compute_qbs_fill(filln_or_obj)
+        qbs_ob = compute_qbs_fill(filln_or_obj, version=version)
     else:
         qbs_ob = filln_or_obj
     qbs_arc_avg = compute_qbs_arc_avg(qbs_ob)
-    output = {}
+
+    # Fill dict consists of timber_variable_list objects
+    def make_timber_variable_list(values):
+        tvl = tm.timber_variable_list()
+        tvl.t_stamps = qbs_ob.timestamps
+        tvl.ms = np.zeros_like(tvl.t_stamps)
+        tvl.values = values
+        return tvl
+
+    fill_dict = {}
+    # Arcs
     for arc_ctr, arc in enumerate(arc_list):
         key = '%s_QBS_AVG_ARC.POSST' % arc
-        tvl = tm.timber_variable_list()
-        tvl.t_stamps = qbs_arc_avg.timestamps
-        tvl.ms = np.zeros_like(tvl.t_stamps)
-        tvl.values = qbs_arc_avg.dictionary[arc]
-        output[key] = tvl
-    return output
+        values = qbs_arc_avg.dictionary[arc]
+        fill_dict[key] = make_timber_variable_list(values)
+
+    # Quads
+    quad_key_list = []
+    for key, list_ in HL.variable_lists_heatloads.iteritems():
+        if key[:2] in ('Q6', 'Q5'):
+            quad_key_list.extend(list_)
+
+    for ctr, cell in enumerate(qbs_ob.variables):
+        if cell[:2] in ('05', '06'):
+            cell = cell[:4]
+            for quad_key in quad_key_list:
+                if quad_key[6:10] == cell:
+                    fill_dict[quad_key] = make_timber_variable_list(qbs_ob.data[:,ctr])
+                    break
+
+    return fill_dict
 
 def lhc_histograms(qbs_ob, avg_time, avg_pm, in_hrs=True):
     """
@@ -83,7 +106,7 @@ def lhc_histograms(qbs_ob, avg_time, avg_pm, in_hrs=True):
     varlist = []
     for ctr, arc in enumerate(arc_list):
         first, last = arc_index[ctr,:]
-        cell_names = data_qbs.Cell_list[first:last+1]
+        cell_names = config_qbs.Cell_list[first:last+1]
         mean = np.nanmean(qbs_ob.data[mask_mean,first:last+1], axis=0)
         mask_nan = np.logical_not(np.isnan(mean))
         arc_hist_dict[arc] = mean[mask_nan]

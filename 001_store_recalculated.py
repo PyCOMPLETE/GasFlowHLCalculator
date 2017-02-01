@@ -7,16 +7,14 @@ import random
 
 import compute_QBS_LHC as cql
 import h5_storage
+from h5_storage import h5_dir
 
 use_dP = True
-
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='random', action='store_true')
-
 args = parser.parse_args()
 
-h5_dir = '/eos/user/l/lhcscrub/timber_data_h5/cryo_heat_load_data/'
-re_file = re.compile('cryo_data_fill_(\d{4}).h5')
+re_file = re.compile('cryo_data_fill_(\d{4,}).h5')
 
 atd_files = os.listdir(h5_dir)
 if args.r:
@@ -36,13 +34,13 @@ for atd_file in atd_files:
             while n_tries > 0:
                 try:
                     h5_storage.store_qbs(filln, qbs_ob, use_dP)
+                    break
                 except IOError:
                     n_tries -= 1
                     time.sleep(60)
-                else:
-                    break
             else:
                 raise IOError('Saving failed for fill %i!' % filln)
             dt = time.time() - time_0
             n_timesteps = len(qbs_ob.timestamps)
             print('Calculation for fill %i with %i timesteps finished in %i s.' % (filln, n_timesteps, dt))
+

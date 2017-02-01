@@ -6,17 +6,17 @@ import qbs_fill as qf
 import compute_QBS_LHC as cql
 import LHCMeasurementTools.mystyle as ms
 
-from data_qbs import data_qbs
+from config_qbs import config_qbs
 
 ms.mystyle_arial()
 
 plt.close('all')
 filln = 5219
 atd = h5_storage.load_data_file(filln)
-hlc = cql.HeatLoadComputer(atd, data_qbs, use_dP=True, report=True)
+hlc = cql.HeatLoadComputer(atd, config_qbs, use_dP=True, report=True)
 
 EH = hlc.data_dict['EH']
-print sum([np.any(EH[:,i] <= 0) for i in xrange(EH.shape[1])])
+print(sum([np.any(EH[:,i] <= 0) for i in xrange(EH.shape[1])]))
 
 
 qbs_ob = hlc.qbs_atd

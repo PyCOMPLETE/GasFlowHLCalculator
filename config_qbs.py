@@ -1,6 +1,5 @@
 import numpy as np
 import csv
-import sys
 import os
 from h5_storage import version
 
@@ -17,22 +16,22 @@ arc_index = np.array(
        [364, 415],
        [427, 478]])
 
-class Data_qbs(object):
+class Config_qbs(object):
     def __init__(self, version=version):
-        csv_file_name = os.path.dirname(os.path.abspath(__file__)) + '/data_qbs_lhc_%i.csv' % version
+        csv_file_name = os.path.dirname(os.path.abspath(__file__)) + '/config_qbs_lhc_%i.csv' % version
         with open(csv_file_name, 'r') as f:
-            data_qbs = []
+            config_qbs = []
             ww = csv.reader(f, delimiter='\t')
             for ctr, row in enumerate(ww):
                 if ctr == 0:
                     first_row = row
                     for ii in xrange(len(first_row)):
-                        data_qbs.append([])
+                        config_qbs.append([])
                 else:
                     for ii, item in enumerate(row):
-                        data_qbs[ii].append(item)
+                        config_qbs[ii].append(item)
 
-        for key, value in zip(first_row, data_qbs):
+        for key, value in zip(first_row, config_qbs):
             if key != 'Sector_list': # Sector list remains a list of strings
                 try:
                     value = np.array(value, float)
@@ -46,12 +45,12 @@ class Data_qbs(object):
         self.rug = rug
 
 # Default object
-data_qbs = Data_qbs()
+config_qbs = Config_qbs()
 
-def assert_arc_index(data_qbs=data_qbs):
+def assert_arc_index(config_qbs=config_qbs):
     arc_index_2 = np.zeros_like(arc_index)
     j = 0 #sector number
-    Type_list = data_qbs.Type_list
+    Type_list = config_qbs.Type_list
     for i in xrange(len(Type_list)):
         if Type_list[i-1] == 'LSS' and  Type_list[i] == 'ARC':   #begining of ARC
             arc_index_2[j,0] = i
@@ -69,7 +68,7 @@ assert_arc_index()
 #list_to_save = [dql.__dict__[ss] for ss in variable_list]
 
 #def save():
-#    with open('data_qbs_lhc.csv', 'w') as f:
+#    with open('config_qbs_lhc.csv', 'w') as f:
 #        ww = csv.writer(f, delimiter='\t')
 #        ww.writerow(variable_list)
 #        for items in zip(*list_to_save):

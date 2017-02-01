@@ -7,9 +7,6 @@ def valve_LT_arr(pin,pout,rho, kv,u,R):
     #u = u-10;              #old formulation with constant pre-constraint.
 
     u = u-10.*(1-u/100);   #new formulation with variable pre-constraint.
-    N = len(pin)
-    K = np.zeros(N);
-    x = np.zeros(N);
 
     x = np.where(pin > pout, pout/pin, pin/pout)
     K = np.where(x <= .42, 1, np.sqrt(9.57 * x**1.2 * (1-x**0.4)))
