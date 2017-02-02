@@ -31,8 +31,6 @@ def valve_LT(pin, pout, rho, kv, u, R):
             K = np.sqrt(A * x**B * (1.-x**C))
 
     m_dot = np.sign(pin-pout) * K*1.25e-5*np.sqrt(rho*1e5*pin) * kv/R* np.exp(u/100.*np.log(R))
-    if np.any(np.isnan(m_dot)):
-        import pdb; pdb.set_trace()
     return m_dot
 
 if __name__ == '__main__':
