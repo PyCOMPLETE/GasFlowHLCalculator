@@ -9,13 +9,12 @@ import matplotlib.pyplot as plt
 from qbs_fill import compute_qbs_arc_avg
 from data_qbs import arc_list
 from compute_QBS_LHC import compute_qbs
-import h5_storage
 
 if '..' not in sys.path: sys.path.append('..')
 import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.mystyle as ms
 
-trusted_version = 3
+trusted_version = 5
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--noshow', help='Do not call plt.show().', action='store_true')
