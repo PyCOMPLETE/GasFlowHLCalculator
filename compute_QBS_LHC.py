@@ -67,14 +67,14 @@ class HeatLoadComputer(VarGetter):
 
     def _compute_ro(self):
         P1 = self.data_dict['P1']
-        T1 = self.data_dict['T1']
+        T3 = self.data_dict['T3']
         ro = zeros(self.Nvalue, self.Ncell)
         for i, isnan in enumerate(self.nan_arr):
             if isnan:
                 ro[:,i] = np.nan
             else:
                 for j in xrange(self.Nvalue):
-                    ro[j,i] = interp_P_T_hPT(P1[j,i],T1[j,i])
+                    ro[j,i] = interp_P_T_DPT(P1[j,i],T3[j,i])
 
         self.computed_values['ro'] = ro
 
@@ -122,8 +122,6 @@ class HeatLoadComputer(VarGetter):
                     elif P3_temp != 0:
                         P3 = P3_temp
 
-                    if P3 < 0:
-                        import pdb ; pdb.set_trace()
                     m_L         = valve_LT(P3, P4[j,i], ro[j,i], Kv, CV[j,i] ,R)
                     ro_dP       = interp_P_T_DPT(P3,T_avg[j,i])[0]
                     mu          = interp_P_T_mu(P3,T_avg[j,i])[0]
