@@ -32,7 +32,7 @@ for use_dP in (True, False):
     else:
         dp = 'without_dP'
 
-    ref_run_file = 'reference_5416_v%i_%s.pkl' % (trusted_version, dp)
+    ref_run_file = 'reference_%i_v%i_%s.pkl' % (filln, trusted_version, dp)
 
     atd_ob = h5_storage.load_data_file(filln)
     tt = atd_ob.timestamps - atd_ob.timestamps[0]
@@ -49,6 +49,7 @@ for use_dP in (True, False):
         with open(ref_run_file, 'r') as f:
             qbs_ref = pickle.load(f)
         ref_arc_avg = compute_qbs_arc_avg(qbs_ref).dictionary
+        tt_ref = (qbs_ref.timestamps - qbs_ref.timestamps[0])
 
     fig = plt.figure()
     fig.canvas.set_window_title('QBS LHC reference %s' % dp)
@@ -58,7 +59,7 @@ for use_dP in (True, False):
         color = ms.colorprog(ctr, arc_list)
         sp.plot(tt/3600., qbs_arc_avg[arc], lw=2, label=arc, color=color)
         if not reference_run:
-            sp.plot(tt/3600., ref_arc_avg[arc], lw=2, color=color, ls='--')
+            sp.plot(tt_ref/3600., ref_arc_avg[arc], lw=2, color=color, ls='--')
     sp.set_xlabel('time [hr]')
     sp.set_ylabel('Qdbs [W]')
     sp.set_title('Average beam screen heat load per ARC %s' % dp)
