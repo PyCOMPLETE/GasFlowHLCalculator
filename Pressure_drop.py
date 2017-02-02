@@ -1,5 +1,7 @@
 from __future__ import division
 import numpy as np
+print 'v6'
+
 def Pressure_drop(m, D, L, mu, rho, rug):
 
     R = D/2;
