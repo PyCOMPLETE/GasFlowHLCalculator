@@ -1,23 +1,27 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
 
 import h5_storage
 import qbs_fill as qf
 import compute_QBS_LHC as cql
 import LHCMeasurementTools.mystyle as ms
 
-from config_qbs import config_qbs
-
 ms.mystyle_arial()
 
 plt.close('all')
 filln = 5219
 atd = h5_storage.load_data_file(filln)
-hlc = cql.HeatLoadComputer(atd, config_qbs, use_dP=True, report=True)
+hlc = cql.HeatLoadComputer(atd, use_dP=True, report=True)
 
 EH = hlc.data_dict['EH']
-print(sum([np.any(EH[:,i] <= 0) for i in xrange(EH.shape[1])]))
+P1 = hlc.data_dict['P1']
+P3 = hlc.computed_values['P3']
 
+dP = P1 - P3
+print(np.sum(dP))
+
+sys.exit()
 
 qbs_ob = hlc.qbs_atd
 qbs_ob_old = qf.compute_qbs_fill(filln)

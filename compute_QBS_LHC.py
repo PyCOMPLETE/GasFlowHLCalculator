@@ -48,18 +48,22 @@ class HeatLoadComputer(VarGetter):
 
         hC = zeros(self.Nvalue, self.Ncell)
         h3 = zeros(self.Nvalue, self.Ncell)
+        h3_old = zeros(self.Nvalue, self.Ncell)
 
         for i, isnan in enumerate(self.nan_arr):
             if isnan:
                 hC[:,i] = np.nan
                 h3[:,i] = np.nan
+                h3_old[:,i] = np.nan
             else:
                 for j in xrange(self.Nvalue):
-                    hC[j,i] = interp_P_T_hPT(P1[j,i],T1[j,i])
-                    h3[j,i] = interp_P_T_hPT(P3[j,i],T3[j,i])
+                    hC[j,i] = interp_P_T_hPT(P1[j,i], T1[j,i])
+                    h3[j,i] = interp_P_T_hPT(P3[j,i], T3[j,i])
+                    h3_old[j,i] = interp_P_T_hPT(P1[j,i], T3[j,i])
 
         self.computed_values['hC'] = hC
         self.computed_values['h3'] = h3
+        self.computed_values['h3_old'] = h3_old
 
     def _compute_ro(self):
         P1 = self.data_dict['P1']
@@ -79,6 +83,8 @@ class HeatLoadComputer(VarGetter):
         Iterative computation of P3.
         """
         P3_arr  = zeros(self.Nvalue, self.Ncell)
+        dP      = zeros(self.Nvalue, self.Ncell)
+        m_L_arr = zeros(self.Nvalue, self.Ncell)
 
         P1 = self.data_dict['P1']
         T2 = self.data_dict['T2']
@@ -115,11 +121,15 @@ class HeatLoadComputer(VarGetter):
                         break
                     elif P3_temp != 0:
                         P3 = P3_temp
-                    m_L = valve_LT(P3, P4[j,i], ro[j,i], Kv, CV[j,i] ,R)
-                    ro_dP = interp_P_T_DPT(P3,T_avg[j,i])[0]
-                    mu = interp_P_T_mu(P3,T_avg[j,i])[0]
-                    dP = Pressure_drop(m_L/nc,2*Radius, L, mu, ro_dP, rug)
-                    P3_temp = P1[j,i] - dP
+
+                    if P3 < 0:
+                        import pdb ; pdb.set_trace()
+                    m_L         = valve_LT(P3, P4[j,i], ro[j,i], Kv, CV[j,i] ,R)
+                    ro_dP       = interp_P_T_DPT(P3,T_avg[j,i])[0]
+                    mu          = interp_P_T_mu(P3,T_avg[j,i])[0]
+                    dP[j,i]     = Pressure_drop(m_L/nc,2*Radius, L, mu, ro_dP, rug)
+                    P3_temp     = P1[j,i] - dP[j,i]
+                    m_L_arr[j,i] = m_L
 
                 if P3 < P4[j,i]:
                     P3_arr[j,i] = P1[j,i]
@@ -131,6 +141,8 @@ class HeatLoadComputer(VarGetter):
                     self._insert_to_problem_cells(i, j, 'max_iter')
 
         self.computed_values['P3'] = P3_arr
+        self.computed_values['dP'] = dP
+        self.computed_values['m_L_arr'] = m_L_arr
 
     def _compute_heat_load(self):
 
