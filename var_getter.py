@@ -132,9 +132,9 @@ class VarGetter(object):
             problem_cells[type_][cell] = {
                 'sector': self.cq.Sector_list[cell_ctr],
                 'type': self.cq.Type_list[cell_ctr],
-                'list': []
+                'list': set(),
             }
-        problem_cells[type_][cell]['list'].append(var)
+        problem_cells[type_][cell]['list'].add(var)
 
     def assure(self):
         """
