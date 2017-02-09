@@ -2,6 +2,7 @@ import os
 import numpy as np
 
 import LHCMeasurementTools.TimberManager as tm
+import LHCMeasurementTools.LHC_Heatloads as HL
 import h5_storage
 from data_qbs import data_qbs, arc_index, arc_list
 from compute_QBS_special import compute_qbs_special
@@ -56,6 +57,8 @@ def get_fill_dict(filln_or_obj):
         qbs_ob = compute_qbs_fill(filln_or_obj)
     else:
         qbs_ob = filln_or_obj
+    
+    # arcs
     qbs_arc_avg = compute_qbs_arc_avg(qbs_ob)
     output = {}
     for arc_ctr, arc in enumerate(arc_list):
@@ -65,6 +68,27 @@ def get_fill_dict(filln_or_obj):
         tvl.ms = np.zeros_like(tvl.t_stamps)
         tvl.values = qbs_arc_avg.dictionary[arc]
         output[key] = tvl
+        
+    #others
+    varlist_tmb = [] 
+    for kk in HL.variable_lists_heatloads.keys():
+        varlist_tmb+=HL.variable_lists_heatloads[kk]
+        
+    for varname in varlist_tmb:
+        #~ print varname
+        if '_Q1.' in varname: continue
+        if '_D2.' in varname: continue
+        if '_D3.' in varname: continue
+        if '_D4.' in varname: continue
+        if '_QBS9' in varname:
+            firstp, lastp = tuple(varname.split('_QBS'))
+            kkk = firstp.split('_')[-1]+'_'+lastp.split('.')[0]
+            tvl = tm.timber_variable_list()
+            tvl.t_stamps = qbs_ob.timestamps
+            tvl.ms = np.zeros_like(tvl.t_stamps)
+            tvl.values = qbs_ob.dictionary[kkk]
+            output[varname] = tvl
+
     return output
 
 def lhc_histograms(qbs_ob, avg_time, avg_pm, in_hrs=True):
