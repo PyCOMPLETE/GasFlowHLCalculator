@@ -5,7 +5,7 @@ import LHCMeasurementTools.TimberManager as tm
 import h5_storage
 from Helium_properties import interp_P_T_hPT, interp_P_T_DPT, interp_P_T_mu
 from valve_LT import valve_LT
-from Pressure_drop import Pressure_drop
+from Pressure_drop import pd_factory
 from config_qbs import Config_qbs, config_qbs
 from var_getter import VarGetter
 
@@ -49,22 +49,22 @@ class HeatLoadComputer(VarGetter):
 
         hC = zeros(self.Nvalue, self.Ncell)
         h3 = zeros(self.Nvalue, self.Ncell)
-        h3_old = zeros(self.Nvalue, self.Ncell)
+        #h3_old = zeros(self.Nvalue, self.Ncell)
 
         for i, isnan in enumerate(self.nan_arr):
             if isnan:
                 hC[:,i] = np.nan
                 h3[:,i] = np.nan
-                h3_old[:,i] = np.nan
+                #h3_old[:,i] = np.nan
             else:
                 for j in xrange(self.Nvalue):
                     hC[j,i] = interp_P_T_hPT(P1[j,i], T1[j,i])
                     h3[j,i] = interp_P_T_hPT(P3[j,i], T3[j,i])
-                    h3_old[j,i] = interp_P_T_hPT(P1[j,i], T3[j,i])
+                    #h3_old[j,i] = interp_P_T_hPT(P1[j,i], T3[j,i])
 
         self.computed_values['hC'] = hC
         self.computed_values['h3'] = h3
-        self.computed_values['h3_old'] = h3_old
+        #self.computed_values['h3_old'] = h3_old
 
     def _compute_ro(self):
         P1 = self.data_dict['P1']
@@ -92,8 +92,7 @@ class HeatLoadComputer(VarGetter):
         CV = self.data_dict['CV']
         ro = self.computed_values['ro']
         cq      = self.cq
-        Radius  = cq.Radius
-        rug     = cq.rug
+        Pressure_drop = pd_factory(2*cq.Radius, cq.rug)
 
         for i, isnan in enumerate(self.nan_arr):
             if isnan:
@@ -124,12 +123,12 @@ class HeatLoadComputer(VarGetter):
                     m_L         = valve_LT(P3, P4[j,i], ro[j,i], Kv, CV[j,i] ,R)
                     ro_dP       = interp_P_T_DPT(P3,T_avg[j,i])[0]
                     mu          = interp_P_T_mu(P3,T_avg[j,i])[0]
-                    dP          = Pressure_drop(m_L/nc,2*Radius, L, mu, ro_dP, rug)
+                    dP          = Pressure_drop(m_L/nc, L, mu, ro_dP)
                     P3_temp     = P1[j,i] - dP
 
                 if P3 < P4[j,i]:
                     P3_arr[j,i] = P1[j,i]
-                    self._insert_to_problem_cells(i, '', 'no_convergence')
+                    self._insert_to_problem_cells(i, j, 'no_convergence')
                 else:
                     P3_arr[j,i] = P3_temp
 

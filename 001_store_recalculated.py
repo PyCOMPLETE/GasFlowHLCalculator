@@ -7,7 +7,7 @@ import random
 
 import compute_QBS_LHC as cql
 import h5_storage
-from h5_storage import h5_dir
+from h5_storage import data_dir
 
 use_dP = True
 parser = argparse.ArgumentParser()
@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 re_file = re.compile('cryo_data_fill_(\d{4,}).h5')
 
-atd_files = os.listdir(h5_dir)
+atd_files = os.listdir(data_dir)
 if args.r:
     random.shuffle(atd_files)
 

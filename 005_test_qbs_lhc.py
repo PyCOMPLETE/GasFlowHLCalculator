@@ -67,8 +67,8 @@ for use_dP in (True, False):
     sp.grid(True)
     sp = plt.subplot(2,1,2)
     sp.plot(tt/3600,qbs_ob.data)
-    sp.set_xlabel('time (hr)')
-    sp.set_ylabel('Qdbs (W)')
+    sp.set_xlabel('time [hr]')
+    sp.set_ylabel('Qdbs [W]')
     sp.set_title('Beam screen heat loads over LHC')
     sp.grid(True)
 
