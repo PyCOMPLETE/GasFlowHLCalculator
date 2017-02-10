@@ -11,7 +11,7 @@ import compute_QBS_LHC as cql
 version = h5_storage.version
 
 # Load data for one fill
-def compute_qbs_fill(filln, use_dP=True, version=version):
+def compute_qbs_fill(filln, use_dP=True, version=version, recompute_if_missing=False):
     """
     Arguments:
         -filln
@@ -23,6 +23,9 @@ def compute_qbs_fill(filln, use_dP=True, version=version):
         h5_file = h5_storage.get_qbs_file(filln, version)
         if os.path.isfile(h5_file):
             return h5_storage.load_qbs(filln, version=version)
+
+    if not recompute_if_missing:
+        raise ValueError('File does not exist. Set the recompute_if_missing flag!')
 
     atd_ob = h5_storage.load_data_file(filln)
     qbs_ob = cql.compute_qbs(atd_ob, use_dP, version=version)

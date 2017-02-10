@@ -1,9 +1,9 @@
 from __future__ import division
 import numpy as np
 
-gamma = 5./3.
 
 ### Erika Oedlund Virtual instrumentation - Samson method
+#gamma = 5./3.
 #A = 2.*gamma / (gamma-1.)
 A = 9.57
 B = 1.2
