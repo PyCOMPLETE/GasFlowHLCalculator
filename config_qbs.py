@@ -4,8 +4,8 @@ import os
 from h5_storage import version
 
 arc_list = ['S12','S23','S34','S45','S56','S67','S78','S81']
-Radius = 3.7e-3/2.  #internal radius of beam screen cooling pipe (D=3.7 mm)
-rug = 1e-5         #beam screen cooling circuit roughness (10 um)
+Radius = 3.7e-3/2.  #internal radius of beam screen cooling pipe
+rug = 1e-5         #beam screen cooling circuit roughness
 arc_index = np.array(
       [[  5,  56],
        [ 68, 119],
@@ -21,8 +21,8 @@ class Config_qbs(object):
         csv_file_name = os.path.dirname(os.path.abspath(__file__)) + '/config_qbs_lhc_%i.csv' % version
         with open(csv_file_name, 'r') as f:
             config_qbs = []
-            ww = csv.reader(f, delimiter='\t')
-            for ctr, row in enumerate(ww):
+            tsv = csv.reader(f, delimiter='\t')
+            for ctr, row in enumerate(tsv):
                 if ctr == 0:
                     first_row = row
                     for ii in xrange(len(first_row)):
