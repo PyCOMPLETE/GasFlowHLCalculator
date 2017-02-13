@@ -13,9 +13,9 @@ ms.mystyle_arial()
 plt.close('all')
 filln = 5219
 atd = h5_storage.load_data_file(filln)
-hlc = cql.HeatLoadComputer(atd, use_dP=True, report=True)
-#with open('hlc_%i.pkl' % filln) as f:
-#    hlc = pickle.load(f)
+#hlc = cql.HeatLoadComputer(atd, use_dP=True, report=True)
+with open('hlc_%i.pkl' % filln) as f:
+    hlc = pickle.load(f)
 
 EH = hlc.data_dict['EH']
 P1 = hlc.data_dict['P1']
