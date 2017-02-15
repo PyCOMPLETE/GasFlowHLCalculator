@@ -57,7 +57,7 @@ def get_fill_dict(filln_or_obj):
         qbs_ob = compute_qbs_fill(filln_or_obj)
     else:
         qbs_ob = filln_or_obj
-    
+
     # arcs
     qbs_arc_avg = compute_qbs_arc_avg(qbs_ob)
     output = {}
@@ -68,13 +68,13 @@ def get_fill_dict(filln_or_obj):
         tvl.ms = np.zeros_like(tvl.t_stamps)
         tvl.values = qbs_arc_avg.dictionary[arc]
         output[key] = tvl
-        
+
     #others
-    varlist_tmb = [] 
+    varlist_tmb = []
     for kk in HL.variable_lists_heatloads.keys():
         varlist_tmb+=HL.variable_lists_heatloads[kk]
     varlist_tmb+=HL.arcs_varnames_static
-        
+
     for varname in varlist_tmb:
         #print varname
         if '_Q1.' in varname: continue # recalc special cells not saved for now
