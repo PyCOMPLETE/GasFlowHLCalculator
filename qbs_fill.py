@@ -5,24 +5,27 @@ import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.LHC_Heatloads as HL
 import h5_storage
 from config_qbs import config_qbs, arc_index, arc_list
-from compute_QBS_special import compute_qbs_special
+from compute_QBS_special import compute_qbs_special, cell_list
 import compute_QBS_LHC as cql
 
 version = h5_storage.version
 
 # Load data for one fill
-def compute_qbs_fill(filln, use_dP=True, version=version):
+def compute_qbs_fill(filln, use_dP=True, version=version, recompute_if_missing=False):
     """
     Arguments:
         -filln
         -use_dP = True
         -version = h5_storage.version
-        -force_recompute = False
+        -recompute_if_missing = False
     """
     if use_dP:
         h5_file = h5_storage.get_qbs_file(filln, version)
         if os.path.isfile(h5_file):
             return h5_storage.load_qbs(filln, version=version)
+
+    if not recompute_if_missing:
+        raise ValueError('Set the correct flag if you want to recompute!')
 
     atd_ob = h5_storage.load_data_file(filln)
     qbs_ob = cql.compute_qbs(atd_ob, use_dP, version=version)
@@ -42,6 +45,33 @@ def test_compute_qbs(filln, use_dP=True, version=version):
 def special_qbs_fill(filln):
     atd_ob = h5_storage.load_special_data_file(filln)
     return compute_qbs_special(atd_ob)
+
+def dict_to_aligned(dict_):
+    timestamps = dict_['timestamps']
+    variables = []
+    data = []
+    for cell in dict_['cells']:
+        dd = dict_[cell]
+        for key, arr in dd.iteritems():
+            main_key = cell + '_' + key
+            variables.append(main_key)
+            data.append(arr)
+
+    data_arr = np.array(data).T
+    return tm.AlignedTimberData(timestamps, data_arr, np.array(variables))
+
+def aligned_to_dict(qbs_ob):
+    output = {}
+    output['timestamps'] = qbs_ob.timestamps
+    output['cells'] = cell_list
+    for cell in cell_list:
+        dd = {}
+        output[cell] = dd
+        for key in qbs_ob.variables:
+            if cell in key:
+                subkey = key.split(cell+'_')[1]
+                dd[subkey] = qbs_ob.dictionary[key]
+    return output
 
 # Compute average per ARC
 def compute_qbs_arc_avg(qbs_ob):
