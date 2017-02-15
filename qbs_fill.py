@@ -4,7 +4,7 @@ import numpy as np
 import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.LHC_Heatloads as HL
 import h5_storage
-from data_qbs import data_qbs, arc_index, arc_list
+from config_qbs import config_qbs, arc_index, arc_list
 from compute_QBS_special import compute_qbs_special
 import compute_QBS_LHC as cql
 
@@ -115,7 +115,7 @@ def lhc_histograms(qbs_ob, avg_time, avg_pm, in_hrs=True):
     varlist = []
     for ctr, arc in enumerate(arc_list):
         first, last = arc_index[ctr,:]
-        cell_names = data_qbs.Cell_list[first:last+1]
+        cell_names = config_qbs.Cell_list[first:last+1]
         mean = np.nanmean(qbs_ob.data[mask_mean,first:last+1], axis=0)
         mask_nan = np.logical_not(np.isnan(mean))
         arc_hist_dict[arc] = mean[mask_nan]
