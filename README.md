@@ -32,7 +32,7 @@ h5_storage.py:
 compute_QBS_LHC.py, valve_LT.py, Pressure_drop.py, var_getter.py
 
 - The main calculations are performed here. 
-- These modules are based on Benjmain Bradu's matlab scripts.
+- These modules are based on matlab scripts from the cryo team.
 
 001_store_recalculated.py
 

@@ -7,9 +7,16 @@ def calc_fl(Re):
 def calc_fr(D, rug):
     return 1./((2.*np.log(D/(2*rug))+1.74))**2
 
+def calc_re(D, m, mu):
+    R = D/2.
+    S = np.pi*R**2
+    G = m/S;
+    Re = D*G/mu
+    return Re
+
 def pd_factory(D, rug):
     fr = calc_fr(D,rug)
-    R = D/2;
+    R = D/2.
     S = np.pi*R**2
     def Pressure_drop(m, L, mu, rho):
         G = m/S;
@@ -22,14 +29,14 @@ def pd_factory(D, rug):
 
 if __name__ == '__main__':
     import argparse
-    import matplotlib.pyplot as plt
     from config_qbs import config_qbs
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-o', type=str, help='Path where to save the figure', default=None)
+    parser.add_argument('--noshow', help='Do not make a plot', action='store_true')
     arguments = parser.parse_args()
 
-    r = lambda : np.random.random(100)*1e6
+    r = lambda : 1e6**np.random.random(100)
     n_args = 6
     def function(*args):
         return pd_factory(*args[:2])(*args[2:])
@@ -40,38 +47,39 @@ if __name__ == '__main__':
         single[ctr] = function(*arg)
     assert np.all(single == function(*args))
 
-    ln_Re = np.linspace(np.log(1e3), np.log(1e7), num=1000)
-    Re = np.exp(ln_Re)
-    fl = calc_fl(Re)
+    if not arguments.noshow:
+        import matplotlib.pyplot as plt
+        plt.close('all')
 
-    try:
-        from RcParams import init_pyplot
-        init_pyplot()
-    except ImportError:
-        ticksize = 18
-        plt.rcParams['font.size'] = ticksize
-        plt.rcParams['ytick.labelsize'] = ticksize
-        plt.rcParams['xtick.labelsize'] = ticksize
+        ln_Re = np.linspace(np.log(1e3), np.log(1e7), num=1000)
+        Re = np.exp(ln_Re)
+        fl = calc_fl(Re)
 
-    plt.close('all')
+        try:
+            from RcParams import init_pyplot
+            init_pyplot()
+        except ImportError:
+            ticksize = 18
+            plt.rcParams['font.size'] = ticksize
+            plt.rcParams['ytick.labelsize'] = ticksize
+            plt.rcParams['xtick.labelsize'] = ticksize
 
-    fig = plt.figure()
-    fig.set_facecolor('w')
+        fig = plt.figure()
+        fig.set_facecolor('w')
 
-    sp = plt.subplot(1,1,1)
-    sp.plot(Re, fl, lw=2)
-    #plt.title("Friction factor depending on Reynold's number")
-    sp.grid(True)
-    sp.set_ylabel('fl', fontsize=18)
-    sp.set_xlabel('Re', fontsize=18)
-    sp.set_xscale('log')
-    for xx in [3e3, 1e5]:
-        sp.axvline(xx, color='black', lw=2)
-    fr = calc_fr(config_qbs.Radius, config_qbs.rug)
-    sp.axhline(fr, color='black', lw=2)
+        sp = plt.subplot(1,1,1)
+        sp.plot(Re, fl, lw=2)
+        sp.grid(True)
+        sp.set_ylabel('fl', fontsize=18)
+        sp.set_xlabel('Re', fontsize=18)
+        sp.set_xscale('log')
+        for xx in [3e3, 1e5]:
+            sp.axvline(xx, color='black', lw=2)
+        fr = calc_fr(config_qbs.Radius, config_qbs.rug)
+        sp.axhline(fr, color='black', lw=2)
 
-    if arguments.o is None:
-        plt.show()
-    else:
-        fig.savefig(arguments.o, dpi=200)
+        if arguments.o is None:
+            plt.show()
+        else:
+            fig.savefig(arguments.o, dpi=200)
 

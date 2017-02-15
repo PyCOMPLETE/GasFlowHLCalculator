@@ -5,12 +5,14 @@ import LHCMeasurementTools.TimberManager as tm
 import h5_storage
 from Helium_properties import interp_P_T_hPT, interp_P_T_DPT, interp_P_T_mu
 from valve_LT import valve_LT
-from Pressure_drop import pd_factory
+from Pressure_drop import pd_factory, calc_re
 from config_qbs import Config_qbs, config_qbs
 from var_getter import VarGetter
 
 zeros = lambda *x: np.zeros(shape=(x), dtype=float)
 max_iterations = 5 # For pressure drop
+
+compute_Re = True
 
 class HeatLoadComputer(VarGetter):
 
@@ -29,6 +31,8 @@ class HeatLoadComputer(VarGetter):
             self._compute_P3()
         self._compute_H()
         self._compute_heat_load()
+        if compute_Re:
+            self._compute_Re()
         self.assure()
         if report:
             self.report()
@@ -78,6 +82,22 @@ class HeatLoadComputer(VarGetter):
                     ro[j,i] = interp_P_T_DPT(P1[j,i],T3[j,i])
 
         self.computed_values['ro'] = ro
+
+    def _compute_Re(self):
+        m_L = self.computed_values['m_L']
+        D   = 2*self.cq.Radius
+        T_avg = (self.data_dict['T2'] + self.data_dict['T3'])/2.
+        if self.use_dP:
+            P3 = self.computed_values['P3']
+        else:
+            P3 = self.data_dict['P1']
+
+        mu = np.zeros_like(m_L)
+        for i in xrange(self.Ncell):
+            for j in xrange(self.Nvalue):
+                mu[j,i] = interp_P_T_mu(P3[j,i], T_avg[j,i])
+
+        self.computed_values['Re'] = calc_re(D, m_L, mu)
 
     def _compute_P3(self):
         """
