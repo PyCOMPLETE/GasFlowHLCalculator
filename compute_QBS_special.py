@@ -11,6 +11,8 @@ from valve_LT import valve_LT
 
 zeros = lambda *x: np.zeros(shape=(x), dtype=float)
 
+cell_list = ['13R4', '33L5', '13L5']
+
 def mass_flow(atd):
     n_tt = len(atd.timestamps)
     n_list = len(TT94x_list)
@@ -52,7 +54,7 @@ def mass_flow(atd):
 def make_dict(Compute_QBS_magnet, Qbs, atd):
     qbs_special = {}
     qbs_special['timestamps'] = atd.timestamps
-    qbs_special['cells'] = ['13R4', '33L5', '13L5']
+    qbs_special['cells'] = cell_list
 
     #compute each magnet QBS
     QBS_Q1_12R4 = Compute_QBS_magnet(0,Q1_Tin_12R4,Q1_Tout_12R4)
@@ -165,6 +167,7 @@ def compute_qbs_special(atd, separate=False):
         return special_dict
     else:
         return make_dict_separate(Compute_QBS_magnet, Qbs, atd, special_dict)
+
 
 if __name__ == '__main__':
     import os
