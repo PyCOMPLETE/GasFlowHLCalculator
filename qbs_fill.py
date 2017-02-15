@@ -74,20 +74,28 @@ def get_fill_dict(filln_or_obj):
     for kk in HL.variable_lists_heatloads.keys():
         varlist_tmb+=HL.variable_lists_heatloads[kk]
 
+    varlist_tmb+=HL.arcs_varnames_static
+
     for varname in varlist_tmb:
-        #~ print varname
-        if '_Q1.' in varname: continue
-        if '_D2.' in varname: continue
-        if '_D3.' in varname: continue
-        if '_D4.' in varname: continue
+        #print varname
+        if '_Q1.' in varname: continue # recalc special cells not saved for now
+        if '_D2.' in varname: continue # recalc special cells not saved for now
+        if '_D3.' in varname: continue # recalc special cells not saved for now
+        if '_D4.' in varname: continue # recalc special cells not saved for now
         if '_QBS9' in varname:
             firstp, lastp = tuple(varname.split('_QBS'))
             kkk = firstp.split('_')[-1]+'_'+lastp.split('.')[0]
             tvl = tm.timber_variable_list()
             tvl.t_stamps = qbs_ob.timestamps
             tvl.ms = np.zeros_like(tvl.t_stamps)
-            tvl.values = qbs_ob.dictionary[kkk]
+            try:
+                tvl.values = qbs_ob.dictionary[kkk]
+            except KeyError as err:
+                print 'Skipped %s! Got:'%kkk
+                print err
+                tvl.values =np.zeros_like(tvl.t_stamps)
             output[varname] = tvl
+
 
     return output
 
