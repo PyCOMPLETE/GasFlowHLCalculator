@@ -10,6 +10,12 @@ from Helium_properties import interp_P_T_hPT, interp_P_T_DPT, interp_P_T_mu
 
 import LHCMeasurementTools.mystyle as ms
 
+try:
+    from RcParams import init_pyplot
+    init_pyplot(labelsize=22)
+except ImportError:
+    pass
+
 plt.close('all')
 ms.mystyle()
 
@@ -20,6 +26,16 @@ def timer(n):
 filln = 5219
 interp_P_T_gamma = interp2d(hp.P, hp.T, hp.gamma_PT)
 t_arr = np.arange(4,50,0.5)
+
+with open('hlc_%i.pkl' % filln) as f:
+    hlc = pickle.load(f)
+
+gamma = np.zeros_like(hlc.computed_values['m_L'])
+P3 = hlc.computed_values['P3']
+T3 = hlc.data_dict['T3']
+for j in xrange(hlc.Nvalue):
+    for i in xrange(hlc.Ncell):
+        gamma[j,i] = interp_P_T_gamma(P3[j,i], T3[j,i])
 
 fig = ms.figure('Interpolated Data')
 
@@ -48,12 +64,11 @@ for ctr, (interp, title) in enumerate(zip(interps, titles)):
     if sp_ctr == 4:
         sp.legend(bbox_to_anchor=(1.2,1))
 
-with open('hlc_%i.pkl' % filln) as f:
-    hlc = pickle.load(f)
 
 combined_dict = hlc.data_dict.copy()
 combined_dict.update(hlc.computed_values)
 combined_dict['Pressure_ratio'] = combined_dict['P4'] / combined_dict['P3']
+combined_dict['gamma'] = gamma
 
 
 tt = hlc.atd_ob.timestamps
@@ -74,6 +89,8 @@ for cc in (1,2):
 
         if key == 'T2':
             data2 = data2[data2 < 30]
+        elif key == 'gamma':
+            data2 = data2[data2 < 3]
 
         if key in hlc.data_dict:
             affix = '(data)'
@@ -90,37 +107,19 @@ for cc in (1,2):
 
         sp.set_title(key + ' ' + affix)
         sp.set_xlabel(key)
-        sp.set_ylabel('Frequency')
+        #sp.set_ylabel('Frequency')
+        sp.set_yticklabels([])
         sp.grid(True)
 
-        sp.hist(data2[data2 != 0], normed=True, label=label)
+        if key == 'gamma':
+            sp.axvline(5./3., color='red')
 
-        if cc == 2 and sp_ctr == 2:
-            sp.legend(bbox_to_anchor=(1.1,1))
+        sp.hist(data2[data2 != 0], normed=True, label=label, alpha=0.5)
 
-#
-#def A(x, gamma):
-#    limit = (2/(gamma+1))**(gamma/(gamma-1))
-#    a = 2*gamma/(gamma-1)
-#    b = 2/gamma
-#    c = (gamma-1) / gamma
-#
-#    A = 1.379 * np.sqrt(a*x**b * (1-x**c))
-#    return np.where(x < limit, 1, A)
-#
-#fig = ms.figure('Samson A function')
-#sp = plt.subplot(2,2,1)
-#sp.set_title('A')
-#sp.set_xlabel('Pressure ratio')
-#sp.grid(True)
-#
-#gamma_arr = np.arange(1.5, 2.2, 0.1)
-#xx_arr = np.arange(0.2, 0.61, 0.01)
-#
-#for ctr, gamma in enumerate(gamma_arr):
-#    sp.plot(xx_arr, A(xx_arr, gamma), lw=2, label=gamma, color=ms.colorprog(ctr, gamma_arr))
-#sp.plot(xx_arr, A(xx_arr, 5./3.), lw=2, label='5/3', color='black')
-#sp.legend(bbox_to_anchor=(1.2,1))
-#
+        if cc == 2:
+            sp.legend(loc=1)
+
+
+
 
 plt.show()
