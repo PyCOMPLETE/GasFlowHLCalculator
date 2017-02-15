@@ -17,6 +17,12 @@ recompute=True
 savefig=True
 figs = []
 
+try:
+    from RcParams import init_pyplot
+    init_pyplot(labelsize=22)
+except ImportError:
+    pass
+
 plt.close('all')
 ms.mystyle()
 
@@ -28,7 +34,21 @@ filln = 5219
 interp_P_T_gamma = interp2d(hp.P, hp.T, hp.gamma_PT)
 t_arr = np.arange(4,50,0.5)
 
+<<<<<<< HEAD
 fig = ms.figure('Interpolated Data', figs)
+=======
+with open('hlc_%i.pkl' % filln) as f:
+    hlc = pickle.load(f)
+
+gamma = np.zeros_like(hlc.computed_values['m_L'])
+P3 = hlc.computed_values['P3']
+T3 = hlc.data_dict['T3']
+for j in xrange(hlc.Nvalue):
+    for i in xrange(hlc.Ncell):
+        gamma[j,i] = interp_P_T_gamma(P3[j,i], T3[j,i])
+
+fig = ms.figure('Interpolated Data')
+>>>>>>> 38e0b3421bc898dcb0d934733775da8857fcfc8b
 
 
 interps = (interp_P_T_hPT, interp_P_T_DPT, interp_P_T_mu, interp_P_T_gamma)
@@ -55,16 +75,20 @@ for ctr, (interp, title) in enumerate(zip(interps, titles)):
     if sp_ctr == 4:
         sp.legend(loc=1)
 
+<<<<<<< HEAD
 if recompute:
     atd = h5_storage.load_data_file(filln)
     hlc = qbl.HeatLoadComputer(atd)
 else:
     with open('hlc_%i.pkl' % filln) as f:
         hlc = pickle.load(f)
+=======
+>>>>>>> 38e0b3421bc898dcb0d934733775da8857fcfc8b
 
 combined_dict = hlc.data_dict.copy()
 combined_dict.update(hlc.computed_values)
 combined_dict['Pressure_ratio'] = combined_dict['P4'] / combined_dict['P3']
+combined_dict['gamma'] = gamma
 
 tt = hlc.atd_ob.timestamps
 index_tt = np.argmin(np.abs(tt - tt[0] - 3600*2))
@@ -84,6 +108,8 @@ for cc in (1,2):
 
         if key == 'T2':
             data2 = data2[data2 < 30]
+        elif key == 'gamma':
+            data2 = data2[data2 < 3]
 
         if key in hlc.data_dict:
             affix = '(data)'
@@ -100,6 +126,7 @@ for cc in (1,2):
 
         sp.set_title(key + ' ' + affix)
         sp.set_xlabel(key)
+<<<<<<< HEAD
         sp.set_yticklabels([])
         sp.grid(True)
 
@@ -111,5 +138,21 @@ for cc in (1,2):
 if savefig:
     for fig in figs:
         sf.pdijksta(fig)
+=======
+        #sp.set_ylabel('Frequency')
+        sp.set_yticklabels([])
+        sp.grid(True)
+
+        if key == 'gamma':
+            sp.axvline(5./3., color='red')
+
+        sp.hist(data2[data2 != 0], normed=True, label=label, alpha=0.5)
+
+        if cc == 2:
+            sp.legend(loc=1)
+
+
+
+>>>>>>> 38e0b3421bc898dcb0d934733775da8857fcfc8b
 
 plt.show()

@@ -68,18 +68,21 @@ if __name__ == '__main__':
         fig.set_facecolor('w')
 
         sp = plt.subplot(1,1,1)
-        sp.plot(Re, fl, lw=2)
+        sp.plot(Re, fl, lw=2, label='f_L')
         sp.grid(True)
         sp.set_ylabel('fl', fontsize=18)
         sp.set_xlabel('Re', fontsize=18)
         sp.set_xscale('log')
         for xx in [3e3, 1e5]:
             sp.axvline(xx, color='black', lw=2)
+        for xx in [4.89e3, 4.389e5]:
+            sp.axvline(xx, color='red', lw=1)
         fr = calc_fr(config_qbs.Radius, config_qbs.rug)
         sp.axhline(fr, color='black', lw=2)
+
+        sp.legend(loc=1)
 
         if arguments.o is None:
             plt.show()
         else:
             fig.savefig(arguments.o, dpi=200)
-
