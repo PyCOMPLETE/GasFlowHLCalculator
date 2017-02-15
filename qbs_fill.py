@@ -42,9 +42,20 @@ def test_compute_qbs(filln, use_dP=True, version=version):
     return cql.compute_qbs(atd_ob, use_dP, version=version)
 
 # Special cells
-def special_qbs_fill(filln):
-    atd_ob = h5_storage.load_special_data_file(filln)
-    return compute_qbs_special(atd_ob)
+def special_qbs_fill(filln, recompute_if_missing=False):
+    h5_file = h5_storage.get_special_qbs_file(filln)
+
+    if os.path.isfile(h5_file):
+        qbs_ob = h5_storage.load_special_qbs(filln)
+        return aligned_to_dict(qbs_ob)
+    elif recompute_if_missing:
+        atd_ob = h5_storage.load_special_data_file(filln)
+        qbs_dict = compute_qbs_special(atd_ob)
+        h5_storage.store_special_qbs(dict_to_aligned(qbs_dict))
+        print('Stored h5 for fill %i.' % filln)
+        return qbs_dict
+    else:
+        raise ValueError('Set the correct flag if you want to recompute!')
 
 def dict_to_aligned(dict_):
     timestamps = dict_['timestamps']
@@ -125,8 +136,6 @@ def get_fill_dict(filln_or_obj):
                 print err
                 tvl.values =np.zeros_like(tvl.t_stamps)
             output[varname] = tvl
-
-
     return output
 
 def lhc_histograms(qbs_ob, avg_time, avg_pm, in_hrs=True):
