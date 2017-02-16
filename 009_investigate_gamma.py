@@ -13,8 +13,8 @@ import h5_storage
 import LHCMeasurementTools.mystyle as ms
 import LHCMeasurementTools.savefig as sf
 
-recompute=True
-savefig=True
+recompute=False
+savefig=False
 figs = []
 
 try:
@@ -34,9 +34,6 @@ filln = 5219
 interp_P_T_gamma = interp2d(hp.P, hp.T, hp.gamma_PT)
 t_arr = np.arange(4,50,0.5)
 
-<<<<<<< HEAD
-fig = ms.figure('Interpolated Data', figs)
-=======
 with open('hlc_%i.pkl' % filln) as f:
     hlc = pickle.load(f)
 
@@ -48,7 +45,6 @@ for j in xrange(hlc.Nvalue):
         gamma[j,i] = interp_P_T_gamma(P3[j,i], T3[j,i])
 
 fig = ms.figure('Interpolated Data')
->>>>>>> 38e0b3421bc898dcb0d934733775da8857fcfc8b
 
 
 interps = (interp_P_T_hPT, interp_P_T_DPT, interp_P_T_mu, interp_P_T_gamma)
@@ -75,15 +71,12 @@ for ctr, (interp, title) in enumerate(zip(interps, titles)):
     if sp_ctr == 4:
         sp.legend(loc=1)
 
-<<<<<<< HEAD
 if recompute:
     atd = h5_storage.load_data_file(filln)
     hlc = qbl.HeatLoadComputer(atd)
 else:
     with open('hlc_%i.pkl' % filln) as f:
         hlc = pickle.load(f)
-=======
->>>>>>> 38e0b3421bc898dcb0d934733775da8857fcfc8b
 
 combined_dict = hlc.data_dict.copy()
 combined_dict.update(hlc.computed_values)
@@ -126,7 +119,6 @@ for cc in (1,2):
 
         sp.set_title(key + ' ' + affix)
         sp.set_xlabel(key)
-<<<<<<< HEAD
         sp.set_yticklabels([])
         sp.grid(True)
 
@@ -138,21 +130,5 @@ for cc in (1,2):
 if savefig:
     for fig in figs:
         sf.pdijksta(fig)
-=======
-        #sp.set_ylabel('Frequency')
-        sp.set_yticklabels([])
-        sp.grid(True)
-
-        if key == 'gamma':
-            sp.axvline(5./3., color='red')
-
-        sp.hist(data2[data2 != 0], normed=True, label=label, alpha=0.5)
-
-        if cc == 2:
-            sp.legend(loc=1)
-
-
-
->>>>>>> 38e0b3421bc898dcb0d934733775da8857fcfc8b
 
 plt.show()
