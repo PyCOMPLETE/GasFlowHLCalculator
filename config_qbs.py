@@ -16,9 +16,19 @@ arc_index = np.array(
        [364, 415],
        [427, 478]])
 
+latest_config_file_version=3
+def get_config_file(version):
+    if version in (1,2):
+        return '/config_qbs_lhc_%i.csv' % version
+    elif version > 2:
+        return '/config_qbs_lhc_%i.csv' % 3
+    else:
+        raise ValueError('Config file not defined!')
+
+
 class Config_qbs(object):
     def __init__(self, version=version):
-        csv_file_name = os.path.dirname(os.path.abspath(__file__)) + '/config_qbs_lhc_%i.csv' % version
+        csv_file_name = os.path.dirname(os.path.abspath(__file__)) + get_config_file(version)
         with open(csv_file_name, 'r') as f:
             config_qbs = []
             tsv = csv.reader(f, delimiter='\t')
