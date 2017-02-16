@@ -19,19 +19,17 @@ def compute_qbs_fill(filln, use_dP=True, version=version, recompute_if_missing=F
         -version = h5_storage.version
         -recompute_if_missing = False
     """
-    if use_dP:
-        h5_file = h5_storage.get_qbs_file(filln, version)
-        if os.path.isfile(h5_file):
-            return h5_storage.load_qbs(filln, version=version)
+    h5_file = h5_storage.get_qbs_file(filln, version, use_dP=use_dP)
+    if os.path.isfile(h5_file):
+        return h5_storage.load_qbs(filln, version=version)
 
     if not recompute_if_missing:
         raise ValueError('Set the correct flag if you want to recompute!')
 
     atd_ob = h5_storage.load_data_file(filln)
     qbs_ob = cql.compute_qbs(atd_ob, use_dP, version=version)
-    if use_dP:
-        h5_storage.store_qbs(filln, qbs_ob, use_dP, version=version)
-        print('Stored h5 for fill %i.' % filln)
+    h5_storage.store_qbs(filln, qbs_ob, use_dP, version=version)
+    print('Stored h5 for fill %i.' % filln)
     return qbs_ob
 
 def test_compute_qbs(filln, use_dP=True, version=version):
@@ -56,6 +54,10 @@ def special_qbs_fill(filln, recompute_if_missing=False):
         return qbs_dict
     else:
         raise ValueError('Set the correct flag if you want to recompute!')
+
+def special_qbs_fill_aligned(filln, recompute_if_missing=False):
+    qbs_dict = special_qbs_fill(filln, recompute_if_missing)
+    return dict_to_aligned(qbs_dict)
 
 def dict_to_aligned(dict_):
     timestamps = dict_['timestamps']

@@ -9,7 +9,6 @@ import compute_QBS_LHC as cql
 import h5_storage
 from h5_storage import data_dir
 
-use_dP = True
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='random', action='store_true')
 args = parser.parse_args()
@@ -24,23 +23,24 @@ for atd_file in atd_files:
     info = re_file.search(atd_file)
     if info is not None:
         filln = int(info.group(1))
-        this_qbs_file = h5_storage.get_qbs_file(filln)
-        if not os.path.isfile(this_qbs_file):
-            time_0 = time.time()
-            atd_ob = h5_storage.load_data_file(filln)
-            qbs_ob = cql.compute_qbs(atd_ob, use_dP)
+        for use_dP in (True, False):
+            this_qbs_file = h5_storage.get_qbs_file(filln, use_dP)
+            if not os.path.isfile(this_qbs_file):
+                time_0 = time.time()
+                atd_ob = h5_storage.load_data_file(filln)
+                qbs_ob = cql.compute_qbs(atd_ob, use_dP)
 
-            n_tries = 5
-            while n_tries > 0:
-                try:
-                    h5_storage.store_qbs(filln, qbs_ob, use_dP)
-                    break
-                except IOError:
-                    n_tries -= 1
-                    time.sleep(60)
-            else:
-                raise IOError('Saving failed for fill %i!' % filln)
-            dt = time.time() - time_0
-            n_timesteps = len(qbs_ob.timestamps)
-            print('Calculation for fill %i with %i timesteps finished in %i s.' % (filln, n_timesteps, dt))
+                n_tries = 5
+                while n_tries > 0:
+                    try:
+                        h5_storage.store_qbs(filln, qbs_ob, use_dP)
+                        break
+                    except IOError:
+                        n_tries -= 1
+                        time.sleep(60)
+                else:
+                    raise IOError('Saving failed for fill %i!' % filln)
+                dt = time.time() - time_0
+                n_timesteps = len(qbs_ob.timestamps)
+                print('Calculation for fill %i with %i timesteps finished in %i s.' % (filln, n_timesteps, dt))
 

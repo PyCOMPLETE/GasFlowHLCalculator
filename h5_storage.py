@@ -13,8 +13,12 @@ data_dir = h5_dir + '/cryo_heat_load_data/'
 special_data_dir = h5_dir + 'cryo_special_cell_data/'
 
 # Filenames for recomputed dada
-def get_qbs_file(filln, version=version):
-    return h5_dir + '/recalculated_qbs/recalculated_qbs_v%i/recalculated_qbs_v%i_%i.h5' % (version, version, filln)
+def get_qbs_file(filln, version=version, use_dP=True):
+    if use_dP:
+        return h5_dir + '/recalculated_qbs/recalculated_qbs_v%i/recalculated_qbs_v%i_%i.h5' % (version, version, filln)
+    else:
+        return h5_dir + '/recalculated_qbs/recalculated_qbs_nodP_v%i/recalculated_qbs_nodP_v%i_%i.h5' % (version, version, filln)
+
 
 def get_special_qbs_file(filln):
     return h5_dir + '/recalculated_special_qbs/recalculated_special_qbs_%i.h5' % filln
@@ -47,7 +51,7 @@ def store_qbs(filln, qbs_ob, use_dP, version=version):
         - use_dP
         - version=version
     """
-    qbs_file = get_qbs_file(filln, version)
+    qbs_file = get_qbs_file(filln, version, use_dP=use_dP)
     if not os.path.isdir(os.path.dirname(qbs_file)):
         os.mkdir(os.path.dirname(qbs_file))
 

@@ -12,7 +12,7 @@ from var_getter import VarGetter
 zeros = lambda *x: np.zeros(shape=(x), dtype=float)
 max_iterations = 5 # For pressure drop
 
-compute_Re = True
+compute_Re = False
 
 class HeatLoadComputer(VarGetter):
 
