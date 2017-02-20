@@ -19,9 +19,9 @@ def compute_qbs_fill(filln, use_dP=True, version=version, recompute_if_missing=F
         -version = h5_storage.version
         -recompute_if_missing = False
     """
-    h5_file = h5_storage.get_qbs_file(filln, version, use_dP=use_dP)
+    h5_file = h5_storage.get_qbs_file(filln, version=version, use_dP=use_dP)
     if os.path.isfile(h5_file):
-        return h5_storage.load_qbs(filln, version=version)
+        return h5_storage.load_qbs(filln, version=version, use_dP=use_dP)
 
     if not recompute_if_missing:
         raise ValueError('Set the correct flag if you want to recompute!')

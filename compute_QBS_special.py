@@ -2,9 +2,8 @@
 # For exampsle 12R4 or 13R4.
 import sys
 import numpy as np
-from scipy.interpolate import interp2d
 
-from Helium_properties import *
+from Helium_properties import interp_P_T_hPT, interp_P_T_DPT
 from data_S45_details import *
 from compute_QBS_magnet import QbsMagnetCalculator
 from valve_LT import valve_LT
@@ -38,8 +37,6 @@ def mass_flow(atd):
             index = varlist.index(var)
             arr[:,ii] = atd.data[:,index]
 
-    interp_P_T_hPT = interp2d(P,T,h_PT)
-    interp_P_T_DPT = interp2d(P,T,D_PT)
     for i in xrange(n_list):
         for j in xrange(n_tt):
             hC[j,i] = interp_P_T_hPT(P1[j,i],T1[j,i])
@@ -172,7 +169,6 @@ def compute_qbs_special(atd, separate=False):
 if __name__ == '__main__':
     import os
     import matplotlib.pyplot as plt
-    if '..' not in sys.path: sys.path.append('..')
     import LHCMeasurementTools.TimberManager as tm
     from LHCMeasurementTools.SetOfHomogeneousVariables import SetOfHomogeneousNumericVariables as shnv
     plt.close('all')
