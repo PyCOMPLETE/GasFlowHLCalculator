@@ -27,7 +27,10 @@ qbs_ob_old = qf.compute_qbs_fill(filln, version=old_version)
 
 # Logged data
 fill_dict = {}
-fill_dict.update(tm.parse_timber_file('../fill_heatload_data_csvs/heatloads_fill_%d.csv' % filln, verbose=False))
+
+
+data_dir = '/afs/cern.ch/work/l/lhcscrub/LHC_2016_25ns_beforeTS1/'
+fill_dict.update(tm.parse_timber_file(data_dir + 'fill_heatload_data_csvs/heatloads_fill_%d.csv' % filln, verbose=False))
 heatloads = SetOfHomogeneousNumericVariables(variable_list=arc_key_list, timber_variables=fill_dict)
 
 arc_data = qf.compute_qbs_arc_avg(qbs_ob)
@@ -75,8 +78,8 @@ for sp in sp_5, sp_6:
     sp.set_ylabel('Heat load [W]')
     sp.set_xlabel('Time [h]')
 
-fill_dict_v4 = qf.get_fill_dict(qbs_ob_old)
-fill_dict_v5 = qf.get_fill_dict(qbs_ob)
+fill_dict_v4 = qf.get_fill_dict(filln, version=4)
+fill_dict_v5 = qf.get_fill_dict(filln, version=5)
 
 for fd, title, ls in zip((fill_dict, fill_dict_v4, fill_dict_v5), ('logged', 'v4', 'v5'), (':', '--', '-')):
     heatloads = SetOfHomogeneousNumericVariables(variable_list=quad_key_list, timber_variables=fd)

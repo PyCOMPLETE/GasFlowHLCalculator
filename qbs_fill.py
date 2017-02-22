@@ -95,11 +95,9 @@ def compute_qbs_arc_avg(qbs_ob):
     return tm.AlignedTimberData(qbs_ob.timestamps, qbs_arc_avg, arc_list)
 
 # plug-in replacement of old heat load procedure, the fill dict
-def get_fill_dict(filln_or_obj):
-    if isinstance(filln_or_obj, int):
-        qbs_ob = compute_qbs_fill(filln_or_obj)
-    else:
-        qbs_ob = filln_or_obj
+def get_fill_dict(filln, version=version, use_dP=True):
+    qbs_ob = compute_qbs_fill(filln, version=version, use_dP=use_dP)
+    qbs_special = special_qbs_fill_aligned(filln)
 
     # arcs
     qbs_arc_avg = compute_qbs_arc_avg(qbs_ob)
@@ -120,24 +118,28 @@ def get_fill_dict(filln_or_obj):
     varlist_tmb+=HL.arcs_varnames_static
 
     for varname in varlist_tmb:
-        #print varname
-        if '_Q1.' in varname: continue # recalc special cells not saved for now
-        if '_D2.' in varname: continue # recalc special cells not saved for now
-        if '_D3.' in varname: continue # recalc special cells not saved for now
-        if '_D4.' in varname: continue # recalc special cells not saved for now
-        if '_QBS9' in varname:
+        tvl = tm.timber_variable_list()
+        special_id = varname.split('.POSST')[0][-3:]
+        if special_id in('_Q1', '_D2', '_D3', '_D4'):
+            cell = varname.split('_')[1]
+            tvl.values = qbs_special.dictionary[cell+special_id]
+            tvl.t_stamps = qbs_special.timestamps
+        elif '_QBS9' in varname:
             firstp, lastp = tuple(varname.split('_QBS'))
             kkk = firstp.split('_')[-1]+'_'+lastp.split('.')[0]
-            tvl = tm.timber_variable_list()
             tvl.t_stamps = qbs_ob.timestamps
-            tvl.ms = np.zeros_like(tvl.t_stamps)
             try:
                 tvl.values = qbs_ob.dictionary[kkk]
             except KeyError as err:
                 print 'Skipped %s! Got:'%kkk
                 print err
-                tvl.values =np.zeros_like(tvl.t_stamps)
-            output[varname] = tvl
+                tvl.values = np.zeros_like(tvl.t_stamps)
+        elif 'QBS_AVG_ARC' in varname or 'QBS_CALCULATED_ARC' in varname:
+            continue
+        else:
+            print('Variable %s not yet implemented in new fill_dict' % varname)
+        tvl.ms = np.zeros_like(tvl.t_stamps)
+        output[varname] = tvl
     return output
 
 def lhc_histograms(qbs_ob, avg_time, avg_pm, in_hrs=True):
