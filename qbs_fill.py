@@ -138,6 +138,7 @@ def get_fill_dict(filln, version=version, use_dP=True):
             continue
         else:
             print('Variable %s not yet implemented in new fill_dict' % varname)
+            continue
         tvl.ms = np.zeros_like(tvl.t_stamps)
         output[varname] = tvl
     return output
