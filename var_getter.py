@@ -95,7 +95,7 @@ class VarGetter(object):
                         self._insert_to_problem_cells(cell_ctr, var_name, 'no_data')
                         self.nan_arr[cell_ctr] = True
                 elif not negative_allowed and np.any(arr[:,cell_ctr] <= 0):
-                    self._insert_to_problem_cells(cell_ctr, var_name, 'questionable_data')
+                    self._insert_to_problem_cells(cell_ctr, var_name, 'negative')
 
             if correct_first:
                 arr[:,0] = arr[:,-1]

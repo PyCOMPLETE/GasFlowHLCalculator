@@ -37,7 +37,7 @@ for use_dP in (True, False):
     atd_ob = h5_storage.load_data_file(filln)
     tt = atd_ob.timestamps - atd_ob.timestamps[0]
 
-    qbs_ob = compute_qbs(atd_ob, use_dP, strict=False)
+    qbs_ob = compute_qbs(atd_ob, use_dP, strict=False, report=True)
     qbs_arc_avg = compute_qbs_arc_avg(qbs_ob).dictionary
 
     if reference_run:

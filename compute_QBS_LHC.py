@@ -35,7 +35,7 @@ class HeatLoadComputer(VarGetter):
             self._compute_Re()
         self.assure()
         if report:
-            self.report()
+            self.report(details=True)
 
         self.qbs_atd = tm.AlignedTimberData(atd_ob.timestamps, self.computed_values['qbs'], cq.Cell_list)
 
@@ -205,21 +205,20 @@ class HeatLoadComputer(VarGetter):
     def assure(self):
         """
         m_L > 0
-        qbs > 0
         """
         super(HeatLoadComputer, self).assure()
 
         m_L = self.computed_values['m_L']
-        qbs = self.computed_values['qbs']
+        #qbs = self.computed_values['qbs']
         for cell_ctr, isnan in enumerate(self.nan_arr):
             if not isnan:
                 if np.any(m_L[:,cell_ctr] < 0):
                     self._insert_to_problem_cells(cell_ctr, 'm_L', 'negative')
-                if np.any(qbs[:,cell_ctr] < 0):
-                    self._insert_to_problem_cells(cell_ctr, 'qbs', 'negative')
+                #if np.any(qbs[:,cell_ctr] < 0):
+                #    self._insert_to_problem_cells(cell_ctr, 'qbs', 'negative')
 
 
-def compute_qbs(atd_ob, use_dP, version=h5_storage.version, strict=True):
-    hl_comp = HeatLoadComputer(atd_ob, version=version, strict=strict, use_dP=use_dP, report=True)
+def compute_qbs(atd_ob, use_dP, version=h5_storage.version, strict=True, report=True):
+    hl_comp = HeatLoadComputer(atd_ob, version=version, strict=strict, use_dP=use_dP, report=report)
     return hl_comp.qbs_atd
 
