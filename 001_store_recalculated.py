@@ -9,7 +9,7 @@ import compute_QBS_LHC as cql
 import h5_storage
 from h5_storage import data_dir
 
-new_version = 6
+new_version = 7
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='random', action='store_true')
