@@ -1,51 +1,71 @@
 from __future__ import division
-import sys
+import os
+import re
 import matplotlib.pyplot as plt
-import numpy as np
+
 import h5_storage
 import qbs_fill as qf
+from config_qbs import config_qbs
+from compute_QBS_LHC import compute_qbs
 
 import LHCMeasurementTools.mystyle as ms
 
-import compute_QBS_LHC as cql
 
 plt.close('all')
 ms.mystyle()
 
 filln = 5219
-use_dPs = (True, False)
 
-qbs_obs = []
-qbs_obs_loaded = []
-cql_obs = []
+re_dir = re.compile('recalculated_qbs_(nodP_)?v(\d+)')
 
-atd_ob = h5_storage.load_data_file(filln)
+dirs = filter(re_dir.match, os.listdir(h5_storage.recalc_dir))
 
-for dp in use_dPs:
-
-    qbs_obs.append(qf.test_compute_qbs(filln, use_dP=dp))
-    cql_obs.append(cql.compute_qbs(atd_ob, use_dP=dp))
-    qbs_obs_loaded.append(qf.compute_qbs_fill(filln, use_dP=dp))
+dir_dp_version = []
+for dir_ in dirs:
+    dir_dp_version.append((dir_,)+re_dir.match(dir_).groups())
 
 
-arc_averages = [qf.compute_qbs_arc_avg(qo) for qo in qbs_obs]
+sps = []
+for ctr, arc in enumerate(config_qbs.arc_list):
+    sp_ctr = ctr%4 + 1
+    if sp_ctr == 1:
+        fig = ms.figure('Comparison of versions!')
+    sp = plt.subplot(2,2,sp_ctr)
+    sp.set_title(arc)
+    sp.set_ylabel('Time [h]')
+    sp.set_xlabel('Heat load [W/hc]')
+    sp.grid(True)
+    sps.append(sp)
 
+for ctr, (dir_, nodp, version) in enumerate(dir_dp_version):
+    use_dP = nodp == None
+    if use_dP:
+        label = 'V%s with dP' % version
+    else:
+        label = 'V%s without dP' % version
+    qbs_ob = qf.compute_qbs_fill(filln, version=int(version), use_dP=use_dP)
+    arc_averages = qf.compute_qbs_arc_avg(qbs_ob)
+    tt = (qbs_ob.timestamps - qbs_ob.timestamps[0]) / 3600.
 
-fig = ms.figure('Compare dp')
+    color = ms.colorprog(ctr, len(dir_dp_version)+2)
+    for ctr, (arc, arr) in enumerate(sorted(arc_averages.dictionary.items())):
+        sps[ctr].plot(tt, arr, label=label, lw=2, color=color)
 
-sp = plt.subplot(2,2,1)
-sp.grid(True)
+# Current version
+atd = h5_storage.load_data_file(filln)
+qbs = compute_qbs(atd, use_dP=True)
+qbs_nodp = compute_qbs(atd, use_dP=False)
 
-for ctr in xrange(len(use_dPs)):
-    arc_average = arc_averages[ctr]
-    qbs_ob = qbs_obs[ctr]
-    ls = ['-', '--', '-.'][ctr]
+for ctr, (qbs_ob, label) in enumerate(zip((qbs, qbs_nodp),('Current with dP', 'Current without dP'))):
+    arc_averages = qf.compute_qbs_arc_avg(qbs_ob)
+    tt = (qbs_ob.timestamps - qbs_ob.timestamps[0]) / 3600.
 
-    tt = (qbs_ob.timestamps - qbs_ob.timestamps[0])/3600.
+    color = ms.colorprog(ctr+len(dir_dp_version), len(dir_dp_version)+2)
+    for ctr, (arc, arr) in enumerate(sorted(arc_averages.dictionary.items())):
+        sps[ctr].plot(tt, arr, label=label, lw=2, color=color)
 
-    for ctr, (key, hl) in enumerate(arc_average.dictionary.iteritems()):
-        color = ms.colorprog(ctr, arc_average.dictionary)
-        sp.plot(tt, hl, label=key, ls=ls)
-
+sps[1].legend(bbox_to_anchor=(1.2,1))
+sps[5].legend(bbox_to_anchor=(1.2,1))
 
 plt.show()
+
