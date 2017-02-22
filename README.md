@@ -19,7 +19,7 @@ create_csv.m:
 - This GNU Octave script reads the data_QBS_LHC.m file and creates a versioned csv file.
 - Currently there is no such script for the Helium_proporties.m as I do not expect it to change.
 
-data_qbs.py:
+config_qbs.py:
 
 - This module parses the csv file. 
 - Some constants such as the cooling pipe diameter are hardcoded.
@@ -40,7 +40,7 @@ compute_QBS_LHC.py, valve_LT.py, Pressure_drop.py, var_getter.py
 
 004_compare_qbs_versions.py
 
-- This not polished script can compare the results from 2 versions of csv files.
+- This script compares the arc averages for all saved versions of the calculation.
 
 006_get_cell_details.py
 
@@ -50,7 +50,7 @@ compute_QBS_LHC.py, valve_LT.py, Pressure_drop.py, var_getter.py
 
 - Compare the arc averages for two versions of the computation.
 
-data_qbs_lhc\_*.csv
+config_qbs_lhc\_*.csv
 
 - Tab separated values
 - Timber variables
@@ -76,4 +76,3 @@ Issues:
 - There are duplicate cell names in the data_qbs_lhc\_\*.csv
   - These only affect the LSS, not the arcs
   -  ['05L4_947', '05R4_947', '05L6_947', '05R6_947']
-- The Quadrupoles are not yet identified, the logged data of those can not yet be replaced.
