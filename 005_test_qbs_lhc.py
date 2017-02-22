@@ -1,5 +1,4 @@
 from __future__ import division
-import sys
 import os
 import cPickle as pickle
 import argparse
@@ -7,11 +6,10 @@ import argparse
 import matplotlib.pyplot as plt
 
 from qbs_fill import compute_qbs_arc_avg
-from data_qbs import arc_list
+from config_qbs import arc_list
 from compute_QBS_LHC import compute_qbs
 import h5_storage
 
-if '..' not in sys.path: sys.path.append('..')
 import LHCMeasurementTools.mystyle as ms
 
 trusted_version = 5
@@ -39,7 +37,7 @@ for use_dP in (True, False):
     atd_ob = h5_storage.load_data_file(filln)
     tt = atd_ob.timestamps - atd_ob.timestamps[0]
 
-    qbs_ob = compute_qbs(atd_ob, use_dP, strict=False)
+    qbs_ob = compute_qbs(atd_ob, use_dP, strict=False, report=True)
     qbs_arc_avg = compute_qbs_arc_avg(qbs_ob).dictionary
 
     if reference_run:
@@ -51,6 +49,7 @@ for use_dP in (True, False):
         with open(ref_run_file, 'r') as f:
             qbs_ref = pickle.load(f)
         ref_arc_avg = compute_qbs_arc_avg(qbs_ref).dictionary
+        tt_ref = (qbs_ref.timestamps - qbs_ref.timestamps[0])
 
     fig = plt.figure()
     fig.canvas.set_window_title('QBS LHC reference %s' % dp)
@@ -60,7 +59,7 @@ for use_dP in (True, False):
         color = ms.colorprog(ctr, arc_list)
         sp.plot(tt/3600., qbs_arc_avg[arc], lw=2, label=arc, color=color)
         if not reference_run:
-            sp.plot(tt/3600., ref_arc_avg[arc], lw=2, color=color, ls='--')
+            sp.plot(tt_ref/3600., ref_arc_avg[arc], lw=2, color=color, ls='--')
     sp.set_xlabel('time [hr]')
     sp.set_ylabel('Qdbs [W]')
     sp.set_title('Average beam screen heat load per ARC %s' % dp)
@@ -68,8 +67,8 @@ for use_dP in (True, False):
     sp.grid(True)
     sp = plt.subplot(2,1,2)
     sp.plot(tt/3600,qbs_ob.data)
-    sp.set_xlabel('time (hr)')
-    sp.set_ylabel('Qdbs (W)')
+    sp.set_xlabel('time [hr]')
+    sp.set_ylabel('Qdbs [W]')
     sp.set_title('Beam screen heat loads over LHC')
     sp.grid(True)
 

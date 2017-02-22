@@ -6,66 +6,66 @@ class VarGetter(object):
     This class can be used to relate the raw timber data for a given cell or all cells.
     Parameters:
         -atd_ob: Timber data
-        -dq    : Data_qbs instance
+        -cq    : Compute_qbs instance
         -strict: Raise error if there are missing variables. Default: True
         -report: Print information on failed sensors.
     """
-    def __init__(self, atd_ob, dq, strict=True, report=False):
+    def __init__(self, atd_ob, cq, strict=True, report=False):
 
         self.atd_ob  = atd_ob
-        self.dq      = dq
+        self.cq      = cq
         self.strict  = strict
 
-        self.Ncell = len(dq.Cell_list)
+        self.Ncell = len(cq.Cell_list)
         self.Nvalue = len(atd_ob.timestamps)
 
         self.problem_cells = {}
         self.missing_variables = []
-        self.nan_arr = np.zeros(len(dq.Cell_list), dtype=np.bool)
+        self.nan_arr = np.zeros(len(cq.Cell_list), dtype=np.bool)
 
         # correct: If no data available, copy it from previous cell.
         # negative: This data may be negative.
         self.var_data_dict = {
             'T1': {
-                'vars': dq.TT961_list,
+                'vars': cq.TT961_list,
                 'correct': True,
                 'negative': False,
             },
             'T3': {
-                'vars': dq.TT94x_list,
+                'vars': cq.TT94x_list,
                 'correct': False,
                 'negative': False,
             },
             'CV': {
-                'vars': dq.CV94x_list,
+                'vars': cq.CV94x_list,
                 'correct': False,
                 'negative': False,
             },
             'EH': {
-                'vars': dq.EH84x_list,
+                'vars': cq.EH84x_list,
                 'correct': False,
                 'negative': True,
             },
             'P1': {
-                'vars': dq.PT961_list,
+                'vars': cq.PT961_list,
                 'correct': True,
                 'negative': False,
             },
             'P4': {
-                'vars': dq.PT991_list,
+                'vars': cq.PT991_list,
                 'correct': True,
                 'negative': False,
             },
             'T2': {
-                'vars': dq.TT84x_list,
+                'vars': cq.TT84x_list,
                 'correct': False,
                 'negative': False,
             },
         }
 
         self.data_dict = self._store_all_cell_data()
-        self.assure()
         if report:
+            VarGetter.assure(self)
             VarGetter.report(self)
 
     def _store_all_cell_data(self):
@@ -95,7 +95,7 @@ class VarGetter(object):
                         self._insert_to_problem_cells(cell_ctr, var_name, 'no_data')
                         self.nan_arr[cell_ctr] = True
                 elif not negative_allowed and np.any(arr[:,cell_ctr] <= 0):
-                    self._insert_to_problem_cells(cell_ctr, var_name, 'questionable_data')
+                    self._insert_to_problem_cells(cell_ctr, var_name, 'negative')
 
             if correct_first:
                 arr[:,0] = arr[:,-1]
@@ -114,28 +114,27 @@ class VarGetter(object):
         Returns a dictionary with the data for every variable type
         """
         output_dict = {}
-        for index, c in enumerate(self.dq.Cell_list):
+        for index, c in enumerate(self.cq.Cell_list):
             if cell in c:
                 break
         else:
             raise ValueError('Cell not found!')
-        for key, dd in self.var_data_dict.iteritems():
-            name = dd['vars'][index]
-            output_dict[key] = self.atd_ob.dictionary[name]
+        for key, arr in self.data_dict.iteritems():
+            output_dict[key] = arr[:,index]
         return output_dict
 
     def _insert_to_problem_cells(self, cell_ctr, var, type_):
         problem_cells = self.problem_cells
-        cell = self.dq.Cell_list[cell_ctr]
+        cell = self.cq.Cell_list[cell_ctr]
         if type_ not in problem_cells:
             problem_cells[type_] = {}
         if cell not in problem_cells[type_]:
             problem_cells[type_][cell] = {
-                'sector': self.dq.Sector_list[cell_ctr],
-                'type': self.dq.Type_list[cell_ctr],
-                'list': []
+                'sector': self.cq.Sector_list[cell_ctr],
+                'type': self.cq.Type_list[cell_ctr],
+                'list': set(),
             }
-        problem_cells[type_][cell]['list'].append(var)
+        problem_cells[type_][cell]['list'].add(var)
 
     def assure(self):
         """

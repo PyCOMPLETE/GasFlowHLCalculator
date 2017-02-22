@@ -1,9 +1,7 @@
 from __future__ import division
 import numpy as np
-from scipy.interpolate import interp2d
 
 zeros = lambda *x: np.zeros((x), dtype=float)
-size = lambda arr, n: arr.shape[n-1]
 
 class QbsMagnetCalculator(object):
     def __init__(self, interp_P_T_hPT, atd, P1, m_L):

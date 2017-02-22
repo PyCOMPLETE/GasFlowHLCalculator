@@ -1,12 +1,11 @@
 import numpy as np
 import csv
-import sys
 import os
 from h5_storage import version
 
 arc_list = ['S12','S23','S34','S45','S56','S67','S78','S81']
-Radius = 3.7e-3/2.  #internal radius of beam screen cooling pipe (D=3.7 mm)
-rug = 1e-5         #beam screen cooling circuit roughness (10 um)
+Radius = 3.7e-3/2.  #internal radius of beam screen cooling pipe
+rug = 1e-5         #beam screen cooling circuit roughness
 arc_index = np.array(
       [[  5,  56],
        [ 68, 119],
@@ -17,22 +16,32 @@ arc_index = np.array(
        [364, 415],
        [427, 478]])
 
-class Data_qbs(object):
+latest_config_file_version=3
+def get_config_file(version):
+    if version in (1,2):
+        return '/config_qbs_lhc_%i.csv' % version
+    elif version > 2:
+        return '/config_qbs_lhc_%i.csv' % 3
+    else:
+        raise ValueError('Config file not defined!')
+
+
+class Config_qbs(object):
     def __init__(self, version=version):
-        csv_file_name = os.path.dirname(os.path.abspath(__file__)) + '/data_qbs_lhc_%i.csv' % version
+        csv_file_name = os.path.dirname(os.path.abspath(__file__)) + get_config_file(version)
         with open(csv_file_name, 'r') as f:
-            data_qbs = []
-            ww = csv.reader(f, delimiter='\t')
-            for ctr, row in enumerate(ww):
+            config_qbs = []
+            tsv = csv.reader(f, delimiter='\t')
+            for ctr, row in enumerate(tsv):
                 if ctr == 0:
                     first_row = row
                     for ii in xrange(len(first_row)):
-                        data_qbs.append([])
+                        config_qbs.append([])
                 else:
                     for ii, item in enumerate(row):
-                        data_qbs[ii].append(item)
+                        config_qbs[ii].append(item)
 
-        for key, value in zip(first_row, data_qbs):
+        for key, value in zip(first_row, config_qbs):
             if key != 'Sector_list': # Sector list remains a list of strings
                 try:
                     value = np.array(value, float)
@@ -46,12 +55,12 @@ class Data_qbs(object):
         self.rug = rug
 
 # Default object
-data_qbs = Data_qbs()
+config_qbs = Config_qbs()
 
-def assert_arc_index(data_qbs=data_qbs):
+def assert_arc_index(config_qbs=config_qbs):
     arc_index_2 = np.zeros_like(arc_index)
     j = 0 #sector number
-    Type_list = data_qbs.Type_list
+    Type_list = config_qbs.Type_list
     for i in xrange(len(Type_list)):
         if Type_list[i-1] == 'LSS' and  Type_list[i] == 'ARC':   #begining of ARC
             arc_index_2[j,0] = i
@@ -69,7 +78,7 @@ assert_arc_index()
 #list_to_save = [dql.__dict__[ss] for ss in variable_list]
 
 #def save():
-#    with open('data_qbs_lhc.csv', 'w') as f:
+#    with open('config_qbs_lhc.csv', 'w') as f:
 #        ww = csv.writer(f, delimiter='\t')
 #        ww.writerow(variable_list)
 #        for items in zip(*list_to_save):
