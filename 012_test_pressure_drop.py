@@ -34,9 +34,9 @@ if not arguments.noshow:
     sp.set_xlabel('Re', fontsize=18)
     sp.set_xscale('log')
     for xx in [3e3, 1e5]:
-        sp.axvline(xx, color='black', lw=2)
+        sp.axvline(xx, color='black', lw=2, ls='--')
     for xx in [4.89e3, 4.389e5]:
-        sp.axvline(xx, color='red', lw=1)
+        sp.axvline(xx, color='red', lw=1, ls='--')
     fr = calc_fr(config_qbs.Radius, config_qbs.rug)
     sp.axhline(fr, color='black', lw=2, label='f_R')
 

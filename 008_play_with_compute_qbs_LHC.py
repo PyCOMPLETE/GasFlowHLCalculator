@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 #import sys
-import pickle
 
 import h5_storage
 import qbs_fill as qf
@@ -13,9 +12,10 @@ ms.mystyle_arial()
 plt.close('all')
 filln = 5219
 atd = h5_storage.load_data_file(filln)
-#hlc = cql.HeatLoadComputer(atd, use_dP=True, report=True)
-with open('hlc_%i.pkl' % filln) as f:
-    hlc = pickle.load(f)
+hlc = cql.HeatLoadComputer(atd, use_dP=True, details=True, compute_Re=True)
+#with open('hlc_%i.pkl' % filln) as f:
+#   import pickle
+#   hlc = pickle.load(f)
 
 EH = hlc.data_dict['EH']
 P1 = hlc.data_dict['P1']
@@ -32,9 +32,10 @@ for ctr, isnan in enumerate(hlc.nan_arr):
     if not isnan:
         x[:,ctr] = P4[:,ctr]/P3[:,ctr]
         if np.any(x[:,ctr] > .42):
-            n_sub.append(ctr)
             if np.any(x[:,ctr] <= .42):
                 n_both.append(ctr)
+            else:
+                n_sub.append(ctr)
         else:
             n_else.append(ctr)
 

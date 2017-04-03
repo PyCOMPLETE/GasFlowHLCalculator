@@ -12,11 +12,9 @@ from var_getter import VarGetter
 zeros = lambda *x: np.zeros(shape=(x), dtype=float)
 max_iterations = 5 # For pressure drop
 
-compute_Re = False
-
 class HeatLoadComputer(VarGetter):
 
-    def __init__(self, atd_ob, version=h5_storage.version, strict=True, report=False, use_dP=True):
+    def __init__(self, atd_ob, version=h5_storage.version, strict=True, details=False, use_dP=True, compute_Re=False):
         if version == h5_storage.version:
             cq = config_qbs
         else:
@@ -26,16 +24,16 @@ class HeatLoadComputer(VarGetter):
         self.use_dP = use_dP
 
         self.computed_values = {}
-        self._compute_ro()
+        self._compute_ro(use_P3=False)
         if self.use_dP:
             self._compute_P3()
+            self._compute_ro(use_P3=True)
         self._compute_H()
         self._compute_heat_load()
         if compute_Re:
             self._compute_Re()
         self.assure()
-        if report:
-            self.report(details=True)
+        self.report(details=details)
 
         self.qbs_atd = tm.AlignedTimberData(atd_ob.timestamps, self.computed_values['qbs'], cq.Cell_list)
 
@@ -70,8 +68,11 @@ class HeatLoadComputer(VarGetter):
         self.computed_values['h3'] = h3
         #self.computed_values['h3_old'] = h3_old
 
-    def _compute_ro(self):
-        P1 = self.data_dict['P1']
+    def _compute_ro(self, use_P3):
+        if use_P3:
+            P = self.computed_values['P3']
+        else:
+            P = self.data_dict['P1']
         T3 = self.data_dict['T3']
         ro = zeros(self.Nvalue, self.Ncell)
         for i, isnan in enumerate(self.nan_arr):
@@ -79,7 +80,7 @@ class HeatLoadComputer(VarGetter):
                 ro[:,i] = np.nan
             else:
                 for j in xrange(self.Nvalue):
-                    ro[j,i] = interp_P_T_DPT(P1[j,i],T3[j,i])
+                    ro[j,i] = interp_P_T_DPT(P[j,i],T3[j,i])
 
         self.computed_values['ro'] = ro
 
@@ -218,7 +219,7 @@ class HeatLoadComputer(VarGetter):
                 #    self._insert_to_problem_cells(cell_ctr, 'qbs', 'negative')
 
 
-def compute_qbs(atd_ob, use_dP, version=h5_storage.version, strict=True, report=True):
-    hl_comp = HeatLoadComputer(atd_ob, version=version, strict=strict, use_dP=use_dP, report=report)
+def compute_qbs(atd_ob, use_dP, version=h5_storage.version, strict=True, details=False):
+    hl_comp = HeatLoadComputer(atd_ob, version=version, strict=strict, use_dP=use_dP, details=details)
     return hl_comp.qbs_atd
 

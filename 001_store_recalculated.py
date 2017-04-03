@@ -9,7 +9,8 @@ import compute_QBS_LHC as cql
 import h5_storage
 from h5_storage import data_dir
 
-new_version = 6
+new_version = 7
+use_dPs = (True,)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='random', action='store_true')
@@ -25,7 +26,7 @@ for atd_file in atd_files:
     info = re_file.search(atd_file)
     if info is not None:
         filln = int(info.group(1))
-        for use_dP in (True, False):
+        for use_dP in use_dPs:
             kwargs = {'use_dP': use_dP, 'version': new_version}
             this_qbs_file = h5_storage.get_qbs_file(filln, **kwargs)
             if not os.path.isfile(this_qbs_file):

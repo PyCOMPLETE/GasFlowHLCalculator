@@ -1,4 +1,7 @@
 from __future__ import division, print_function
+import argparse
+import cPickle as pickle
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -8,6 +11,12 @@ from compute_QBS_LHC import HeatLoadComputer
 import LHCMeasurementTools.mystyle as ms
 
 plt.close('all')
+filln = 5219
+storage = 'hlc_%i.pkl' % filln
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--calc', help='Calculate instead of loading from pickle', action='store_true')
+args = parser.parse_args()
 
 def plot_cell_details(cells, hlc, title):
     for cell in cells:
@@ -105,15 +114,19 @@ def plot_cell_details(cells, hlc, title):
     ms.comb_legend(sp_h, sp_r, bbox_to_anchor=bta)
 
 
-filln = 5219
-
 dict_cell_dict = {}
 hl_dict = {}
 data_ob = h5_storage.load_data_file(filln)
 
-hlc = HeatLoadComputer(data_ob)
+if args.calc:
+    hlc = HeatLoadComputer(data_ob, compute_Re=True, details=True)
+    with open(storage, 'w') as f:
+        pickle.dump(hlc, f, -1)
+else:
+    with open(storage, 'r') as f:
+        hlc = pickle.load(f)
 
-hl_cells_type = zip(np.mean(hlc.computed_values['qbs'],axis=0), hlc.dq.Cell_list, hlc.dq.Type_list)
+hl_cells_type = zip(np.mean(hlc.computed_values['qbs'],axis=0), hlc.cq.Cell_list, hlc.cq.Type_list)
 hl_cells = []
 for hl, cell, type_ in hl_cells_type:
     if type_ == 'ARC' and not np.isnan(hl):

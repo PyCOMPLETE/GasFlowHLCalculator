@@ -24,7 +24,8 @@ def compute_qbs_fill(filln, use_dP=True, version=version, recompute_if_missing=F
         return h5_storage.load_qbs(filln, version=version, use_dP=use_dP)
 
     if not recompute_if_missing:
-        raise ValueError('Set the correct flag if you want to recompute!')
+        raise ValueError("""File %s does not exist.
+                         Set the correct flag if you want to recompute!""" % h5_file)
 
     atd_ob = h5_storage.load_data_file(filln)
     qbs_ob = cql.compute_qbs(atd_ob, use_dP, version=version)
@@ -138,6 +139,7 @@ def get_fill_dict(filln, version=version, use_dP=True):
             continue
         else:
             print('Variable %s not yet implemented in new fill_dict' % varname)
+            continue
         tvl.ms = np.zeros_like(tvl.t_stamps)
         output[varname] = tvl
     return output
