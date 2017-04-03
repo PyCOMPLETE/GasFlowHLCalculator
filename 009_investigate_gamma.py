@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp2d
 import cPickle as pickle
 import time
+import argparse
 
 import Helium_properties as hp
 from Helium_properties import interp_P_T_hPT, interp_P_T_DPT, interp_P_T_mu
@@ -13,8 +14,13 @@ import h5_storage
 import LHCMeasurementTools.mystyle as ms
 import LHCMeasurementTools.savefig as sf
 
-recompute=False
-savefig=False
+parser = argparse.ArgumentParser()
+parser.add_argument('--calc', help='Calculate instead of loading from pickle.', action='store_true')
+parser.add_argument('--pdsave', help='Save in pdijksta plot dir.', action='store_true')
+args = parser.parse_args()
+
+recompute = args.calc
+savefig   = args.pdsave
 figs = []
 
 try:
@@ -73,7 +79,7 @@ for ctr, (interp, title) in enumerate(zip(interps, titles)):
 
 if recompute:
     atd = h5_storage.load_data_file(filln)
-    hlc = qbl.HeatLoadComputer(atd)
+    hlc = qbl.HeatLoadComputer(atd, compute_Re=True)
 else:
     with open('hlc_%i.pkl' % filln) as f:
         hlc = pickle.load(f)
@@ -86,6 +92,7 @@ combined_dict['gamma'] = gamma
 tt = hlc.atd_ob.timestamps
 index_tt = np.argmin(np.abs(tt - tt[0] - 3600*2))
 
+fig_ctr = 1
 key_sp_dict = {}
 for cc in (1,2):
     for ctr, (key, data) in enumerate(sorted(combined_dict.items())):
@@ -99,10 +106,15 @@ for cc in (1,2):
             plot_title = ('Occurrence of raw data values for fill %i after 2 hrs' % filln)
             label = "After 2 hours"
 
-        if key == 'T2':
-            data2 = data2[data2 < 30]
-        elif key == 'gamma':
-            data2 = data2[data2 < 3]
+        data2 = data2[data2 != 0]
+        hist, bin_edges = np.histogram(data2, bins=10, normed=True)
+        new_bin_edges = []
+        for h_ctr, val in enumerate(hist):
+            edge1, edge2 = bin_edges[h_ctr], bin_edges[h_ctr+1]
+            binwidth = edge2 - edge1
+            if val*binwidth > 0.01:
+                new_bin_edges.extend([edge1, edge2])
+        data2 = data2[np.logical_and(data2 > new_bin_edges[0], data2 < new_bin_edges[-1])]
 
         if key in hlc.data_dict:
             affix = '(data)'
@@ -110,15 +122,17 @@ for cc in (1,2):
             affix = '(computed)'
         sp_ctr = ctr % 4 +1
         if cc == 1 and sp_ctr == 1:
-            fig = ms.figure(plot_title, figs)
+            fig = ms.figure(plot_title+'_%i' % fig_ctr, figs)
+            fig_ctr += 1
         if cc == 1:
             sp = plt.subplot(2,2,sp_ctr)
             key_sp_dict[key] = sp
         else:
             sp = key_sp_dict[key]
 
-        sp.set_title(key + ' ' + affix)
+        sp.set_title(key+' '+affix)
         sp.set_xlabel(key)
+        sp.set_ylabel('Rel. Occurence')
         sp.set_yticklabels([])
         sp.grid(True)
 
@@ -127,8 +141,11 @@ for cc in (1,2):
         if cc == 2 and sp_ctr == 2:
             sp.legend(bbox_to_anchor=(1.1,1))
 
+        if cc == 1 and key == 'Re':
+            for xx in 3e3, 1e5:
+                sp.axvline(xx, lw=2, color='red', ls='--')
+
 if savefig:
-    for fig in figs:
-        sf.pdijksta(fig)
+    sf.pdijksta(figs, dpi=150)
 
 plt.show()

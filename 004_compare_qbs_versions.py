@@ -15,22 +15,22 @@ plt.close('all')
 ms.mystyle()
 
 filln = 5219
+show_current = False
 
 re_dir = re.compile('recalculated_qbs_(nodP_)?v(\d+)')
-
 dirs = filter(re_dir.match, os.listdir(h5_storage.recalc_dir))
 
 dir_dp_version = []
 for dir_ in dirs:
     dir_dp_version.append((dir_,)+re_dir.match(dir_).groups())
 
-
 sps = []
+sp = None
 for ctr, arc in enumerate(config_qbs.arc_list):
     sp_ctr = ctr%4 + 1
     if sp_ctr == 1:
-        fig = ms.figure('Comparison of versions!')
-    sp = plt.subplot(2,2,sp_ctr)
+        fig = ms.figure('Comparison of versions')
+    sp = plt.subplot(2,2,sp_ctr, sharex=sp)
     sp.set_title(arc)
     sp.set_ylabel('Time [h]')
     sp.set_xlabel('Heat load [W/hc]')
@@ -43,7 +43,7 @@ for ctr, (dir_, nodp, version) in enumerate(dir_dp_version):
         label = 'V%s with dP' % version
     else:
         label = 'V%s without dP' % version
-    qbs_ob = qf.compute_qbs_fill(filln, version=int(version), use_dP=use_dP)
+    qbs_ob = qf.compute_qbs_fill(filln, version=int(version), use_dP=use_dP, recompute_if_missing=True)
     arc_averages = qf.compute_qbs_arc_avg(qbs_ob)
     tt = (qbs_ob.timestamps - qbs_ob.timestamps[0]) / 3600.
 
@@ -52,20 +52,21 @@ for ctr, (dir_, nodp, version) in enumerate(dir_dp_version):
         sps[ctr].plot(tt, arr, label=label, lw=2, color=color)
 
 # Current version
-atd = h5_storage.load_data_file(filln)
-qbs = compute_qbs(atd, use_dP=True)
-qbs_nodp = compute_qbs(atd, use_dP=False)
+if show_current:
+    atd = h5_storage.load_data_file(filln)
+    qbs = compute_qbs(atd, use_dP=True)
+    qbs_nodp = compute_qbs(atd, use_dP=False)
 
-for ctr, (qbs_ob, label) in enumerate(zip((qbs, qbs_nodp),('Current with dP', 'Current without dP'))):
-    arc_averages = qf.compute_qbs_arc_avg(qbs_ob)
-    tt = (qbs_ob.timestamps - qbs_ob.timestamps[0]) / 3600.
+    for ctr, (qbs_ob, label) in enumerate(zip((qbs, qbs_nodp),('Current with dP', 'Current without dP'))):
+        arc_averages = qf.compute_qbs_arc_avg(qbs_ob)
+        tt = (qbs_ob.timestamps - qbs_ob.timestamps[0]) / 3600.
 
-    color = ms.colorprog(ctr+len(dir_dp_version), len(dir_dp_version)+2)
-    for ctr, (arc, arr) in enumerate(sorted(arc_averages.dictionary.items())):
-        sps[ctr].plot(tt, arr, label=label, lw=2, color=color)
+        color = ms.colorprog(ctr+len(dir_dp_version), len(dir_dp_version)+2)
+        for ctr, (arc, arr) in enumerate(sorted(arc_averages.dictionary.items())):
+            sps[ctr].plot(tt, arr, label=label, lw=2, color=color, ls='--')
 
-sps[1].legend(bbox_to_anchor=(1.2,1))
-sps[5].legend(bbox_to_anchor=(1.2,1))
+for sp in sps[1::4]:
+    sp.legend(bbox_to_anchor=(1.2,1))
 
 plt.show()
 

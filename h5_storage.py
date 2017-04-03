@@ -5,7 +5,7 @@ import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.myfilemanager as mfm
 
 # latest, default version (cell data only)
-version = 6
+version = 7
 
 # Directories
 h5_dir = '/eos/user/l/lhcscrub/timber_data_h5/'
@@ -18,6 +18,8 @@ def get_qbs_file(filln, use_dP, version=version):
     if use_dP:
         return recalc_dir + 'recalculated_qbs_v%i/recalculated_qbs_v%i_%i.h5' % (version, version, filln)
     else:
+        if version == 7:
+            version = 6
         return recalc_dir + '/recalculated_qbs_nodP_v%i/recalculated_qbs_nodP_v%i_%i.h5' % (version, version, filln)
 
 def get_special_qbs_file(filln):
