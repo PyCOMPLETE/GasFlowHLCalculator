@@ -5,7 +5,7 @@ import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.myfilemanager as mfm
 
 # latest, default version (cell data only)
-version = 6
+version = 7
 
 # Directories
 h5_dir = '/eos/user/l/lhcscrub/timber_data_h5/'

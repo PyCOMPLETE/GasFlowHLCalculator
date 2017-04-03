@@ -12,12 +12,13 @@ import h5_storage
 
 import LHCMeasurementTools.mystyle as ms
 
-trusted_version = 5
+trusted_version = 7
 filln = 5219
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--noshow', help='Do not call plt.show().', action='store_true')
 parser.add_argument('--ref', help='Create pickle for reference run.', action='store_true')
+parser.add_argument('--version', help='Version of computation to use', type=int, default=h5_storage.version)
 args = parser.parse_args()
 reference_run = args.ref
 
@@ -37,7 +38,7 @@ for use_dP in (True, False):
     atd_ob = h5_storage.load_data_file(filln)
     tt = atd_ob.timestamps - atd_ob.timestamps[0]
 
-    qbs_ob = compute_qbs(atd_ob, use_dP, strict=False, report=True)
+    qbs_ob = compute_qbs(atd_ob, use_dP, strict=False, report=True, version=args.version)
     qbs_arc_avg = compute_qbs_arc_avg(qbs_ob).dictionary
 
     if reference_run:
