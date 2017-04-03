@@ -1,4 +1,5 @@
 from __future__ import division
+import os 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp2d
@@ -16,31 +17,30 @@ import LHCMeasurementTools.savefig as sf
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--calc', help='Calculate instead of loading from pickle.', action='store_true')
-parser.add_argument('--pdsave', help='Save in pdijksta plot dir.', action='store_true')
+parser.add_argument('--savefig', help='Save in file.')
+parser.add_argument('--noshow', help='Do not call plt.show', action='store_true')
+parser.add_argument('--onlyarcs', help='Only show arc_cells', action='store_true')
 args = parser.parse_args()
 
 recompute = args.calc
-savefig   = args.pdsave
 figs = []
+
 
 try:
     from RcParams import init_pyplot
-    init_pyplot(labelsize=22)
+    init_pyplot()
 except ImportError:
-    pass
+    print 'ImportError'
+    ms.mystyle()
 
 plt.close('all')
-ms.mystyle()
-
-time_0 = time.time()
-def timer(n):
-    print(n, time.time() - time_0)
 
 filln = 5219
+pkl_file = os.path.abspath(os.path.dirname(__file__)) + '/hlc_%i.pkl' % filln
 interp_P_T_gamma = interp2d(hp.P, hp.T, hp.gamma_PT)
 t_arr = np.arange(4,50,0.5)
 
-with open('hlc_%i.pkl' % filln) as f:
+with open(pkl_file) as f:
     hlc = pickle.load(f)
 
 gamma = np.zeros_like(hlc.computed_values['m_L'])
@@ -50,8 +50,7 @@ for j in xrange(hlc.Nvalue):
     for i in xrange(hlc.Ncell):
         gamma[j,i] = interp_P_T_gamma(P3[j,i], T3[j,i])
 
-fig = ms.figure('Interpolated Data')
-
+fig = ms.figure('Interpolated Data', figs)
 
 interps = (interp_P_T_hPT, interp_P_T_DPT, interp_P_T_mu, interp_P_T_gamma)
 titles  = ('Enthalpy', 'Density', 'Viscosity', 'Heat capacity ratio')
@@ -81,13 +80,16 @@ if recompute:
     atd = h5_storage.load_data_file(filln)
     hlc = qbl.HeatLoadComputer(atd, compute_Re=True)
 else:
-    with open('hlc_%i.pkl' % filln) as f:
+    with open(pkl_file) as f:
         hlc = pickle.load(f)
 
 combined_dict = hlc.data_dict.copy()
 combined_dict.update(hlc.computed_values)
-combined_dict['Pressure_ratio'] = combined_dict['P4'] / combined_dict['P3']
+combined_dict['Ratio $P_4$/$P_3$'] = combined_dict['P4'] / combined_dict['P3']
 combined_dict['gamma'] = gamma
+combined_dict['$\Delta P$ / P1'] = (combined_dict['P3'] - combined_dict['P1'])/combined_dict['P1']
+
+del combined_dict['EH']
 
 tt = hlc.atd_ob.timestamps
 index_tt = np.argmin(np.abs(tt - tt[0] - 3600*2))
@@ -97,24 +99,72 @@ key_sp_dict = {}
 for cc in (1,2):
     for ctr, (key, data) in enumerate(sorted(combined_dict.items())):
 
+        if key.startswith('P'):
+            unit = '$P_%s$ [bar]' % key[1]
+        elif key.startswith('T'):
+            unit = '$T_%s$ [K]' % key[1]
+        elif key == 'CV':
+            unit = 'u [%]'
+        elif key == 'gamma':
+            unit = '$\gamma$'
+        elif key == 'qbs':
+            unit = '$Q_{BS}$ [W]'
+        elif key == 'm_L':
+            unit = '$m_L [kg/s]$'
+        elif key == 'h3':
+            unit = '$h_3$ [J/kg]'
+        elif key == 'hC':
+            key = 'h1'
+            unit = '$h_1$ [J/kg]'
+        else:
+            unit = key
+
         if cc == 1:
-            data2 = np.nan_to_num(data.flatten())
+            data2_pure = np.nan_to_num(data)
             plot_title = ('Occurrence of raw data values for fill %i' % filln)
             label = "All data"
         else:
-            data2 = np.nan_to_num(data[index_tt,:])
+            data2_pure = np.nan_to_num(data[index_tt,:])
             plot_title = ('Occurrence of raw data values for fill %i after 2 hrs' % filln)
             label = "After 2 hours"
 
-        data2 = data2[data2 != 0]
+        if args.onlyarcs:
+            plot_title += ' - Only Arcs'
+            for type_ctr, type_ in enumerate(hlc.cq.Type_list):
+                if type_ != 'ARC':
+                    if cc == 1:
+                        data2_pure[:,type_ctr] = 0
+                    else:
+                        data2_pure[type_ctr] = 0
+                
+            data2_pure = data2_pure.flatten()
+
+
+        data2 = data2_pure[data2_pure != 0]
         hist, bin_edges = np.histogram(data2, bins=10, normed=True)
+        new_hist = []
         new_bin_edges = []
         for h_ctr, val in enumerate(hist):
             edge1, edge2 = bin_edges[h_ctr], bin_edges[h_ctr+1]
             binwidth = edge2 - edge1
             if val*binwidth > 0.01:
-                new_bin_edges.extend([edge1, edge2])
+                if not new_bin_edges:
+                    new_bin_edges.append(edge1)
+                new_bin_edges.append(edge2)
+                new_hist.append(val)
+
+        if key == 'EH':
+            new_bin_edges = [0,20]
         data2 = data2[np.logical_and(data2 > new_bin_edges[0], data2 < new_bin_edges[-1])]
+
+        #if key == 'T2':
+        #    data2 = data2[data2 < 30]
+        #elif key == 'gamma':
+        #    data2 = data2[data2 < 3]
+        #elif key == 'm_L':
+        #    data2 = data2[data2 < 0.0025]
+        #elif key == 'ro':
+        #    data2 = data2[data2 < 60]
 
         if key in hlc.data_dict:
             affix = '(data)'
@@ -122,30 +172,39 @@ for cc in (1,2):
             affix = '(computed)'
         sp_ctr = ctr % 4 +1
         if cc == 1 and sp_ctr == 1:
-            fig = ms.figure(plot_title+'_%i' % fig_ctr, figs)
+            fig = ms.figure(plot_title, figs)
+            fig.subplots_adjust(right=0.75, )
             fig_ctr += 1
         if cc == 1:
             sp = plt.subplot(2,2,sp_ctr)
+            sp.set_title(key+' '+affix)
+            sp.set_xlabel(unit)
+            sp.set_ylabel('Occurence')
+            #sp.set_yticklabels([])
+            if key in ('h3', 'm_L', 'h1', 'Re', 'h3'):
+                ms.scix()
+            ms.sciy()
+            sp.grid(True)
             key_sp_dict[key] = sp
         else:
             sp = key_sp_dict[key]
+        
+        sp.hist(data2, normed=True, label=label, alpha=0.5)
+        if key[0] == '$':
+            sp.set_xticks(np.arange(-0.12, 0.01, 0.03))
 
-        sp.set_title(key+' '+affix)
-        sp.set_xlabel(key)
-        sp.set_ylabel('Rel. Occurence')
-        sp.set_yticklabels([])
-        sp.grid(True)
-
-        sp.hist(data2[data2 != 0], normed=True, label=label, alpha=0.5)
+#        if cc == 1 and key == 'Re':
+#            for xx, label in zip([3e3, 1e5], ['Discontinuities', None]):
+#                sp.axvline(xx, lw=2, color='red', ls='--', label=label)
 
         if cc == 2 and sp_ctr == 2:
-            sp.legend(bbox_to_anchor=(1.1,1))
+            sp.legend(bbox_to_anchor=(1.05,1))
+        if cc == 2 and key == 'Re':
+            sp.legend(bbox_to_anchor=(0.55,1))
 
-        if cc == 1 and key == 'Re':
-            for xx in 3e3, 1e5:
-                sp.axvline(xx, lw=2, color='red', ls='--')
+if args.savefig:
+    for fig in figs:
+        fig.savefig(os.path.expanduser(args.savefig) + '_%i.png' % fig.number)
 
-if savefig:
-    sf.pdijksta(figs, dpi=150)
-
-plt.show()
+if not args.noshow:
+    plt.show()
