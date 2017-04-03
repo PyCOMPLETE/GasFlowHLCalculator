@@ -18,12 +18,20 @@ arc_index = np.array(
 
 latest_config_file_version=3
 def get_config_file(version):
-    if version in (1,2):
-        return '/config_qbs_lhc_%i.csv' % version
-    elif version > 2:
-        return '/config_qbs_lhc_%i.csv' % 3
+    if version == 2:
+        return '/config_qbs_lhc_2.csv'
+    elif 2 < version < 8:
+        return '/config_qbs_lhc_3.csv'
+    elif version == 8:
+        return './CryoBeamScreenData.csv'
     else:
         raise ValueError('Config file not defined!')
+
+def get_delimiter(version):
+    if version < 8:
+        return '\t'
+    else:
+        return ','
 
 
 class Config_qbs(object):
@@ -31,7 +39,7 @@ class Config_qbs(object):
         csv_file_name = os.path.dirname(os.path.abspath(__file__)) + get_config_file(version)
         with open(csv_file_name, 'r') as f:
             config_qbs = []
-            tsv = csv.reader(f, delimiter='\t')
+            tsv = csv.reader(f, delimiter=get_delimiter(version))
             for ctr, row in enumerate(tsv):
                 if ctr == 0:
                     first_row = row
@@ -48,6 +56,24 @@ class Config_qbs(object):
                 except:
                     pass
             setattr(self, key, value)
+
+        if get_delimiter(version) == ',':
+
+            self.Sector_list    = self.Sector
+            self.Type_list      = self.Type
+            self.Cell_list      = self.Loop
+            self.EH84x_list     = self.QEH
+            self.TT84x_list     = self.T2
+            self.CV94x_list     = self.CV1
+            self.PT961_list     = self.P1
+            self.PT991_list     = self.P4
+            self.TT94x_list     = self.T3
+            self.TT961_list     = self.T1
+            self.R_list         = self.R
+            self.Qs_list        = self.QS
+            self.Kv_list        = self.Kvmax
+            self.nc_list        = self.nc
+            self.L_list         = self.L
 
         self.arc_index = arc_index
         self.arc_list = arc_list
