@@ -37,7 +37,7 @@ for use_dP in (True, False):
     atd_ob = h5_storage.load_data_file(filln)
     tt = atd_ob.timestamps - atd_ob.timestamps[0]
 
-    qbs_ob = compute_qbs(atd_ob, use_dP, strict=False, report=True)
+    qbs_ob = compute_qbs(atd_ob, use_dP, strict=False)
     qbs_arc_avg = compute_qbs_arc_avg(qbs_ob).dictionary
 
     if reference_run:
@@ -59,7 +59,11 @@ for use_dP in (True, False):
         color = ms.colorprog(ctr, arc_list)
         sp.plot(tt/3600., qbs_arc_avg[arc], lw=2, label=arc, color=color)
         if not reference_run:
-            sp.plot(tt_ref/3600., ref_arc_avg[arc], lw=2, color=color, ls='--')
+            if ctr == 0:
+                label = arc + ' ref'
+            else:
+                label = None
+            sp.plot(tt_ref/3600., ref_arc_avg[arc], lw=2, color=color, ls='--', label=label)
     sp.set_xlabel('time [hr]')
     sp.set_ylabel('Qdbs [W]')
     sp.set_title('Average beam screen heat load per ARC %s' % dp)
