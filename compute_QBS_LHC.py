@@ -51,22 +51,18 @@ class HeatLoadComputer(VarGetter):
 
         hC = zeros(self.Nvalue, self.Ncell)
         h3 = zeros(self.Nvalue, self.Ncell)
-        #h3_old = zeros(self.Nvalue, self.Ncell)
 
         for i, isnan in enumerate(self.nan_arr):
             if isnan:
                 hC[:,i] = np.nan
                 h3[:,i] = np.nan
-                #h3_old[:,i] = np.nan
             else:
                 for j in xrange(self.Nvalue):
                     hC[j,i] = interp_P_T_hPT(P1[j,i], T1[j,i])
                     h3[j,i] = interp_P_T_hPT(P3[j,i], T3[j,i])
-                    #h3_old[j,i] = interp_P_T_hPT(P1[j,i], T3[j,i])
 
         self.computed_values['hC'] = hC
         self.computed_values['h3'] = h3
-        #self.computed_values['h3_old'] = h3_old
 
     def _compute_ro(self, use_P3):
         if use_P3:
