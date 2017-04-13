@@ -23,7 +23,7 @@ def get_config_file(version):
     elif 2 < version < 8:
         return '/config_qbs_lhc_3.csv'
     elif version == 8:
-        return '/CryoBeamScreenData.csv'
+        return '/LHCCryoHeatLoadCalibration/CryoBeamScreenData.csv'
     else:
         raise ValueError('Config file not defined!')
 
