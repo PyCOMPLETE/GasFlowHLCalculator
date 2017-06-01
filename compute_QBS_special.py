@@ -1,6 +1,5 @@
 # Note: There are different naming conventions for the special cells.
 # For exampsle 12R4 or 13R4.
-import sys
 import numpy as np
 
 from Helium_properties import interp_P_T_hPT, interp_P_T_DPT
@@ -10,7 +9,7 @@ from valve_LT import valve_LT
 
 zeros = lambda *x: np.zeros(shape=(x), dtype=float)
 
-cell_list = ['13R4', '33L5', '13L5']
+cell_list = ['13R4', '33L5', '13L5', '31L2']
 
 def mass_flow(atd):
     n_tt = len(atd.timestamps)
@@ -100,6 +99,23 @@ def make_dict(Compute_QBS_magnet, Qbs, atd):
             'Sum': QBS_13L5_sum,
             'Qbs': Qbs[:,2],
             }
+
+    # This is the new cell
+    QBS_Q1_31L2 = Compute_QBS_magnet(3,Q1_Tin_31L2,Q1_Tout_31L2)
+    QBS_D2_31L2 = Compute_QBS_magnet(3,D2_Tin_31L2,D2_Tout_31L2)
+    QBS_D3_31L2 = Compute_QBS_magnet(3,D3_Tin_31L2,D3_Tout_31L2)
+    QBS_D4_31L2 = Compute_QBS_magnet(3,D4_Tin_31L2,D4_Tout_31L2)
+    QBS_31L2_sum = QBS_Q1_31L2 + QBS_D2_31L2 + QBS_D3_31L2 + QBS_D4_31L2
+    # Be careful of naming conventions for cells!
+    qbs_special['31L2'] = {
+            'Q1': QBS_Q1_31L2,
+            'D2': QBS_D2_31L2,
+            'D3': QBS_D3_31L2,
+            'D4': QBS_D4_31L2,
+            'Sum': QBS_31L2_sum,
+            'Qbs': Qbs[:,3],
+            }
+
     return qbs_special
 
 def make_dict_separate(Compute_QBS_magnet, Qbs, atd, qbs_special):
@@ -155,6 +171,7 @@ def make_dict_separate(Compute_QBS_magnet, Qbs, atd, qbs_special):
             'D4_b1': QBS_D4_13L5_b1,
             'D4_b2': QBS_D4_13L5_b2,
             })
+
     return qbs_special
 
 def compute_qbs_special(atd, separate=False):
