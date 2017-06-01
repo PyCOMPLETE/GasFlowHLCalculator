@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import re
 
 import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.LHC_Heatloads as HL
@@ -117,6 +118,11 @@ def get_fill_dict(filln, version=version, use_dP=True):
         varlist_tmb+=HL.variable_lists_heatloads[kk]
 
     varlist_tmb+=HL.arcs_varnames_static
+
+    # Remove new special instrumented cell for older fills
+    if filln <= 5456:
+        regex = re.compile('^QRLAB_31L2_QBS943_\w\w.POSST$')
+        varlist_tmb = filter(lambda x: regex.match(x) == None, varlist_tmb)
 
     for varname in varlist_tmb:
         tvl = tm.timber_variable_list()
