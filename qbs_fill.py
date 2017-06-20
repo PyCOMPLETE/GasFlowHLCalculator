@@ -9,10 +9,10 @@ from config_qbs import config_qbs, arc_index, arc_list
 from compute_QBS_special import compute_qbs_special, cell_list
 import compute_QBS_LHC as cql
 
-version = h5_storage.version
+default_version = h5_storage.version
 
 # Load data for one fill
-def compute_qbs_fill(filln, use_dP=True, version=version, recompute_if_missing=False):
+def compute_qbs_fill(filln, use_dP=True, version=default_version, recompute_if_missing=False):
     """
     Arguments:
         -filln
@@ -20,6 +20,13 @@ def compute_qbs_fill(filln, use_dP=True, version=version, recompute_if_missing=F
         -version = h5_storage.version
         -recompute_if_missing = False
     """
+        # Calib is changed for pre LS1 data
+    if filln < 3600:
+        version = -1
+        print 'Warning in GasflowHLCalculator.qbs_fill: special case for pre LS1 fills. Specified version is ignored.'
+    else:
+        version = default_version
+        
     h5_file = h5_storage.get_qbs_file(filln, version=version, use_dP=use_dP)
     if os.path.isfile(h5_file):
         return h5_storage.load_qbs(filln, version=version, use_dP=use_dP)
@@ -27,14 +34,16 @@ def compute_qbs_fill(filln, use_dP=True, version=version, recompute_if_missing=F
     if not recompute_if_missing:
         raise ValueError("""File %s does not exist.
                          Set the correct flag if you want to recompute!""" % h5_file)
+    
 
+        
     atd_ob = h5_storage.load_data_file(filln)
     qbs_ob = cql.compute_qbs(atd_ob, use_dP, version=version)
     h5_storage.store_qbs(filln, qbs_ob, use_dP, version=version)
     print('Stored h5 for fill %i.' % filln)
     return qbs_ob
 
-def test_compute_qbs(filln, use_dP=True, version=version):
+def test_compute_qbs(filln, use_dP=True, version=default_version):
     """
     Never loads or saves recomputed data.
     """
@@ -43,14 +52,19 @@ def test_compute_qbs(filln, use_dP=True, version=version):
 
 # Special cells
 def special_qbs_fill(filln, recompute_if_missing=False):
+
     h5_file = h5_storage.get_special_qbs_file(filln)
 
     if os.path.isfile(h5_file):
         qbs_ob = h5_storage.load_special_qbs(filln)
         return aligned_to_dict(qbs_ob)
     elif recompute_if_missing:
+        if filln < 5500:
+            new_cell = False
+        else:
+            new_cell = True
         atd_ob = h5_storage.load_special_data_file(filln)
-        qbs_dict = compute_qbs_special(atd_ob)
+        qbs_dict = compute_qbs_special(atd_ob, new_cell)
         h5_storage.store_special_qbs(dict_to_aligned(qbs_dict))
         print('Stored h5 for fill %i.' % filln)
         return qbs_dict
@@ -97,7 +111,7 @@ def compute_qbs_arc_avg(qbs_ob):
     return tm.AlignedTimberData(qbs_ob.timestamps, qbs_arc_avg, arc_list)
 
 # plug-in replacement of old heat load procedure, the fill dict
-def get_fill_dict(filln, version=version, use_dP=True):
+def get_fill_dict(filln, version=default_version, use_dP=True):
     qbs_ob = compute_qbs_fill(filln, version=version, use_dP=use_dP)
     qbs_special = special_qbs_fill_aligned(filln)
 
@@ -129,7 +143,10 @@ def get_fill_dict(filln, version=version, use_dP=True):
         special_id = varname.split('.POSST')[0][-3:]
         if special_id in('_Q1', '_D2', '_D3', '_D4'):
             cell = varname.split('_')[1]
-            tvl.values = qbs_special.dictionary[cell+special_id]
+            try:
+                tvl.values = qbs_special.dictionary[cell+special_id]
+            except:
+                import pdb ; pdb.set_trace()
             tvl.t_stamps = qbs_special.timestamps
         elif '_QBS9' in varname:
             firstp, lastp = tuple(varname.split('_QBS'))
