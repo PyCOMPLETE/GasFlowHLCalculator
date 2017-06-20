@@ -28,14 +28,15 @@ for atd_file in atd_files:
         filln = int(info.group(1))
 
         for use_dP in use_dPs:
-                        this_qbs_file = h5_storage.get_qbs_file(filln, **kwargs)
-            if not os.path.isfile(this_qbs_file):
-                if filln < 3600:
-                    new_version = -1
-                    print 'Warning in GasflowHLCalculator.qbs_fill: special case for pre LS1 fills. Specified version is ignored.'
-                else:
-                    new_version = new_version_default
+            if filln < 3600:
+                new_version = -1
+            else:
+                new_version = new_version_default
             kwargs = {'use_dP': use_dP, 'version': new_version}
+            this_qbs_file = h5_storage.get_qbs_file(filln, **kwargs)
+            if not os.path.isfile(this_qbs_file):
+                if new_version != new_version_default:
+                    print 'Warning in GasflowHLCalculator.qbs_fill: special case for pre LS1 fills. Specified version is ignored.'
 
                 time_0 = time.time()
                 atd_ob = h5_storage.load_data_file(filln)
