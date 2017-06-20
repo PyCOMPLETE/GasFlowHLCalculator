@@ -28,7 +28,8 @@ for atd_file in atd_files:
         if not os.path.isfile(this_qbs_file):
             time_0 = time.time()
             atd_ob = h5_storage.load_special_data_file(filln)
-            qbs_dict = compute_qbs_special(atd_ob)
+            new_cell = filln > 5600
+            qbs_dict = compute_qbs_special(atd_ob, new_cell=new_cell)
             qbs_ob = qf.dict_to_aligned(qbs_dict)
             n_tries = 5
             while n_tries > 0:
