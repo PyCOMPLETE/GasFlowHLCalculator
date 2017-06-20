@@ -26,7 +26,7 @@ def compute_qbs_fill(filln, use_dP=True, version=default_version, recompute_if_m
         print 'Warning in GasflowHLCalculator.qbs_fill: special case for pre LS1 fills. Specified version is ignored.'
     else:
         version = default_version
-        
+
     h5_file = h5_storage.get_qbs_file(filln, version=version, use_dP=use_dP)
     if os.path.isfile(h5_file):
         return h5_storage.load_qbs(filln, version=version, use_dP=use_dP)
@@ -34,9 +34,9 @@ def compute_qbs_fill(filln, use_dP=True, version=default_version, recompute_if_m
     if not recompute_if_missing:
         raise ValueError("""File %s does not exist.
                          Set the correct flag if you want to recompute!""" % h5_file)
-    
 
-        
+
+
     atd_ob = h5_storage.load_data_file(filln)
     qbs_ob = cql.compute_qbs(atd_ob, use_dP, version=version)
     h5_storage.store_qbs(filln, qbs_ob, use_dP, version=version)
@@ -59,10 +59,7 @@ def special_qbs_fill(filln, recompute_if_missing=False):
         qbs_ob = h5_storage.load_special_qbs(filln)
         return aligned_to_dict(qbs_ob)
     elif recompute_if_missing:
-        if filln < 5500:
-            new_cell = False
-        else:
-            new_cell = True
+        new_cell = filln > 5500
         atd_ob = h5_storage.load_special_data_file(filln)
         qbs_dict = compute_qbs_special(atd_ob, new_cell)
         h5_storage.store_special_qbs(dict_to_aligned(qbs_dict))
