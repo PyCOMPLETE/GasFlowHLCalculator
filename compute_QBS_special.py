@@ -10,6 +10,7 @@ from valve_LT import valve_LT
 zeros = lambda *x: np.zeros(shape=(x), dtype=float)
 
 cell_list = ['13R4', '33L5', '13L5', '31L2']
+cell_list_old = ['13R4', '33L5', '13L5']
 
 def mass_flow(atd):
     n_tt = len(atd.timestamps)
@@ -47,10 +48,13 @@ def mass_flow(atd):
     Compute_QBS_magnet = QbsMagnetCalculator(interp_P_T_hPT, atd, P1, m_L).Compute_QBS_magnet
     return Compute_QBS_magnet, Qbs
 
-def make_dict(Compute_QBS_magnet, Qbs, atd):
+def make_dict(Compute_QBS_magnet, Qbs, atd, new_cell):
     qbs_special = {}
     qbs_special['timestamps'] = atd.timestamps
-    qbs_special['cells'] = cell_list
+    if new_cell:
+        qbs_special['cells'] = cell_list
+    else:
+        qbs_special['cells'] = cell_list_old
 
     #compute each magnet QBS
     QBS_Q1_12R4 = Compute_QBS_magnet(0,Q1_Tin_12R4,Q1_Tout_12R4)
@@ -101,24 +105,26 @@ def make_dict(Compute_QBS_magnet, Qbs, atd):
             }
 
     # This is the new cell
-    QBS_Q1_31L2 = Compute_QBS_magnet(3,Q1_Tin_31L2,Q1_Tout_31L2)
-    QBS_D2_31L2 = Compute_QBS_magnet(3,D2_Tin_31L2,D2_Tout_31L2)
-    QBS_D3_31L2 = Compute_QBS_magnet(3,D3_Tin_31L2,D3_Tout_31L2)
-    QBS_D4_31L2 = Compute_QBS_magnet(3,D4_Tin_31L2,D4_Tout_31L2)
-    QBS_31L2_sum = QBS_Q1_31L2 + QBS_D2_31L2 + QBS_D3_31L2 + QBS_D4_31L2
-    # Be careful of naming conventions for cells!
-    qbs_special['31L2'] = {
-            'Q1': QBS_Q1_31L2,
-            'D2': QBS_D2_31L2,
-            'D3': QBS_D3_31L2,
-            'D4': QBS_D4_31L2,
-            'Sum': QBS_31L2_sum,
-            'Qbs': Qbs[:,3],
-            }
+    if new_cell:
+        QBS_Q1_32L2 = Compute_QBS_magnet(3,Q1_Tin_32L2,Q1_Tout_32L2)
+        QBS_D2_32L2 = Compute_QBS_magnet(3,D2_Tin_32L2,D2_Tout_32L2)
+        QBS_D3_32L2 = Compute_QBS_magnet(3,D3_Tin_32L2,D3_Tout_32L2)
+        QBS_D4_32L2 = Compute_QBS_magnet(3,D4_Tin_32L2,D4_Tout_32L2)
+        QBS_32L2_sum = QBS_Q1_32L2 + QBS_D2_32L2 + QBS_D3_32L2 + QBS_D4_32L2
+        # Be careful of naming conventions for cells!
+        qbs_special['31L2'] = {
+                'Q1': QBS_Q1_32L2,
+                'D2': QBS_D2_32L2,
+                'D3': QBS_D3_32L2,
+                'D4': QBS_D4_32L2,
+                'Sum': QBS_32L2_sum,
+                'Qbs': Qbs[:,3],
+                }
 
     return qbs_special
 
 def make_dict_separate(Compute_QBS_magnet, Qbs, atd, qbs_special):
+    raise ValueError('This does not currently work')
     top, bot = 0, 1 #826 and 824 temp sensors
 
     #compute each magnet QBS
@@ -174,9 +180,9 @@ def make_dict_separate(Compute_QBS_magnet, Qbs, atd, qbs_special):
 
     return qbs_special
 
-def compute_qbs_special(atd, separate=False):
+def compute_qbs_special(atd, new_cell, separate=False):
     Compute_QBS_magnet, Qbs = mass_flow(atd)
-    special_dict = make_dict(Compute_QBS_magnet, Qbs, atd)
+    special_dict = make_dict(Compute_QBS_magnet, Qbs, atd, new_cell)
     if not separate:
         return special_dict
     else:
