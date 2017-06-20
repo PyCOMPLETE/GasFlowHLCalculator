@@ -18,6 +18,8 @@ arc_index = np.array(
 
 latest_config_file_version=3
 def get_config_file(version):
+    if version == -1:
+        return '/LHCCryoHeatLoadCalibration/CryoBeamScreenData_beforeLS1_arcs.csv'
     if version == 2:
         return '/config_qbs_lhc_2.csv'
     elif 2 < version < 8:
@@ -28,6 +30,8 @@ def get_config_file(version):
         raise ValueError('Config file not defined!')
 
 def get_delimiter(version):
+    if version == -1:
+        return ','
     if version < 8:
         return '\t'
     else:
