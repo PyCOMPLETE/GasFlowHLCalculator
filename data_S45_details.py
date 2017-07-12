@@ -1,3 +1,6 @@
+
+cell_timber_vars_dict = dd = {}
+
 # Data extracted from QBS scripts on 31/08/2016.
 # New cell added in June 2017
 EH84x_list = ['LQATI_12R4_EH847.POSST', 'LQOAN_34R4_EH847.POSST', 'LBALB_13L5_EH843.POSST', 'LBARB_31L2_EH843.POSST']
@@ -8,11 +11,24 @@ PT991_list = ['QRLAA_13R4_PT991.POSST', 'QRLAA_33L5_PT991.POSST', 'QRLAA_13L5_PT
 TT94x_list = ['QRLAA_13R4_TT947.POSST', 'QRLAA_33L5_TT947.POSST', 'QRLAA_13L5_TT943.POSST', 'QRLAB_31L2_TT943.POSST']
 TT961_list = ['QRLAA_13R4_TT961.POSST', 'QRLAA_33L5_TT961.POSST', 'QRLAA_13L5_TT961.POSST', 'QRLAA_29L2_TT961.POSST']
 
-cell_list = ['13L5', '33L5', '13R4', '31L2']
+cell_list = ['13R4', '33L5', '13L5', '31L2']
 
 Qs_list = [7,7,7,8]
 R_list = [40,40,40,38]
 Kv_list = [0.39,0.39,0.39, 0.39]
+
+for index, cell in enumerate(cell_list):
+    dd[cell] = cc = {}
+    cc['EH84x'] = EH84x_list[index]
+    cc['TT84x'] = TT84x_list[index]
+    cc['CV94x'] = CV94x_list[index]
+    cc['PT961'] = PT961_list[index]
+    cc['PT991'] = PT991_list[index]
+    cc['TT94x'] = TT94x_list[index]
+    cc['TT961'] = TT961_list[index]
+    cc['Qs'] = Qs_list[index]
+    cc['R'] = R_list[index]
+    cc['Kv'] = Kv_list[index]
 
 #intermedia data 12R4-13R4
 Q1_Tin_12R4 = ['QBQI_12R4_TT825.POSST']
@@ -33,7 +49,9 @@ Q1_Tout_32R4 =['QQBI_34L5_TT826.POSST', 'QQBI_34L5_TT824.POSST']
 D2_Tin_32R4 = Q1_Tout_32R4
 D2_Tout_32R4 = ['QBBI_B34L5_TT826.POSST', 'QBBI_B34L5_TT824.POSST']
 D3_Tin_32R4 = D2_Tout_32R4
-D3_Tout_32R4 = ['QBBI_A34L5_TT824.POSST']  #remove QBBI_A34L5_TT826 not working
+# Update in 2017: Sensor QBBI_A34L5_TT826.POSST is now working
+print('Fix at some point for old scripts')
+D3_Tout_32R4 = ['QBBI_A34L5_TT824.POSST', 'QBBI_A34L5_TT826.POSST']
 D4_Tin_32R4 = D3_Tout_32R4
 D4_Tout_32R4 = ['QBQI_34L5_TT825.POSST']
 QBS_32R4 = ['QRLAA_33L5_QBS947_Q1.POSST', 'QRLAA_33L5_QBS947_D2.POSST', 'QRLAA_33L5_QBS947_D3.POSST', 'QRLAA_33L5_QBS947_D4.POSST']
@@ -43,7 +61,8 @@ QBS_32R4 = ['QRLAA_33L5_QBS947_Q1.POSST', 'QRLAA_33L5_QBS947_D2.POSST', 'QRLAA_3
 D4_Tin_13L5 = ['QBQI_13L5_TT825.POSST']
 D4_Tout_13L5 =  ['QBBI_A13L5_TT826.POSST', 'QBBI_A13L5_TT824.POSST']
 D3_Tin_13L5 = D4_Tout_13L5
-D3_Tout_13L5 = ['QBBI_B13L5_TT826.POSST', 'QBBI_B13L5_TT824.POSST']
+D3_Tout_13L5 = ['QBBI_B13L5_TT826.POSST']#, 'QBBI_B13L5_TT824.POSST']
+print('WARNING: Wrong for old fills: Functioning sensor QBBI_B13L5_TT824.POSST is ignored!')
 D2_Tin_13L5 = D3_Tout_13L5
 D2_Tout_13L5 = ['QQBI_13L5_TT826.POSST', 'QQBI_13L5_TT824.POSST']
 Q1_Tin_13L5 = D2_Tout_13L5
@@ -62,4 +81,5 @@ D2_Tout_32L2 = ['QQBI_31L2_TT824.POSST', 'QQBI_31L2_TT826.POSST']
 Q1_Tin_32L2 = D2_Tout_32L2
 Q1_Tout_32L2 = ['QBQI_32L2_TT825.POSST']
 QBS_32L2 = ['QRLAB_31L2_QBS943_D2.POSST', 'QRLAB_31L2_QBS943_D3.POSST', 'QRLAB_31L2_QBS943_D4.POSST', 'QRLAB_31L2_QBS943_Q1.POSST']
+
 
