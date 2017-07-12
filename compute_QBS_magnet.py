@@ -11,12 +11,16 @@ class QbsMagnetCalculator(object):
         self.n_tt = len(atd.timestamps)
         self.data = atd.data
         self.interp_P_T_hPT = interp_P_T_hPT
+        self.variables_set = set(self.variables)
 
     def Compute_QBS_magnet(self, n, Tin_list, Tout_list):
         if not isinstance(Tin_list, list):
             Tin_list = [Tin_list]
         if not isinstance(Tout_list, list):
             Tout_list = [Tout_list]
+
+        Tin_list = list(set(Tin_list).intersection(self.variables_set))
+        Tout_list = list(set(Tout_list).intersection(self.variables_set))
 
         n_tt = self.n_tt
         n_in = len(Tin_list)
@@ -37,22 +41,22 @@ class QbsMagnetCalculator(object):
         interp_P_T_hPT = self.interp_P_T_hPT
 
         #build vector of data
-        for i in xrange(n_in):
-            index = variables.index(Tin_list[i])
-            Tin[:,i] = data[:,index]
-
-        for i in xrange(n_out):
-            index = variables.index(Tout_list[i])
-            Tout[:,i] = data[:,index]
+        for tt_var_list, tt_data_arr in [(Tin_list, Tin),(Tout_list, Tout)]:
+            for i, tt_var in enumerate(tt_var_list):
+                index = variables.index(tt_var)
+                if np.all(data[:,index] == 0):
+                    tt_data_arr[:,i] = np.nan
+                else:
+                    tt_data_arr[:,i] = data[:,index]
 
         #compute average if 2 sensors
         if n_in > 1:
-            Tin_avg = np.mean(Tin,axis=1)
+            Tin_avg = np.nanmean(Tin,axis=1)
         else:
             Tin_avg = Tin
 
         if n_out > 1:
-            Tout_avg = np.mean(Tout, axis=1)
+            Tout_avg = np.nanmean(Tout, axis=1)
         else:
             Tout_avg = Tout
 
@@ -63,3 +67,4 @@ class QbsMagnetCalculator(object):
         QBS_mag = m_L[:,n]*(hout-hin)
 
         return QBS_mag
+
