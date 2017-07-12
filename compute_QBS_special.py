@@ -68,7 +68,7 @@ def make_dict(Compute_QBS_magnet, Qbs, atd, new_cell):
     QBS_D4_12R4 = Compute_QBS_magnet(0,D4_Tin_12R4,D4_Tout_12R4)
     QBS_12R4_sum = QBS_Q1_12R4 + QBS_D2_12R4 + QBS_D3_12R4 + QBS_D4_12R4
     # Be careful of naming conventions for cells!
-    qbs_special['13L5'] = {
+    qbs_special['13R4'] = {
             'Q1': QBS_Q1_12R4,
             'D2': QBS_D2_12R4,
             'D3': QBS_D3_12R4,
@@ -100,7 +100,7 @@ def make_dict(Compute_QBS_magnet, Qbs, atd, new_cell):
     QBS_D4_13L5 = Compute_QBS_magnet(2,D4_Tin_13L5,D4_Tout_13L5)
     QBS_13L5_sum = QBS_Q1_13L5 + QBS_D2_13L5 + QBS_D3_13L5 + QBS_D4_13L5
     # Be careful of naming conventions for cells!
-    qbs_special['13R4'] = {
+    qbs_special['13L5'] = {
             'Q1': QBS_Q1_13L5,
             'D2': QBS_D2_13L5,
             'D3': QBS_D3_13L5,
