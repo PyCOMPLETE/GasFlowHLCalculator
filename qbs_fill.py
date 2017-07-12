@@ -52,6 +52,7 @@ def test_compute_qbs(filln, use_dP=True, version=default_version):
 def special_qbs_fill(filln, recompute_if_missing=False, force_recalc=False):
 
     if force_recalc:
+	print('Force recalculated')
         new_cell = filln > 5500
         atd_ob = h5_storage.load_special_data_file(filln)
         return compute_qbs_special(atd_ob, new_cell)

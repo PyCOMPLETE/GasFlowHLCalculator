@@ -21,12 +21,18 @@ parser.add_argument('--save', help='Save obj to pickle so you can load it later.
 parser.add_argument('--cells', help='Cells to plot', nargs='+')
 parser.add_argument('--special', help='Special cells', action='store_true')
 parser.add_argument('--best-worst', help='Best and worst hl cells', action='store_true')
+parser.add_argument('--use_dP', action='store_true')
 parser.add_argument('filln', type=int)
 args = parser.parse_args()
 
 filln = args.filln
-storage = os.path.abspath(os.path.dirname(__file__))+ '/hlc_%i.pkl' % filln
+use_dP = args.use_dP
 cells = args.cells
+
+if use_dP:
+    storage = os.path.abspath(os.path.dirname(__file__))+ '/hlc_%i.pkl' % filln
+else:
+    storage = os.path.abspath(os.path.dirname(__file__))+ '/hlc_%i_nodP.pkl' % filln
 
 load_pkl = args.load
 save_pkl = args.save
@@ -69,13 +75,14 @@ def plot_cell_details(cells, hlc, title):
     sp.grid(True)
     sp.set_title('Heat loads')
     sp.set_xlabel('Time [h]')
+    sp.set_ylabel('Heat load [W]')
 
     sp_mf = sp_hl.twinx()
     sp = sp_mf
-    sp.set_ylabel('Mass flow')
+    sp.set_ylabel('Mass flow [g/s]')
 
     fig = ms.figure(title)
-    fig.subplots_adjust(right=0.86, wspace=0.28, left=0.04, top=0.93, bottom=0.08, hspace=0.23)
+    fig.subplots_adjust(right=0.86, wspace=0.28, left=0.08, top=0.93, bottom=0.08, hspace=0.23)
 
     sp_h = plt.subplot(2,2,1, sharex=sp)
     sp = sp_h
@@ -95,6 +102,7 @@ def plot_cell_details(cells, hlc, title):
             ls = '-'
 
         for ctr, (key, data) in enumerate(cell_dict.iteritems()):
+            yy_factor = 1
             if key[0] == 'T':
                 sp = sp_t
             elif key[0] == 'P':
@@ -106,6 +114,7 @@ def plot_cell_details(cells, hlc, title):
             elif key == 'EH':
                 sp = sp_hl
             elif key == 'm_L':
+                yy_factor = 1e3
                 sp = sp_mf
             elif key in ('h3', 'hC'):
                 sp = sp_h
@@ -118,7 +127,7 @@ def plot_cell_details(cells, hlc, title):
             else:
                 label=None
 
-            sp.plot(tt, data, lw=2, label=label, color=color, ls=ls)
+            sp.plot(tt, data*yy_factor, lw=2, label=label, color=color, ls=ls)
 
     bta = (1.2,1)
 
@@ -137,7 +146,7 @@ if load_pkl:
     with open(storage, 'r') as f:
         hlc = pickle.load(f)
 else:
-    hlc = HeatLoadComputer(data_ob, compute_Re=True, details=True)
+    hlc = HeatLoadComputer(data_ob, compute_Re=True, details=True, use_dP=use_dP)
     if save_pkl:
         with open(storage, 'w') as f:
             pickle.dump(hlc, f, -1)
