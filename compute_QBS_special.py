@@ -12,9 +12,13 @@ zeros = lambda *x: np.zeros(shape=(x), dtype=float)
 cell_list = ['13R4', '33L5', '13L5', '31L2']
 cell_list_old = ['13R4', '33L5', '13L5']
 
-def mass_flow(atd):
+def mass_flow(atd, new_cell):
     n_tt = len(atd.timestamps)
     n_list = len(TT94x_list)
+
+    # Account for missing cell
+    if not new_cell:
+        n_list -= 1
 
     m_L = zeros(n_tt, n_list) # mass flow
     T1 = zeros(n_tt, n_list) #TT961
@@ -33,7 +37,8 @@ def mass_flow(atd):
     varlist = list(atd.variables)
 
     for names, arr in zip(name_list, arr_list):
-        for ii, var in enumerate(names):
+        for ii in xrange(n_list):
+            var = names[ii]
             index = varlist.index(var)
             arr[:,ii] = atd.data[:,index]
 
@@ -181,7 +186,7 @@ def make_dict_separate(Compute_QBS_magnet, Qbs, atd, qbs_special):
     return qbs_special
 
 def compute_qbs_special(atd, new_cell, separate=False):
-    Compute_QBS_magnet, Qbs = mass_flow(atd)
+    Compute_QBS_magnet, Qbs = mass_flow(atd, new_cell)
     special_dict = make_dict(Compute_QBS_magnet, Qbs, atd, new_cell)
     if not separate:
         return special_dict

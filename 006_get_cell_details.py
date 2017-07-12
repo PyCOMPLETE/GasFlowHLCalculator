@@ -1,4 +1,5 @@
 from __future__ import division, print_function
+import os
 import argparse
 import cPickle as pickle
 
@@ -7,16 +8,30 @@ import matplotlib.pyplot as plt
 
 import h5_storage
 from compute_QBS_LHC import HeatLoadComputer
+import data_S45_details as dsd
+import config_qbs as cq
 
 import LHCMeasurementTools.mystyle as ms
 
 plt.close('all')
-filln = 5219
-storage = 'hlc_%i.pkl' % filln
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--calc', help='Calculate instead of loading from pickle', action='store_true')
+parser.add_argument('--load', help='Load from pickle instead of calculating.', action='store_true')
+parser.add_argument('--save', help='Save obj to pickle so you can load it later.', action='store_true')
+parser.add_argument('--cells', help='Cells to plot', nargs='+')
+parser.add_argument('--special', help='Special cells', action='store_true')
+parser.add_argument('--best-worst', help='Best and worst hl cells', action='store_true')
+parser.add_argument('filln', type=int)
 args = parser.parse_args()
+
+filln = args.filln
+storage = os.path.abspath(os.path.dirname(__file__))+ '/hlc_%i.pkl' % filln
+cells = args.cells
+
+load_pkl = args.load
+save_pkl = args.save
+
+new_cell = filln > 5700
 
 def plot_cell_details(cells, hlc, title):
     for cell in cells:
@@ -118,13 +133,15 @@ dict_cell_dict = {}
 hl_dict = {}
 data_ob = h5_storage.load_data_file(filln)
 
-if args.calc:
-    hlc = HeatLoadComputer(data_ob, compute_Re=True, details=True)
-    with open(storage, 'w') as f:
-        pickle.dump(hlc, f, -1)
-else:
+if load_pkl:
     with open(storage, 'r') as f:
         hlc = pickle.load(f)
+else:
+    hlc = HeatLoadComputer(data_ob, compute_Re=True, details=True)
+    if save_pkl:
+        with open(storage, 'w') as f:
+            pickle.dump(hlc, f, -1)
+            print('Pickle saved to %s' % storage)
 
 hl_cells_type = zip(np.mean(hlc.computed_values['qbs'],axis=0), hlc.cq.Cell_list, hlc.cq.Type_list)
 hl_cells = []
@@ -133,17 +150,33 @@ for hl, cell, type_ in hl_cells_type:
         hl_cells.append((hl, cell))
 hl_cells.sort()
 
-cell_nrs = [0, 200, -1]
-cells = [hl_cells[i][1] for i in cell_nrs]
-plot_cell_details(cells, hlc, 'Best, average and worst cell for fill %i' % filln)
+plot_cell_details(cells, hlc, 'Selected cells for fill %i' % filln)
 
-cell_nrs = xrange(0,10)
-cells = [hl_cells[i][1] for i in cell_nrs]
-plot_cell_details(cells, hlc, 'Best cells for fill %i' % filln)
+if args.best_worst:
+    cell_nrs = [0, 200, -1]
+    cells = [hl_cells[i][1] for i in cell_nrs]
+    plot_cell_details(cells, hlc, 'Best, average and worst cell for fill %i' % filln)
 
-cell_nrs = xrange(len(hl_cells)-10, len(hl_cells))
-cells = [hl_cells[i][1] for i in cell_nrs]
-plot_cell_details(cells, hlc, 'Worst cells for fill %i' % filln)
+    cell_nrs = xrange(0,10)
+    cells = [hl_cells[i][1] for i in cell_nrs]
+    plot_cell_details(cells, hlc, 'Best cells for fill %i' % filln)
+
+    cell_nrs = xrange(len(hl_cells)-10, len(hl_cells))
+    cells = [hl_cells[i][1] for i in cell_nrs]
+    plot_cell_details(cells, hlc, 'Worst cells for fill %i' % filln)
+
+if args.special:
+    cell_special_0 = dsd.cell_list
+    if not new_cell:
+        cell_special_0 = cell_special_0[:-1]
+
+    cells_special = []
+    for cell_ctr, cell in enumerate(cell_special_0):
+        eh = dsd.EH84x_list[cell_ctr]
+        index = cq.config_qbs.EH84x_list.index(eh)
+        cells_special.append(cq.config_qbs.Cell_list[index])
+
+    plot_cell_details(cells_special, hlc, 'Special cells for fill %i' % filln)
 
 plt.show()
 

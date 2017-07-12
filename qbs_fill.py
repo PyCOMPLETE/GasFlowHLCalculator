@@ -35,8 +35,6 @@ def compute_qbs_fill(filln, use_dP=True, version=default_version, recompute_if_m
         raise ValueError("""File %s does not exist.
                          Set the correct flag if you want to recompute!""" % h5_file)
 
-
-
     atd_ob = h5_storage.load_data_file(filln)
     qbs_ob = cql.compute_qbs(atd_ob, use_dP, version=version)
     h5_storage.store_qbs(filln, qbs_ob, use_dP, version=version)
@@ -51,7 +49,12 @@ def test_compute_qbs(filln, use_dP=True, version=default_version):
     return cql.compute_qbs(atd_ob, use_dP, version=version)
 
 # Special cells
-def special_qbs_fill(filln, recompute_if_missing=False):
+def special_qbs_fill(filln, recompute_if_missing=False, force_recalc=False):
+
+    if force_recalc:
+        new_cell = filln > 5500
+        atd_ob = h5_storage.load_special_data_file(filln)
+        return compute_qbs_special(atd_ob, new_cell)
 
     h5_file = h5_storage.get_special_qbs_file(filln)
 
@@ -69,7 +72,7 @@ def special_qbs_fill(filln, recompute_if_missing=False):
         raise ValueError('Set the correct flag if you want to recompute!')
 
 def special_qbs_fill_aligned(filln, recompute_if_missing=False):
-    qbs_dict = special_qbs_fill(filln, recompute_if_missing)
+    qbs_dict = special_qbs_fill(filln, recompute_if_missing=recompute_if_missing)
     return dict_to_aligned(qbs_dict)
 
 def dict_to_aligned(dict_):
@@ -129,6 +132,7 @@ def get_fill_dict(filln, version=default_version, use_dP=True):
         varlist_tmb+=HL.variable_lists_heatloads[kk]
 
     varlist_tmb+=HL.arcs_varnames_static
+    varlist_tmb+=HL.other_varnames_static
 
     # Remove new special instrumented cell for older fills
     if filln <= 5456:

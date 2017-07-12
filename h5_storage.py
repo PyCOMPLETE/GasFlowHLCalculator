@@ -47,6 +47,7 @@ def load_special_data_file(filln):
 def load_qbs(filln, use_dP, version=version):
     qbs_file = get_qbs_file(filln, version=version, use_dP=use_dP)
     qbs_ob = mfm.h5_to_obj(qbs_file)
+    print('Loaded file %s' % qbs_file)
     return tm.AlignedTimberData(qbs_ob.timestamps, qbs_ob.data, qbs_ob.variables)
 
 def load_special_qbs(filln):

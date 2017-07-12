@@ -10,7 +10,7 @@ import h5_storage
 from h5_storage import data_dir
 
 new_version_default = 7
-use_dPs = (True,)
+use_dPs = (True,False)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='random', action='store_true')
