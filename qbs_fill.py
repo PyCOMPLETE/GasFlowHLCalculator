@@ -150,6 +150,13 @@ def get_fill_dict(filln, version=default_version, use_dP=True):
             except:
                 import pdb ; pdb.set_trace()
             tvl.t_stamps = qbs_special.timestamps
+        elif varname.startswith('QRLEB_05L4'):
+            tvl.values = qbs_ob.dictionary['05L4_947_2']
+            tvl.t_stamps = qbs_ob.timestamps
+        elif varname.startswith('QRLEB_05R4'):
+            tvl.values = qbs_ob.dictionary['05R4_947']
+            tvl.t_stamps = qbs_ob.timestamps
+
         elif '_QBS9' in varname:
             firstp, lastp = tuple(varname.split('_QBS'))
             kkk = firstp.split('_')[-1]+'_'+lastp.split('.')[0]
