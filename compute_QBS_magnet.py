@@ -1,7 +1,7 @@
 from __future__ import division
 import numpy as np
 
-zeros = lambda *x: np.zeros((x), dtype=float)
+zeros = lambda *x: np.zeros(x, dtype=float)
 
 class QbsMagnetCalculator(object):
     def __init__(self, interp_P_T_hPT, atd, P1, m_L):

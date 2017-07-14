@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 import h5_storage
 from compute_QBS_LHC import HeatLoadComputer
-import data_S45_details as dsd
+from data_S45_details import cell_list, cell_list_pre_EYETS16, cell_timber_vars_dict
 import config_qbs as cq
 
 import LHCMeasurementTools.mystyle as ms
@@ -175,13 +175,14 @@ if args.best_worst:
     plot_cell_details(cells, hlc, 'Worst cells for fill %i' % filln)
 
 if args.special:
-    cell_special_0 = dsd.cell_list
+    cell_special_0 = cell_list
     if not new_cell:
-        cell_special_0 = cell_special_0[:-1]
+        cell_special_0 = cell_list_pre_EYETS16
 
     cells_special = []
     for cell_ctr, cell in enumerate(cell_special_0):
-        eh = dsd.EH84x_list[cell_ctr]
+        #eh = dsd.EH84x_list[cell_ctr]
+        eh = cell_timber_vars_dict[cell]['EH84x']
         index = cq.config_qbs.EH84x_list.index(eh)
         cells_special.append(cq.config_qbs.Cell_list[index])
 

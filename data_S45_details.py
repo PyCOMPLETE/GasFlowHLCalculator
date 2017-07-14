@@ -1,5 +1,6 @@
+# Note: only the cell_timber_vars_dict and the cell_list is supposed to be used from this file.
+# The reason is that this data structure is better suited in a dictionary, not lists.
 
-cell_timber_vars_dict = dd = {}
 
 # Data extracted from QBS scripts on 31/08/2016.
 # New cell added in June 2017
@@ -12,10 +13,13 @@ TT94x_list = ['QRLAA_13R4_TT947.POSST', 'QRLAA_33L5_TT947.POSST', 'QRLAA_13L5_TT
 TT961_list = ['QRLAA_13R4_TT961.POSST', 'QRLAA_33L5_TT961.POSST', 'QRLAA_13L5_TT961.POSST', 'QRLAA_29L2_TT961.POSST']
 
 cell_list = ['13R4', '33L5', '13L5', '31L2']
+cell_list_pre_EYETS16 = ['13R4', '33L5', '13L5']
 
 Qs_list = [7,7,7,8]
 R_list = [40,40,40,38]
 Kv_list = [0.39,0.39,0.39, 0.39]
+
+cell_timber_vars_dict = dd = {}
 
 for index, cell in enumerate(cell_list):
     dd[cell] = cc = {}
@@ -42,6 +46,28 @@ D4_Tout_12R4 = ['QBQI_13R4_TT825.POSST']
 # Note the swapped naming conventions!
 QBS_12R4 = ['QRLAA_13L5_QBS943_Q1.POSST', 'QRLAA_13L5_QBS943_D2.POSST', 'QRLAA_13L5_QBS943_D3.POSST', 'QRLAA_13L5_QBS943_D4.POSST']
 
+dd['13R4'].update({
+    'Q1': {
+        'Tin': Q1_Tin_12R4,
+        'Tout': Q1_Tout_12R4,
+    },
+    'D2': {
+        'Tin': D2_Tin_12R4,
+        'Tout': D2_Tout_12R4,
+    },
+    'D3': {
+        'Tin': D3_Tin_12R4,
+        'Tout': D3_Tout_12R4,
+    },
+    'D4': {
+        'Tin': D4_Tin_12R4,
+        'Tout': D4_Tout_12R4,
+    },
+})
+dd['13R4']['QBS'] = QBS_12R4
+dd['13R4']['first_element'] = 'Q1'
+
+
 #intermedia data 34R4-33L5
 #broken sensor
 Q1_Tin_32R4 = ['QBQI_34R4_TT825.POSST']
@@ -50,11 +76,32 @@ D2_Tin_32R4 = Q1_Tout_32R4
 D2_Tout_32R4 = ['QBBI_B34L5_TT826.POSST', 'QBBI_B34L5_TT824.POSST']
 D3_Tin_32R4 = D2_Tout_32R4
 # Update in 2017: Sensor QBBI_A34L5_TT826.POSST is now working
-print('Fix at some point for old scripts')
 D3_Tout_32R4 = ['QBBI_A34L5_TT824.POSST', 'QBBI_A34L5_TT826.POSST']
 D4_Tin_32R4 = D3_Tout_32R4
 D4_Tout_32R4 = ['QBQI_34L5_TT825.POSST']
 QBS_32R4 = ['QRLAA_33L5_QBS947_Q1.POSST', 'QRLAA_33L5_QBS947_D2.POSST', 'QRLAA_33L5_QBS947_D3.POSST', 'QRLAA_33L5_QBS947_D4.POSST']
+
+dd['33L5'].update({
+    'Q1': {
+        'Tin': Q1_Tin_32R4,
+        'Tout': Q1_Tout_32R4,
+    },
+    'D2': {
+        'Tin': D2_Tin_32R4,
+        'Tout': D2_Tout_32R4,
+    },
+    'D3': {
+        'Tin': D3_Tin_32R4,
+        'Tout': D3_Tout_32R4,
+    },
+    'D4': {
+        'Tin': D4_Tin_32R4,
+        'Tout': D4_Tout_32R4,
+    },
+})
+dd['33L5']['QBS'] = QBS_32R4
+dd['33L5']['first_element'] = 'Q1'
+
 
 #intermedia data 14L5-13L5
 # This is the cell with the reversed gas flow
@@ -70,6 +117,28 @@ Q1_Tout_13L5 = ['QBQI_14L5_TT825.POSST']
 # Note the swapped naming conventions!
 QBS_13L5 = ['QRLAA_13R4_QBS947_D2.POSST', 'QRLAA_13R4_QBS947_D3.POSST', 'QRLAA_13R4_QBS947_D4.POSST', 'QRLAA_13R4_QBS947_Q1.POSST']
 
+dd['13L5'].update({
+    'Q1': {
+        'Tin': Q1_Tin_13L5,
+        'Tout': Q1_Tout_13L5,
+    },
+    'D2': {
+        'Tin': D2_Tin_13L5,
+        'Tout': D2_Tout_13L5,
+    },
+    'D3': {
+        'Tin': D3_Tin_13L5,
+        'Tout': D3_Tout_13L5,
+    },
+    'D4': {
+        'Tin': D4_Tin_13L5,
+        'Tout': D4_Tout_13L5,
+    },
+})
+dd['13L5']['QBS'] = QBS_13L5
+dd['13L5']['first_element'] = 'D4'
+
+
 #intermediate data 31L2-32L2
 # This is the new cell
 D4_Tin_32L2 = ['QBQI_31L2_TT825.POSST']
@@ -82,4 +151,26 @@ Q1_Tin_32L2 = D2_Tout_32L2
 Q1_Tout_32L2 = ['QBQI_32L2_TT825.POSST']
 QBS_32L2 = ['QRLAB_31L2_QBS943_D2.POSST', 'QRLAB_31L2_QBS943_D3.POSST', 'QRLAB_31L2_QBS943_D4.POSST', 'QRLAB_31L2_QBS943_Q1.POSST']
 
+dd['31L2'].update({
+    'Q1': {
+        'Tin': Q1_Tin_32L2,
+        'Tout': Q1_Tout_32L2,
+    },
+    'D2': {
+        'Tin': D2_Tin_32L2,
+        'Tout': D2_Tout_32L2,
+    },
+    'D3': {
+        'Tin': D3_Tin_32L2,
+        'Tout': D3_Tout_32L2,
+    },
+    'D4': {
+        'Tin': D4_Tin_32L2,
+        'Tout': D4_Tout_32L2,
+    },
+})
+dd['31L2']['QBS'] = QBS_32L2
+dd['31L2']['first_element'] = 'D4'
+
+del dd
 

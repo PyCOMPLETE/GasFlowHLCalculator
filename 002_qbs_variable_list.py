@@ -2,7 +2,7 @@ import argparse
 
 import LHCMeasurementTools.myfilemanager as  mfm
 
-import data_S45_details as dd
+#import data_S45_details as dd
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dry', help='Dry run', action='store_true')
@@ -19,17 +19,19 @@ variable_list = atd.variables
 
 variable_list_special = set()
 
-for attr in dir(dd):
-    if '__' in attr: continue
-    name = getattr(dd, attr)
-    if type(name) is list:
-        for thing in name:
-            if type(thing) is str and 'POSST' in thing:
-                variable_list_special.add(thing)
+# Do not use this for special cells, as one sensor would be lacking.
+# This is the one that has worked last year but not any more this year.
+#for attr in dir(dd):
+#    if '__' in attr: continue
+#    name = getattr(dd, attr)
+#    if type(name) is list:
+#        for thing in name:
+#            if type(thing) is str and 'POSST' in thing:
+#                variable_list_special.add(thing)
 
 if not args.dry:
     with open('./variable_list_complete.txt', 'w') as f:
         f.write(','.join(variable_list))
-    with open('./variable_list_special.txt', 'w') as f:
-        f.write(','.join(list(variable_list_special)))
+#    with open('./variable_list_special.txt', 'w') as f:
+#        f.write(','.join(list(variable_list_special)))
 

@@ -12,6 +12,7 @@ from h5_storage import special_data_dir
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='random', action='store_true')
+parser.add_argument('--reverse', action='store_true')
 args = parser.parse_args()
 
 re_file = re.compile('special_data_fill_(\d{4,}).h5')
@@ -19,6 +20,8 @@ re_file = re.compile('special_data_fill_(\d{4,}).h5')
 atd_files = os.listdir(special_data_dir)
 if args.r:
     random.shuffle(atd_files)
+elif args.reverse:
+    atd_files = atd_files[::-1]
 
 for atd_file in atd_files:
     info = re_file.search(atd_file)
