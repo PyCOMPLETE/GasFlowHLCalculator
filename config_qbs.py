@@ -99,7 +99,18 @@ def assert_arc_index(config_qbs=config_qbs):
             j += 1
     assert np.all(arc_index_2 == arc_index)
 
+def assert_correct_05L4_05R4(config_qbs=config_qbs):
+    index_R = config_qbs.Cell_list.index('05R4_947')
+    index_L = config_qbs.Cell_list.index('05L4_947')
+
+    # Make sure that the correct (QRLEB) cells come first and second in case of 05R4 and 05L4
+    # also in future versions of the config qbs objects
+    assert 'QRLEB' in config_qbs.CV94x_list[index_R]
+    assert 'QRLEB' in config_qbs.CV94x_list[index_L+1]
+
+
 assert_arc_index()
+assert_correct_05L4_05R4()
 
 
 ## This is how a csv file can be created from python
@@ -130,6 +141,4 @@ assert_arc_index()
 #            'nc_list',
 #            'L_list'
 #            ]
-
-## This is how the arc_index is created:
 
