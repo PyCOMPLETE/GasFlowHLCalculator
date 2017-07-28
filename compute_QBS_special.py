@@ -57,7 +57,7 @@ def mass_flow(atd, new_cell):
             m_L[:,i] = valve_LT(P1[:,i], P4[:,i], ro[:,i], Kv, CV[:,i], R)
         Qbs[:,i] = m_L[:,i]*(h3[:,i] - hC[:,i]) - Qs - EH[:,i]
 
-    Compute_QBS_magnet = QbsMagnetCalculator(interp_P_T_hPT, atd, P1, m_L).Compute_QBS_magnet
+    Compute_QBS_magnet = QbsMagnetCalculator(interp_P_T_hPT, atd, P1, m_L, cell_list).Compute_QBS_magnet
     return Compute_QBS_magnet, Qbs
 
 def make_dict(Compute_QBS_magnet, Qbs, atd, new_cell):
@@ -73,7 +73,7 @@ def make_dict(Compute_QBS_magnet, Qbs, atd, new_cell):
         qbs_special[cell] = {}
         sum_magnet_hl = 0
         for magnet_id in magnet_ids:
-            magnet_hl = Compute_QBS_magnet(cell_ctr, cell_timber_vars_dict[cell][magnet_id]['Tin'], cell_timber_vars_dict[cell][magnet_id]['Tout'])
+            magnet_hl = Compute_QBS_magnet(cell, cell_timber_vars_dict[cell][magnet_id]['Tin'], cell_timber_vars_dict[cell][magnet_id]['Tout'])
             sum_magnet_hl += magnet_hl
             qbs_special[cell][magnet_id] = magnet_hl
         qbs_special[cell]['Sum'] = sum_magnet_hl

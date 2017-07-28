@@ -4,7 +4,7 @@ import numpy as np
 zeros = lambda *x: np.zeros(x, dtype=float)
 
 class QbsMagnetCalculator(object):
-    def __init__(self, interp_P_T_hPT, atd, P1, m_L):
+    def __init__(self, interp_P_T_hPT, atd, P1, m_L, cell_list):
         self.P1 = P1
         self.m_L = m_L
         self.variables = list(atd.variables)
@@ -12,8 +12,10 @@ class QbsMagnetCalculator(object):
         self.data = atd.data
         self.interp_P_T_hPT = interp_P_T_hPT
         self.variables_set = set(self.variables)
+        self.cell_list = cell_list
 
-    def Compute_QBS_magnet(self, n, Tin_list, Tout_list):
+    def Compute_QBS_magnet(self, cell, Tin_list, Tout_list):
+        cell_index = self.cell_list.index(cell)
         if not isinstance(Tin_list, list):
             Tin_list = [Tin_list]
         if not isinstance(Tout_list, list):
@@ -62,9 +64,9 @@ class QbsMagnetCalculator(object):
 
         #Beam screen load calculation
         for i in xrange(n_tt):
-            hin[i] = interp_P_T_hPT(P1[i,n],Tin_avg[i])
-            hout[i] = interp_P_T_hPT(P1[i,n],Tout_avg[i])
-        QBS_mag = m_L[:,n]*(hout-hin)
+            hin[i] = interp_P_T_hPT(P1[i,cell_index],Tin_avg[i])
+            hout[i] = interp_P_T_hPT(P1[i,cell_index],Tout_avg[i])
+        QBS_mag = m_L[:,cell_index]*(hout-hin)
 
         return QBS_mag
 
