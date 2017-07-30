@@ -4,6 +4,8 @@
 
 # Data extracted from QBS scripts on 31/08/2016.
 # New cell added in June 2017
+# The name of this file is outdated, as the new cell is not is S45. But let's not be pedantic.
+
 EH84x_list = ['LQATI_12R4_EH847.POSST', 'LQOAN_34R4_EH847.POSST', 'LBALB_13L5_EH843.POSST', 'LBARB_31L2_EH843.POSST']
 TT84x_list = ['LQATI_12R4_TT847.POSST', 'LQOAN_34R4_TT847.POSST', 'LBALB_13L5_TT843.POSST', 'LBARB_31L2_TT843.POSST']
 CV94x_list = ['QRLAA_13R4_CV947.POSST', 'QRLAA_33L5_CV947.POSST', 'QRLAA_13L5_CV943.POSST', 'QRLAB_31L2_CV943.POSST']
@@ -33,6 +35,11 @@ for index, cell in enumerate(cell_list):
     cc['Qs'] = Qs_list[index]
     cc['R'] = R_list[index]
     cc['Kv'] = Kv_list[index]
+
+dd['13R4']['first_element'] = 'Q1'
+dd['33L5']['first_element'] = 'Q1'
+dd['13L5']['first_element'] = 'D4'
+dd['31L2']['first_element'] = 'D4'
 
 #intermedia data 12R4-13R4
 Q1_Tin_12R4 = ['QBQI_12R4_TT825.POSST']
@@ -65,7 +72,6 @@ dd['13R4'].update({
     },
 })
 dd['13R4']['QBS'] = QBS_12R4
-dd['13R4']['first_element'] = 'Q1'
 
 
 #intermedia data 34R4-33L5
@@ -100,7 +106,6 @@ dd['33L5'].update({
     },
 })
 dd['33L5']['QBS'] = QBS_32R4
-dd['33L5']['first_element'] = 'Q1'
 
 
 #intermedia data 14L5-13L5
@@ -136,7 +141,6 @@ dd['13L5'].update({
     },
 })
 dd['13L5']['QBS'] = QBS_13L5
-dd['13L5']['first_element'] = 'D4'
 
 
 #intermediate data 31L2-32L2
@@ -170,7 +174,6 @@ dd['31L2'].update({
     },
 })
 dd['31L2']['QBS'] = QBS_32L2
-dd['31L2']['first_element'] = 'D4'
 
 cell_timber_vars_dict = dd
 del dd
