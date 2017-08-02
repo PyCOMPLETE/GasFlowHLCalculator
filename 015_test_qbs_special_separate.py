@@ -5,18 +5,25 @@ import LHCMeasurementTools.mystyle as ms
 
 import h5_storage
 import compute_QBS_special as cqs
+from data_S45_details import cell_timber_vars_dict
 
+#(30-07-17)
+#
 # Prolems in fill 5786 with only beam 2:
 # cell 13L5: beam 2 shows lower heat load for this fill -> sensors wrong?
 # cell 31L2: B1 HL higher for Q1
 # cell 31L2: 0 HL for D3
-
 # Matching observations when running this script with fill 5783, only beam 1
+
+# (31-07-17):
+#
+# --> Solved by excluding the last magnet from the calculation, and also adding 31L2 to the normal gasflow list as the temp sensors are reversed (826 instead of 824).
+# To be checked with B.B.
 
 plt.close('all')
 ms.mystyle(10)
 
-filln = 5783
+filln = 5885
 
 blacklist = [
     ('13L5', 'D3'),
@@ -43,9 +50,12 @@ for cell_ctr, cell in enumerate(special_dict_separate['cells']):
     sp2.set_title('Separate beams Fill %i' % filln)
 
 
+    label_ctr = 0
     for magnet_ctr, magnet_id in enumerate(cqs.magnet_ids):
         if (cell, magnet_id) in blacklist: continue
-        if magnet_ctr == 0:
+        if (cell_timber_vars_dict[cell]['first_element'], magnet_id) in [('D4', 'Q1') or ('Q1', 'D4')]: continue
+        label_ctr += 1
+        if label_ctr == 1:
             label_old, label_separate = 'Combined', 'Sum of beams'
         else:
             label_old, label_separate = None, None
@@ -54,7 +64,7 @@ for cell_ctr, cell in enumerate(special_dict_separate['cells']):
         sum_magnet = 0
         for beam in (1,2):
             label = magnet_id
-            if magnet_ctr == 0:
+            if label_ctr == 1:
                 label += ' Beam %i' % beam
             hl_beam = special_dict_separate[cell][magnet_id][beam]
             sum_magnet += hl_beam
@@ -68,5 +78,4 @@ for cell_ctr, cell in enumerate(special_dict_separate['cells']):
         sp.set_ylim(-5, None)
 
 plt.show()
-
 

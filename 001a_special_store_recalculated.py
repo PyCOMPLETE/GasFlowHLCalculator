@@ -8,7 +8,7 @@ import random
 from compute_QBS_special import compute_qbs_special
 import qbs_fill as qf
 import h5_storage
-from h5_storage import special_data_dir
+from h5_storage import special_data_dir, special_version
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='random', action='store_true')
@@ -37,7 +37,7 @@ for atd_file in atd_files:
             n_tries = 5
             while n_tries > 0:
                 try:
-                    h5_storage.store_special_qbs(filln, qbs_ob)
+                    h5_storage.store_special_qbs(filln, qbs_ob, special_version)
                     break
                 except IOError:
                     n_tries -= 1
