@@ -62,7 +62,7 @@ def load_special_qbs(filln, special_version=special_version):
 
 
 # Store recomputed data
-def store_qbs(filln, qbs_ob, use_dP, version=version):
+def store_qbs(filln, qbs_ob, use_dP, version):
     """
     Arguments:
         - filln
@@ -82,7 +82,7 @@ def store_qbs(filln, qbs_ob, use_dP, version=version):
         qbs_dataset.attrs['with_dP'] = use_dP
         qbs_dataset.attrs['time_created'] = tm.UnixTimeStamp2UTCTimberTimeString(time.time())
 
-def store_special_qbs(filln, qbs_ob, special_version=special_version):
+def store_special_qbs(filln, qbs_ob, special_version):
     """
     Arguments:
         - filln

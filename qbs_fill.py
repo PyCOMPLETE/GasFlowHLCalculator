@@ -10,6 +10,7 @@ from compute_QBS_special import compute_qbs_special, cell_list
 import compute_QBS_LHC as cql
 
 default_version = h5_storage.version
+default_special_version = h5_storage.special_version
 
 # Load data for one fill
 def compute_qbs_fill(filln, use_dP=True, version=default_version, recompute_if_missing=False):
@@ -37,7 +38,7 @@ def compute_qbs_fill(filln, use_dP=True, version=default_version, recompute_if_m
 
     atd_ob = h5_storage.load_data_file(filln)
     qbs_ob = cql.compute_qbs(atd_ob, use_dP, version=version)
-    h5_storage.store_qbs(filln, qbs_ob, use_dP, version=version)
+    h5_storage.store_qbs(filln, qbs_ob, use_dP, version)
     print('Stored h5 for fill %i.' % filln)
     return qbs_ob
 
@@ -49,7 +50,7 @@ def test_compute_qbs(filln, use_dP=True, version=default_version):
     return cql.compute_qbs(atd_ob, use_dP, version=version)
 
 # Special cells
-def special_qbs_fill(filln, recompute_if_missing=False, force_recalc=False):
+def special_qbs_fill(filln, recompute_if_missing=False, force_recalc=False, special_version=default_special_version):
 
     if force_recalc:
         print('Force recalculated')
@@ -57,23 +58,23 @@ def special_qbs_fill(filln, recompute_if_missing=False, force_recalc=False):
         atd_ob = h5_storage.load_special_data_file(filln)
         return compute_qbs_special(atd_ob, new_cell)
 
-    h5_file = h5_storage.get_special_qbs_file(filln)
+    h5_file = h5_storage.get_special_qbs_file(filln, special_version=special_version)
 
     if os.path.isfile(h5_file):
-        qbs_ob = h5_storage.load_special_qbs(filln)
+        qbs_ob = h5_storage.load_special_qbs(filln, special_version=special_version)
         return aligned_to_dict(qbs_ob)
     elif recompute_if_missing:
         new_cell = filln > 5500
         atd_ob = h5_storage.load_special_data_file(filln)
         qbs_dict = compute_qbs_special(atd_ob, new_cell)
-        h5_storage.store_special_qbs(dict_to_aligned(qbs_dict))
+        h5_storage.store_special_qbs(filln, dict_to_aligned(qbs_dict), special_version)
         print('Stored h5 for fill %i.' % filln)
         return qbs_dict
     else:
         raise ValueError('Set the correct flag if you want to recompute!')
 
-def special_qbs_fill_aligned(filln, recompute_if_missing=False):
-    qbs_dict = special_qbs_fill(filln, recompute_if_missing=recompute_if_missing)
+def special_qbs_fill_aligned(filln, recompute_if_missing=False, special_version=default_special_version):
+    qbs_dict = special_qbs_fill(filln, recompute_if_missing=recompute_if_missing, special_version=default_special_version)
     return dict_to_aligned(qbs_dict)
 
 def dict_to_aligned(dict_):
