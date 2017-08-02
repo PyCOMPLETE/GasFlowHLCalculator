@@ -79,7 +79,7 @@ def make_dict(Compute_QBS_magnet, Qbs, atd, new_cell):
             sum_magnet_hl += magnet_hl
             qbs_special[cell][magnet_id] = magnet_hl
         qbs_special[cell]['Sum'] = sum_magnet_hl
-        qbs_special[cell]['qbs'] = Qbs[:,cell_ctr]
+        qbs_special[cell]['Qbs'] = Qbs[:,cell_ctr]
 
     return qbs_special
 
@@ -103,71 +103,88 @@ def make_dict_separate(Compute_QBS_magnet, Qbs, atd, new_cell):
                 sum_magnet_hl += magnet_hl
                 qbs_special[cell][magnet_id][beam_number] = magnet_hl
         qbs_special[cell]['Sum'] = sum_magnet_hl
-        qbs_special[cell]['qbs'] = Qbs[:,cell_ctr]
+        qbs_special[cell]['Qbs'] = Qbs[:,cell_ctr]
     return qbs_special
 
 
 def _get_Tin_Tout(cell, magnet, beam):
+    """
+    Returns the variable names of temperature sensors for a given cell, magnet and beam.
+    """
+    # For cell with normal gas flow
+    dict_beam_Tin_normal = {
+            1: 'TT826',
+            2: 'TT824',
+        }
+
+    dict_beam_Tout_normal = {
+            1: 'TT824',
+            2: 'TT826',
+        }
+
+    # reversed
+    dict_beam_Tin_reversed = dict_beam_Tout_normal
+    dict_beam_Tout_reversed = dict_beam_Tin_normal
+
 
     # for cell with the gas flow in normal direction
-    dict_beam_Tin = {
-        1: 'TT826',
-        2: 'TT824',
-    }
+    if cell == '13L5':
+        dict_beam_Tin = dict_beam_Tin_reversed
+        dict_beam_Tout = dict_beam_Tout_reversed
+    else:
+        dict_beam_Tin = dict_beam_Tin_normal
+        dict_beam_Tout = dict_beam_Tout_normal
 
-    dict_beam_Tout = {
-        1: 'TT824',
-        2: 'TT826',
-    }
 
     dd = cell_timber_vars_dict[cell]
     list_Tin = dd[magnet]['Tin']
     list_Tout = dd[magnet]['Tout']
-    if len(list_Tin) == 1:
-        Tin = list_Tin[0]
-    else:
+    if len(list_Tin) != 1:
         identifier = dict_beam_Tin[beam]
-        Tin = filter(lambda x: identifier in x, list_Tin)[0]
+        list_Tin = filter(lambda x: identifier in x, list_Tin)
 
-    if len(list_Tout) == 1:
-        Tout = list_Tout[0]
-    else:
+    if len(list_Tout) != 1:
         identifier = dict_beam_Tout[beam]
-        Tout = filter(lambda x: identifier in x, list_Tout)[0]
+        list_Tout = filter(lambda x: identifier in x, list_Tout)
 
-    return Tin, Tout
+    assert len(list_Tout) == 1
+    assert len(list_Tin) == 1
+
+    return list_Tin[0], list_Tout[0]
 
 def compute_qbs_special(atd, new_cell, separate=False):
     Compute_QBS_magnet, Qbs = mass_flow(atd, new_cell)
-    if not separate:
-        return make_dict(Compute_QBS_magnet, Qbs, atd, new_cell)
+    if separate:
+        return make_dict_separate(Compute_QBS_magnet, Qbs, atd, new_cell)
     else:
-       return make_dict_separate(Compute_QBS_magnet, Qbs, atd, new_cell)
-    raise ValueError('Currently not implemented')
+        return make_dict(Compute_QBS_magnet, Qbs, atd, new_cell)
 
 
-if __name__ == '__main__':
-    import os
-    import matplotlib.pyplot as plt
-    import LHCMeasurementTools.TimberManager as tm
-    from LHCMeasurementTools.SetOfHomogeneousVariables import SetOfHomogeneousNumericVariables as shnv
-    plt.close('all')
-    dt_seconds = 30
-    filename = os.path.dirname(os.path.abspath(__file__)) + '/TIMBER_DATA_special_5030.csv'
-    tv = tm.parse_timber_file(filename)
-    atd = shnv(tv.keys(), tv).aligned_object(dt_seconds)
-    qbs_special = compute_qbs_special(atd)
-    tt = (qbs_special['timestamps'] - qbs_special['timestamps'][0]) / 3600.
+# This block is largely pointless. It uses a csv file as an input instead of the stored file on EOS.
 
-    fig = plt.figure()
-    for ctr, cell in enumerate(qbs_special['cells']):
-        sp = plt.subplot(2,2,ctr+1)
-        hl_dict = qbs_special[cell]
-        for key in hl_dict:
-            sp.plot(tt,hl_dict[key], label=key)
-        if ctr == 1:
-            sp.legend(bbox_to_anchor=(1.1,1))
-        sp.set_xlabel('Time [h]')
-        sp.set_ylabel('Qdbs [W]')
-        sp.set_title(cell)
-    plt.show()
+#if __name__ == '__main__':
+#    import os
+#    import matplotlib.pyplot as plt
+#    import LHCMeasurementTools.TimberManager as tm
+#    from LHCMeasurementTools.SetOfHomogeneousVariables import SetOfHomogeneousNumericVariables as shnv
+#    plt.close('all')
+#    dt_seconds = 30
+#    filename = os.path.dirname(os.path.abspath(__file__)) + '/TIMBER_DATA_special_5030.csv'
+#    tv = tm.parse_timber_file(filename)
+#    atd = shnv(tv.keys(), tv).aligned_object(dt_seconds)
+#    qbs_special = compute_qbs_special(atd, new_cell=False)
+#    tt = (qbs_special['timestamps'] - qbs_special['timestamps'][0]) / 3600.
+#
+#    fig = plt.figure()
+#    for ctr, cell in enumerate(qbs_special['cells']):
+#        sp = plt.subplot(2,2,ctr+1)
+#        hl_dict = qbs_special[cell]
+#        for key in hl_dict:
+#            sp.plot(tt,hl_dict[key], label=key)
+#        if ctr == 1:
+#            sp.legend(bbox_to_anchor=(1.1,1))
+#        sp.set_xlabel('Time [h]')
+#        sp.set_ylabel('Qdbs [W]')
+#        sp.set_title(cell)
+#    plt.show()
+
