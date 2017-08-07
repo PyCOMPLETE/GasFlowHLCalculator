@@ -1,10 +1,10 @@
 from __future__ import division
-import os 
+import sys
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp2d
 import cPickle as pickle
-import time
 import argparse
 
 import Helium_properties as hp
@@ -13,32 +13,33 @@ import compute_QBS_LHC as qbl
 import h5_storage
 
 import LHCMeasurementTools.mystyle as ms
-import LHCMeasurementTools.savefig as sf
+#import LHCMeasurementTools.savefig as sf
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--calc', help='Calculate instead of loading from pickle.', action='store_true')
 parser.add_argument('--savefig', help='Save in file.')
 parser.add_argument('--noshow', help='Do not call plt.show', action='store_true')
 parser.add_argument('--onlyarcs', help='Only show arc_cells', action='store_true')
+parser.add_argument('--onlyinterp', help='Only show interp values', action='store_true')
 args = parser.parse_args()
 
 recompute = args.calc
+only_interp = args.onlyinterp
 figs = []
 
 
-try:
-    from RcParams import init_pyplot
-    init_pyplot()
-except ImportError:
-    print 'ImportError'
-    ms.mystyle()
+ms.mystyle()
 
 plt.close('all')
 
 filln = 5219
 pkl_file = os.path.abspath(os.path.dirname(__file__)) + '/hlc_%i.pkl' % filln
 interp_P_T_gamma = interp2d(hp.P, hp.T, hp.gamma_PT)
-t_arr = np.arange(4,50,0.5)
+#t_arr = np.arange(4,30,0.5)
+mask_t_arr = np.logical_and(hp.T <= 30, hp.T >= 4)
+t_arr = hp.T[mask_t_arr]
+mask_p_arr = np.logical_and(hp.P <= 5, hp.P >= 2)
+p_arr = hp.P[mask_p_arr]
 
 with open(pkl_file) as f:
     hlc = pickle.load(f)
@@ -64,17 +65,23 @@ for ctr, (interp, title) in enumerate(zip(interps, titles)):
     sp.set_title(title)
     sp.set_xlabel('Temperature [K]')
     sp.set_ylabel(title)
-    for pressure in pressures:
+    if title in ('Enthalpy', 'Viscosity'):
+        ms.sciy()
+    for pressure in p_arr:
         values = np.empty_like(t_arr)
         for i, temp in enumerate(t_arr):
             values[i] = interp(pressure, temp)
-        sp.plot(t_arr, values, lw=2., label='P=%.1f bar' % pressure)
+        sp.plot(t_arr, values, lw=2., label='P=%.1f bar' % pressure, marker='o')
 
     if interp is interp_P_T_gamma:
         sp.axhline(5./3., lw=2, ls='--', label='5/3')
 
-    if sp_ctr == 4:
-        sp.legend(loc=1)
+    #if sp_ctr == 4:
+    sp.legend(loc=0)
+
+if only_interp:
+    plt.show()
+    sys.exit()
 
 if recompute:
     atd = h5_storage.load_data_file(filln)
@@ -136,7 +143,7 @@ for cc in (1,2):
                         data2_pure[:,type_ctr] = 0
                     else:
                         data2_pure[type_ctr] = 0
-                
+
             data2_pure = data2_pure.flatten()
 
 
@@ -188,7 +195,7 @@ for cc in (1,2):
             key_sp_dict[key] = sp
         else:
             sp = key_sp_dict[key]
-        
+
         sp.hist(data2, normed=True, label=label, alpha=0.5)
         if key[0] == '$':
             sp.set_xticks(np.arange(-0.12, 0.01, 0.03))
@@ -199,8 +206,8 @@ for cc in (1,2):
 
         if cc == 2 and sp_ctr == 2:
             sp.legend(bbox_to_anchor=(1.05,1))
-        if cc == 2 and key == 'Re':
-            sp.legend(bbox_to_anchor=(0.55,1))
+        if cc == 2 and key in ('Re', 'P1'):
+            sp.legend(loc=0)
 
 if args.savefig:
     for fig in figs:
