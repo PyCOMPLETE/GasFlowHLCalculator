@@ -1,29 +1,29 @@
 # Note: There are different naming conventions for the special cells.
-# For exampsle 12R4 or 13R4.
+# For example 12R4 or 13R4.
 from __future__ import division
 import numpy as np
 
 from Helium_properties import interp_P_T_hPT, interp_P_T_DPT
-from data_S45_details import cell_timber_vars_dict
+from data_S45_details import cell_timber_vars_dict, cell_list, cell_list_pre_EYETS16
 from compute_QBS_magnet import QbsMagnetCalculator
 from valve_LT import valve_LT
 
 zeros = lambda *x: np.zeros(shape=x, dtype=float)
 
-cell_list = ['13R4', '33L5', '13L5', '31L2']
-cell_list_old = ['13R4', '33L5', '13L5']
-
 # Also the order of magnets in a cell with non reversed gasflow
 magnet_ids = ['Q1', 'D2', 'D3', 'D4']
 
 def mass_flow(atd, new_cell):
+    """
+    Returns at object which contains the necessary information on the cell mass flow and pressure.
+    """
     n_tt = len(atd.timestamps)
 
     # Account for missing cell
     if new_cell:
         cells = cell_list
     else:
-        cells = cell_list_old
+        cells = cell_list_pre_EYETS16
     n_cells = len(cells)
 
     m_L = zeros(n_tt, n_cells) # mass flow
@@ -68,7 +68,7 @@ def make_dict(Compute_QBS_magnet, Qbs, atd, new_cell):
     if new_cell:
         cells = cell_list
     else:
-        cells = cell_list_old
+        cells = cell_list_pre_EYETS16
     qbs_special['cells'] = cells
 
     for cell_ctr, cell in enumerate(cells):
@@ -89,7 +89,7 @@ def make_dict_separate(Compute_QBS_magnet, Qbs, atd, new_cell):
     if new_cell:
         cells = cell_list
     else:
-        cells = cell_list_old
+        cells = cell_list_pre_EYETS16
     qbs_special['cells'] = cells
 
     for cell_ctr, cell in enumerate(cells):
@@ -127,7 +127,6 @@ def _get_Tin_Tout(cell, magnet, beam):
     dict_beam_Tout_reversed = dict_beam_Tin_normal
 
 
-    # for cell with the gas flow in normal direction
     if cell == '13L5':
         dict_beam_Tin = dict_beam_Tin_reversed
         dict_beam_Tout = dict_beam_Tout_reversed
