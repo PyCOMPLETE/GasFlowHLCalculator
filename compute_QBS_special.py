@@ -3,9 +3,11 @@
 from __future__ import division
 import numpy as np
 
+import LHCMeasurementTools.TimberManager as tm
+
 from Helium_properties import interp_P_T_hPT, interp_P_T_DPT
 from data_S45_details import cell_timber_vars_dict, cell_list, cell_list_pre_EYETS16
-from compute_QBS_magnet import QbsMagnetCalculator
+import compute_QBS_magnet as cqm
 from valve_LT import valve_LT
 
 zeros = lambda *x: np.zeros(shape=x, dtype=float)
@@ -59,10 +61,10 @@ def mass_flow(atd, new_cell):
             m_L[:,i] = valve_LT(P1[:,i], P4[:,i], ro[:,i], Kv, CV[:,i], R)
         Qbs[:,i] = m_L[:,i]*(h3[:,i] - hC[:,i]) - Qs - EH[:,i]
 
-    Compute_QBS_magnet = QbsMagnetCalculator(interp_P_T_hPT, atd, P1, m_L, cell_list).Compute_QBS_magnet
-    return Compute_QBS_magnet, Qbs
+    mag_calc = cqm.QbsMagnetCalculator(interp_P_T_hPT, atd, P1, m_L, cell_list)
+    return mag_calc, Qbs
 
-def make_dict(Compute_QBS_magnet, Qbs, atd, new_cell):
+def make_dict(mag_calc, Qbs, atd, new_cell):
     qbs_special = {}
     qbs_special['timestamps'] = atd.timestamps
     if new_cell:
@@ -73,17 +75,17 @@ def make_dict(Compute_QBS_magnet, Qbs, atd, new_cell):
 
     for cell_ctr, cell in enumerate(cells):
         qbs_special[cell] = {}
-        sum_magnet_hl = 0
+        sum_all_magnet_hl = 0
         for magnet_id in magnet_ids:
-            magnet_hl = Compute_QBS_magnet(cell, cell_timber_vars_dict[cell][magnet_id]['Tin'], cell_timber_vars_dict[cell][magnet_id]['Tout'])
-            sum_magnet_hl += magnet_hl
+            magnet_hl = mag_calc.Compute_QBS_magnet(cell, cell_timber_vars_dict[cell][magnet_id]['Tin'], cell_timber_vars_dict[cell][magnet_id]['Tout'])
+            sum_all_magnet_hl += magnet_hl
             qbs_special[cell][magnet_id] = magnet_hl
-        qbs_special[cell]['Sum'] = sum_magnet_hl
+        qbs_special[cell]['Sum'] = sum_all_magnet_hl
         qbs_special[cell]['Qbs'] = Qbs[:,cell_ctr]
 
     return qbs_special
 
-def make_dict_separate(Compute_QBS_magnet, Qbs, atd, new_cell):
+def make_dict_separate(mag_calc, Qbs, atd, new_cell):
     qbs_special = {}
     qbs_special['timestamps'] = atd.timestamps
     if new_cell:
@@ -94,15 +96,28 @@ def make_dict_separate(Compute_QBS_magnet, Qbs, atd, new_cell):
 
     for cell_ctr, cell in enumerate(cells):
         qbs_special[cell] = {}
-        sum_magnet_hl = 0
+        sum_all_magnet_hl = np.zeros_like(atd.timestamps)
         for magnet_id in magnet_ids:
             qbs_special[cell][magnet_id] = {}
+            sum_magnet_hl = np.zeros_like(atd.timestamps)
             for beam_number in (1,2):
                 Tin, Tout = _get_Tin_Tout(cell, magnet_id, beam_number)
-                magnet_hl = Compute_QBS_magnet(cell, Tin, Tout)/2.
-                sum_magnet_hl += magnet_hl
+                try:
+                    magnet_hl = mag_calc.Compute_QBS_magnet_single(cell, Tin, Tout)/2.
+                except cqm.InvalidDataError:
+                    magnet_hl = np.empty_like(atd.timestamps)*np.nan
+                else:
+                    sum_all_magnet_hl += magnet_hl
+                    sum_magnet_hl += magnet_hl
+
                 qbs_special[cell][magnet_id][beam_number] = magnet_hl
-        qbs_special[cell]['Sum'] = sum_magnet_hl
+            if np.all(sum_magnet_hl == 0):
+                sum_magnet_hl = np.empty_like(sum_magnet_hl)*np.nan
+            qbs_special[cell][magnet_id]['Sum'] = sum_magnet_hl
+
+        if np.all(sum_all_magnet_hl == 0):
+            sum_magnet_hl = np.empty_like(sum_all_magnet_hl)*np.nan
+        qbs_special[cell]['Sum'] = sum_all_magnet_hl
         qbs_special[cell]['Qbs'] = Qbs[:,cell_ctr]
     return qbs_special
 
@@ -151,39 +166,97 @@ def _get_Tin_Tout(cell, magnet, beam):
 
     return list_Tin[0], list_Tout[0]
 
-def compute_qbs_special(atd, new_cell, separate=False):
-    Compute_QBS_magnet, Qbs = mass_flow(atd, new_cell)
+def compute_qbs_special(atd, new_cell, separate=True, aligned=False):
+    mag_calc, Qbs = mass_flow(atd, new_cell)
+
     if separate:
-        return make_dict_separate(Compute_QBS_magnet, Qbs, atd, new_cell)
+        dict_ = make_dict_separate(mag_calc, Qbs, atd, new_cell)
+        if aligned:
+            return dict_to_aligned_separate(dict_)
+        else:
+            return dict_
     else:
-        return make_dict(Compute_QBS_magnet, Qbs, atd, new_cell)
+        dict_ = make_dict(mag_calc, Qbs, atd, new_cell)
+        if aligned:
+            return dict_to_aligned(dict_)
+        else:
+            return dict_
 
 
-# This block is largely pointless. It uses a csv file as an input instead of the stored file on EOS.
+def dict_to_aligned(dict_):
+    timestamps = dict_['timestamps']
+    variables = []
+    data = []
+    for cell in dict_['cells']:
+        dd = dict_[cell]
+        for key, arr in dd.iteritems():
+            main_key = cell + '_' + key
+            variables.append(main_key)
+            data.append(arr)
 
-#if __name__ == '__main__':
-#    import os
-#    import matplotlib.pyplot as plt
-#    import LHCMeasurementTools.TimberManager as tm
-#    from LHCMeasurementTools.SetOfHomogeneousVariables import SetOfHomogeneousNumericVariables as shnv
-#    plt.close('all')
-#    dt_seconds = 30
-#    filename = os.path.dirname(os.path.abspath(__file__)) + '/TIMBER_DATA_special_5030.csv'
-#    tv = tm.parse_timber_file(filename)
-#    atd = shnv(tv.keys(), tv).aligned_object(dt_seconds)
-#    qbs_special = compute_qbs_special(atd, new_cell=False)
-#    tt = (qbs_special['timestamps'] - qbs_special['timestamps'][0]) / 3600.
-#
-#    fig = plt.figure()
-#    for ctr, cell in enumerate(qbs_special['cells']):
-#        sp = plt.subplot(2,2,ctr+1)
-#        hl_dict = qbs_special[cell]
-#        for key in hl_dict:
-#            sp.plot(tt,hl_dict[key], label=key)
-#        if ctr == 1:
-#            sp.legend(bbox_to_anchor=(1.1,1))
-#        sp.set_xlabel('Time [h]')
-#        sp.set_ylabel('Qdbs [W]')
-#        sp.set_title(cell)
-#    plt.show()
+    data_arr = np.array(data).T
+    return tm.AlignedTimberData(timestamps, data_arr, np.array(variables))
+
+def dict_to_aligned_separate(dict_):
+    timestamps = dict_['timestamps']
+    variables = []
+    data = []
+    for cell in dict_['cells']:
+        dd = dict_[cell]
+        for magnet_id in magnet_ids:
+            mag_dict = dd[magnet_id]
+            for beam_id, arr in mag_dict.iteritems():
+                if beam_id == 'Sum':
+                    main_key = '_'.join([cell, magnet_id])
+                else:
+                    main_key = '_'.join([cell, magnet_id, str(beam_id)])
+                variables.append(main_key)
+                data.append(arr)
+        for key in ('Sum', 'Qbs'):
+            main_key = '_'.join([cell, key])
+            variables.append(main_key)
+            data.append(dd[key])
+
+    data_arr = np.array(data, dtype=float).T
+    return tm.AlignedTimberData(timestamps, data_arr, np.array(variables))
+
+
+def aligned_to_dict(qbs_ob):
+    output = {}
+    output['timestamps'] = qbs_ob.timestamps
+    output['cells'] = cell_list
+    for cell in cell_list:
+        output[cell] = dd = {}
+        for key in qbs_ob.variables:
+            if cell in key:
+                subkey = key.split(cell+'_')[1]
+                dd[subkey] = qbs_ob.dictionary[key]
+    return output
+
+def aligned_to_dict_separate(qbs_ob):
+    output = {}
+    output['timestamps'] = qbs_ob.timestamps
+    output['cells'] = cell_list
+
+    # create structure
+    for cell in cell_list:
+        output[cell] = {}
+        for magnet_id in magnet_ids:
+            output[cell][magnet_id] = {}
+
+    # reverse dict to aligned seperate
+    for var, arr in qbs_ob.dictionary.iteritems():
+        split_var = var.split('_')
+        if len(split_var) == 3:
+            cell, magnet_id, beam = split_var
+            output[cell][magnet_id][int(beam)] = arr
+        elif len(split_var) == 2:
+            cell, key = split_var
+            if key in ('Qbs', 'Sum'):
+                output[cell][key] = arr
+            elif key in magnet_ids:
+                output[cell][key]['Sum'] = arr
+            else:
+                raise ValueError(key)
+    return output
 

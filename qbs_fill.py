@@ -6,7 +6,7 @@ import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.LHC_Heatloads as HL
 import h5_storage
 from config_qbs import config_qbs, arc_index, arc_list
-from compute_QBS_special import compute_qbs_special, cell_list
+import compute_QBS_special as cqs
 import compute_QBS_LHC as cql
 
 default_version = h5_storage.version
@@ -50,59 +50,41 @@ def test_compute_qbs(filln, use_dP=True, version=default_version):
     return cql.compute_qbs(atd_ob, use_dP, version=version)
 
 # Special cells
-def special_qbs_fill(filln, recompute_if_missing=False, force_recalc=False, special_version=default_special_version):
+def special_qbs_fill(filln, recompute_if_missing=False, force_recalc=False, special_version=default_special_version, aligned=False):
 
     if force_recalc:
         print('Force recalculated')
         new_cell = filln > 5500
         atd_ob = h5_storage.load_special_data_file(filln)
-        return compute_qbs_special(atd_ob, new_cell)
+        return cqs.compute_qbs_special(atd_ob, new_cell, aligned=aligned)
 
     h5_file = h5_storage.get_special_qbs_file(filln, special_version=special_version)
 
     if os.path.isfile(h5_file):
         qbs_ob = h5_storage.load_special_qbs(filln, special_version=special_version)
-        return aligned_to_dict(qbs_ob)
+        if aligned:
+            return qbs_ob
+        elif special_version < 2:
+            return cqs.aligned_to_dict(qbs_ob)
+        elif special_version >= 2:
+            return cqs.aligned_to_dict_separate(qbs_ob)
     elif recompute_if_missing:
+
+        if special_version != default_special_version:
+            raise ValueError('Cannot recompute obsolete version!')
+
         new_cell = filln > 5500
         atd_ob = h5_storage.load_special_data_file(filln)
-        qbs_dict = compute_qbs_special(atd_ob, new_cell)
-        h5_storage.store_special_qbs(filln, dict_to_aligned(qbs_dict), special_version)
+        qbs_dict = cqs.compute_qbs_special(atd_ob, new_cell, aligned=False)
+        qbs_aligned = cqs.dict_to_aligned_separate(qbs_dict)
+        h5_storage.store_special_qbs(filln, qbs_aligned, special_version)
         print('Stored h5 for fill %i.' % filln)
-        return qbs_dict
+        if aligned:
+            return qbs_aligned
+        else:
+            return qbs_dict
     else:
         raise ValueError('Set the correct flag if you want to recompute!')
-
-def special_qbs_fill_aligned(filln, recompute_if_missing=False, special_version=default_special_version):
-    qbs_dict = special_qbs_fill(filln, recompute_if_missing=recompute_if_missing, special_version=default_special_version)
-    return dict_to_aligned(qbs_dict)
-
-def dict_to_aligned(dict_):
-    timestamps = dict_['timestamps']
-    variables = []
-    data = []
-    for cell in dict_['cells']:
-        dd = dict_[cell]
-        for key, arr in dd.iteritems():
-            main_key = cell + '_' + key
-            variables.append(main_key)
-            data.append(arr)
-
-    data_arr = np.array(data).T
-    return tm.AlignedTimberData(timestamps, data_arr, np.array(variables))
-
-def aligned_to_dict(qbs_ob):
-    output = {}
-    output['timestamps'] = qbs_ob.timestamps
-    output['cells'] = cell_list
-    for cell in cell_list:
-        dd = {}
-        output[cell] = dd
-        for key in qbs_ob.variables:
-            if cell in key:
-                subkey = key.split(cell+'_')[1]
-                dd[subkey] = qbs_ob.dictionary[key]
-    return output
 
 # Compute average per ARC
 def compute_qbs_arc_avg(qbs_ob):
@@ -115,7 +97,7 @@ def compute_qbs_arc_avg(qbs_ob):
 # plug-in replacement of old heat load procedure, the fill dict
 def get_fill_dict(filln, version=default_version, use_dP=True):
     qbs_ob = compute_qbs_fill(filln, version=version, use_dP=use_dP)
-    qbs_special = special_qbs_fill_aligned(filln)
+    qbs_special = special_qbs_fill(filln, aligned=True)
 
     # arcs
     qbs_arc_avg = compute_qbs_arc_avg(qbs_ob)
@@ -146,10 +128,7 @@ def get_fill_dict(filln, version=default_version, use_dP=True):
         special_id = varname.split('.POSST')[0][-3:]
         if special_id in('_Q1', '_D2', '_D3', '_D4'):
             cell = varname.split('_')[1]
-            try:
-                tvl.values = qbs_special.dictionary[cell+special_id]
-            except:
-                import pdb ; pdb.set_trace()
+            tvl.values = qbs_special.dictionary[cell+special_id]
             tvl.t_stamps = qbs_special.timestamps
         elif varname.startswith('QRLEB_05L4'):
             tvl.values = qbs_ob.dictionary['05L4_947_2']
@@ -214,3 +193,4 @@ def lhc_arcs(qbs_ob):
         variables = qbs_ob.variables[first:last+1]
         lhc_hl_dict[arc] = tm.AlignedTimberData(qbs_ob.timestamps, data, variables)
     return lhc_hl_dict
+

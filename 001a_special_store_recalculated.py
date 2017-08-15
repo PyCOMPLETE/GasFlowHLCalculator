@@ -5,8 +5,7 @@ import time
 import argparse
 import random
 
-from compute_QBS_special import compute_qbs_special
-import qbs_fill as qf
+import compute_QBS_special as cqs
 import h5_storage
 from h5_storage import special_data_dir, special_version
 
@@ -32,8 +31,7 @@ for atd_file in atd_files:
             time_0 = time.time()
             atd_ob = h5_storage.load_special_data_file(filln)
             new_cell = filln > 5600
-            qbs_dict = compute_qbs_special(atd_ob, new_cell=new_cell)
-            qbs_ob = qf.dict_to_aligned(qbs_dict)
+            qbs_ob = cqs.compute_qbs_special(atd_ob, new_cell=new_cell, separate=True, aligned=True)
             n_tries = 5
             while n_tries > 0:
                 try:
