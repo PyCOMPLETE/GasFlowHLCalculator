@@ -1,5 +1,6 @@
 import numpy as np
 import qbs_fill as qf
+import compute_QBS_special as cqs
 
 filln = 5219
 
@@ -22,9 +23,9 @@ def compare_dicts_recursively(dd1, dd2):
 
 qbs_dict = qf.special_qbs_fill(5219)
 
-qbs_ob = qf.dict_to_aligned(qbs_dict)
+qbs_ob = cqs.dict_to_aligned(qbs_dict)
 
-qbs_dict_2 = qf.aligned_to_dict(qbs_ob)
+qbs_dict_2 = cqs.aligned_to_dict(qbs_ob)
 print(compare_dicts_recursively(qbs_dict_2, qbs_dict))
 
 
