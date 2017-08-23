@@ -7,8 +7,8 @@ arc_list = ['S12','S23','S34','S45','S56','S67','S78','S81']
 Radius = 3.7e-3/2.  #internal radius of beam screen cooling pipe
 rug = 1e-5         #beam screen cooling circuit roughness
 arc_index = np.array(
-      [[  5,  56],
-       [ 68, 119],
+      [[5,  56],
+       [68, 119],
        [125, 176],
        [186, 237],
        [249, 300],
@@ -57,12 +57,11 @@ class Config_qbs(object):
             if key != 'Sector_list': # Sector list remains a list of strings
                 try:
                     value = np.array(value, float)
-                except:
+                except ValueError:
                     pass
             setattr(self, key, value)
 
         if get_delimiter(version) == ',':
-
             self.Sector_list    = self.Sector
             self.Type_list      = self.Type
             self.Cell_list      = self.Loop
@@ -83,11 +82,24 @@ class Config_qbs(object):
         self.arc_list = arc_list
         self.Radius = Radius
         self.rug = rug
-        
+
+        self.assert_correct_05L4_05R4()
+        self.assert_arc_index()
+
+        # Handle duplicates in Cell_list
+        for ii, cell_name in enumerate(self.Cell_list[:]):
+            if cell_name in ('05R4_947', '05L4_947'):
+                if self.CV94x_list[ii].startswith('QRLEB'):
+                    self.Cell_list[ii] += '_comb'
+                elif self.CV94x_list[ii][:5] in ('QRLFE', 'QRLFF'):
+                    self.Cell_list[ii] += '_quad'
+                else:
+                    raise ValueError('Illegal entry for %s: %s' % (cell_name, self.CV94x_list[ii]))
+
 
     def get_varnames_for_cell(self,cell):
         index = self.Cell_list.index(cell)
-        
+
 
         cq = self
         var_data_dict = {
@@ -127,42 +139,40 @@ class Config_qbs(object):
                 'negative': False,
             },
         }
-        
+
         out = {}
         for attr in var_data_dict:
             out[attr] = var_data_dict[attr]['vars'][index]
         return out
 
+
+    def assert_arc_index(self):
+        arc_index_2 = np.zeros_like(arc_index)
+        j = 0 #sector number
+        Type_list = self.Type_list
+        for i in xrange(len(Type_list)):
+            if Type_list[i-1] == 'LSS' and Type_list[i] == 'ARC':   #begining of ARC
+                arc_index_2[j,0] = i
+            elif Type_list[i-1] == 'ARC' and Type_list[i] == 'LSS':  #end of ARC
+                arc_index_2[j,1] = i-1
+                j += 1
+        assert np.all(arc_index_2 == arc_index)
+
+    def assert_correct_05L4_05R4(self):
+        index_R = self.Cell_list.index('05R4_947')
+        index_L = self.Cell_list.index('05L4_947')
+
+        # Make sure that the correct (QRLEB) cells come first and second in case of 05R4 and 05L4
+        # also in future versions of the config qbs objects (as from configuration file)
+        assert 'QRLEB' in self.CV94x_list[index_R]
+        assert 'QRLEB' in self.CV94x_list[index_L+1]
+
 # Default object
 config_qbs = Config_qbs()
 
-def assert_arc_index(config_qbs=config_qbs):
-    arc_index_2 = np.zeros_like(arc_index)
-    j = 0 #sector number
-    Type_list = config_qbs.Type_list
-    for i in xrange(len(Type_list)):
-        if Type_list[i-1] == 'LSS' and  Type_list[i] == 'ARC':   #begining of ARC
-            arc_index_2[j,0] = i
-        elif Type_list[i-1] == 'ARC' and Type_list[i] == 'LSS':  #end of ARC
-            arc_index_2[j,1] = i-1
-            j += 1
-    assert np.all(arc_index_2 == arc_index)
-
-def assert_correct_05L4_05R4(config_qbs=config_qbs):
-    index_R = config_qbs.Cell_list.index('05R4_947')
-    index_L = config_qbs.Cell_list.index('05L4_947')
-
-    # Make sure that the correct (QRLEB) cells come first and second in case of 05R4 and 05L4
-    # also in future versions of the config qbs objects (as from configuration file)
-    assert 'QRLEB' in config_qbs.CV94x_list[index_R]
-    assert 'QRLEB' in config_qbs.CV94x_list[index_L+1]
 
 
-assert_arc_index()
-assert_correct_05L4_05R4()
-
-
-## This is how a csv file can be created from python
+# This is how a csv file can be created from python
 
 #import data_QBS_LHC as dql
 #list_to_save = [dql.__dict__[ss] for ss in variable_list]
