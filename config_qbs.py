@@ -83,6 +83,55 @@ class Config_qbs(object):
         self.arc_list = arc_list
         self.Radius = Radius
         self.rug = rug
+        
+
+    def get_varnames_for_cell(self,cell):
+        index = self.Cell_list.index(cell)
+        
+
+        cq = self
+        var_data_dict = {
+            'T1': {
+                'vars': cq.TT961_list,
+                'correct': True,
+                'negative': False,
+            },
+            'T3': {
+                'vars': cq.TT94x_list,
+                'correct': False,
+                'negative': False,
+            },
+            'CV': {
+                'vars': cq.CV94x_list,
+                'correct': False,
+                'negative': False,
+            },
+            'EH': {
+                'vars': cq.EH84x_list,
+                'correct': False,
+                'negative': True,
+            },
+            'P1': {
+                'vars': cq.PT961_list,
+                'correct': True,
+                'negative': False,
+            },
+            'P4': {
+                'vars': cq.PT991_list,
+                'correct': True,
+                'negative': False,
+            },
+            'T2': {
+                'vars': cq.TT84x_list,
+                'correct': False,
+                'negative': False,
+            },
+        }
+        
+        out = {}
+        for attr in var_data_dict:
+            out[attr] = var_data_dict[attr]['vars'][index]
+        return out
 
 # Default object
 config_qbs = Config_qbs()
@@ -104,7 +153,7 @@ def assert_correct_05L4_05R4(config_qbs=config_qbs):
     index_L = config_qbs.Cell_list.index('05L4_947')
 
     # Make sure that the correct (QRLEB) cells come first and second in case of 05R4 and 05L4
-    # also in future versions of the config qbs objects
+    # also in future versions of the config qbs objects (as from configuration file)
     assert 'QRLEB' in config_qbs.CV94x_list[index_R]
     assert 'QRLEB' in config_qbs.CV94x_list[index_L+1]
 

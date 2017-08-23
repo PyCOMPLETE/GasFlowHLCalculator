@@ -100,6 +100,8 @@ def plot_cell_details(cells, hlc, title):
 
     for cell_ctr, cell in enumerate(cells):
         cell_dict = dict_cell_dict[cell]
+        print('Short cell name', cell)
+        #~ print(reprcq.config_qbs.get_varnames_for_cell(cell)
 
         if len(cells) <= 4:
             ls = ['-', '--', '-.', ':'][cell_ctr]
