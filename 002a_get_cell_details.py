@@ -18,7 +18,7 @@ plt.close('all')
 parser = argparse.ArgumentParser()
 parser.add_argument('--load', help='Load from pickle instead of calculating.', action='store_true')
 parser.add_argument('--save', help='Save obj to pickle so you can load it later.', action='store_true')
-parser.add_argument('--cells', help='Cells to plot', nargs='+')
+parser.add_argument('--cells', help='Cells to plot, e.g. 15L2_947', nargs='+')
 parser.add_argument('--special', help='Special cells', action='store_true')
 parser.add_argument('--best-worst', help='Best and worst hl cells', action='store_true')
 parser.add_argument('--use_dP', action='store_true')
@@ -28,6 +28,11 @@ args = parser.parse_args()
 filln = args.filln
 use_dP = args.use_dP
 cells = args.cells
+
+if not args.cells:
+    if not args.best_worst and not args.special:
+        raise ValueError('A list of cells must be provided! (unless --spacial or --best-worst is used)!')
+
 
 if use_dP:
     storage = os.path.abspath(os.path.dirname(__file__))+ '/hlc_%i.pkl' % filln
@@ -159,7 +164,8 @@ for hl, cell, type_ in hl_cells_type:
         hl_cells.append((hl, cell))
 hl_cells.sort()
 
-plot_cell_details(cells, hlc, 'Selected cells for fill %i' % filln)
+if cells:
+    plot_cell_details(cells, hlc, 'Selected cells for fill %i' % filln)
 
 if args.best_worst:
     cell_nrs = [0, 200, -1]
