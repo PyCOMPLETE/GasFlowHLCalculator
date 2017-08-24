@@ -3,6 +3,8 @@ import csv
 import os
 from h5_storage import version
 
+latest_config_file_version = 3
+
 arc_list = ['S12','S23','S34','S45','S56','S67','S78','S81']
 Radius = 3.7e-3/2.  #internal radius of beam screen cooling pipe
 rug = 1e-5         #beam screen cooling circuit roughness
@@ -16,7 +18,6 @@ arc_index = np.array(
        [364, 415],
        [427, 478]])
 
-latest_config_file_version=3
 def get_config_file(version):
     if version == -1:
         return '/LHCCryoHeatLoadCalibration/CryoBeamScreenData_beforeLS1_arcs.csv'
@@ -36,7 +37,6 @@ def get_delimiter(version):
         return '\t'
     else:
         return ','
-
 
 class Config_qbs(object):
     def __init__(self, version=version):
@@ -147,6 +147,10 @@ class Config_qbs(object):
 
 
     def assert_arc_index(self):
+        """
+        Assert that the arc indices, which determine at which cells the arcs begin and end, remain unchanged in future versions of the csv file.
+        If it changes, this will at least not go unnoticed.
+        """
         arc_index_2 = np.zeros_like(arc_index)
         j = 0 #sector number
         Type_list = self.Type_list
@@ -159,45 +163,17 @@ class Config_qbs(object):
         assert np.all(arc_index_2 == arc_index)
 
     def assert_correct_05L4_05R4(self):
+        """
+        Make sure that the correct (QRLEB) cells come first and second in
+        case of 05R4 and 05L4. Also in future versions of the config qbs
+        objects (as from configuration file)
+        """
         index_R = self.Cell_list.index('05R4_947')
         index_L = self.Cell_list.index('05L4_947')
 
-        # Make sure that the correct (QRLEB) cells come first and second in case of 05R4 and 05L4
-        # also in future versions of the config qbs objects (as from configuration file)
         assert 'QRLEB' in self.CV94x_list[index_R]
         assert 'QRLEB' in self.CV94x_list[index_L+1]
 
 # Default object
 config_qbs = Config_qbs()
-
-
-
-# This is how a csv file can be created from python
-
-#import data_QBS_LHC as dql
-#list_to_save = [dql.__dict__[ss] for ss in variable_list]
-
-#def save():
-#    with open('config_qbs_lhc.csv', 'w') as f:
-#        ww = csv.writer(f, delimiter='\t')
-#        ww.writerow(variable_list)
-#        for items in zip(*list_to_save):
-#            ww.writerow(items)
-#    variable_list = [
-#            'Cell_list',
-#            'Type_list',
-#            'Sector_list',
-#            'EH84x_list',
-#            'TT84x_list',
-#            'CV94x_list',
-#            'PT961_list',
-#            'PT991_list',
-#            'TT94x_list',
-#            'TT961_list',
-#            'R_list',
-#            'Qs_list',
-#            'Kv_list',
-#            'nc_list',
-#            'L_list'
-#            ]
 
