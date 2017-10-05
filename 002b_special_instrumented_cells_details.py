@@ -1,17 +1,15 @@
 from __future__ import division
-import cPickle as pickle
+import sys
 import time
 import re
 import argparse
+import cPickle as pickle
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-import sys
-sys.path.append('../')
-
-
-
+if '..' not in sys.path:
+    sys.path.append('..')
 
 import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.mystyle as ms
@@ -253,10 +251,9 @@ arc_hist_total = lhc_hist_dict['total']
 arc_hist_dict = lhc_hist_dict['arcs']
 
 # Plots
-figs = []
 
 title = 'Special instrumented cells for fill %i' % filln
-fig = ms.figure(title, figs)
+fig = ms.figure(title)
 fig.subplots_adjust(left=.1, right=.75, hspace=.38, wspace=.45)
 sp = None
 
@@ -311,7 +308,7 @@ def round_to(arr, precision):
 bins = np.arange(round_to(arc_hist_total.min(),binwidth)-binwidth, round_to(arc_hist_total.max(),binwidth)+binwidth*3/2, binwidth)
 
 if separate_fig_for_hist:
-    fig = ms.figure('Special cells in histogram of heatloads', figs)
+    fig = ms.figure('Special cells in histogram of heatloads')
     sp = plt.subplot(2,2,1)
 else:
     sp = plt.subplot(2,2,4)
@@ -334,7 +331,7 @@ if hist:
         sp_ctr = ctr % 4 + 1
         if sp_ctr == 1:
             title = 'Fill %i: Heat loads at %.1f hours' % (filln, avg_time_hrs)
-            fig = ms.figure(title, figs)
+            fig = ms.figure(title)
         sp = plt.subplot(2,2,sp_ctr)
         sp.hist(arc_hist_total, bins=bins, alpha=0.5, color='blue', weights=1./len(arc_hist_total)*np.ones_like(arc_hist_total))
         sp.hist(data, bins=bins, color='green', alpha=0.5, weights=1./len(data)*np.ones_like(data))
@@ -377,7 +374,7 @@ if hist:
 
 
 # Compare dipoles to quads
-fig_dev = ms.figure('Compare devices', figs)
+fig_dev = ms.figure('Compare devices')
 fig_dev.subplots_adjust(left=.06, right=.84, top=.93, hspace=.38, wspace=.46)
 
 # Logged data
@@ -461,7 +458,7 @@ if show_dict:
         for cell_ctr, cell in enumerate(cells):
             sp_ctr = cell_ctr % 3 + 1
             if sp_ctr == 1:
-                fig = ms.figure('HL dict' + title, figs)
+                fig = ms.figure('HL dict' + title)
                 fig.subplots_adjust(left=.06, right=.84, top=.93, hspace=.38, wspace=.42)
             sp = plt.subplot(3,1,sp_ctr, sharex=sp)
             sp.set_xlabel('Fill number')
@@ -522,7 +519,7 @@ if details:
 
     re_var = re.compile('^\w{4}_\w?(\d\d[RL]\d_TT\d{3})\.POSST$')
     title = 'Fill %i temperature sensors' % filln
-    fig = ms.figure(title, figs)
+    fig = ms.figure(title)
     fig.subplots_adjust(left=.06, right=.84, top=.93, hspace=.38, wspace=.42)
     for cell_ctr, cell in enumerate(cells):
         acell = alternate_notation[cell]
@@ -557,7 +554,7 @@ if details:
     # Separate hl for b1, b2
     if args.separate:
         title = 'Fill %i separate beam screens' % filln
-        fig = ms.figure(title, figs)
+        fig = ms.figure(title)
         fig.subplots_adjust(left=.06, right=.84, top=.93, hspace=.38, wspace=.42)
 
         qbs_special = cqs.compute_qbs_special(special_atd, separate=True)
@@ -585,7 +582,7 @@ if details:
             ms.comb_legend(sp,sp2,bbox_to_anchor=(1.3,1), fontsize=myfontsz)
 
 if args.contributions:
-    fig = ms.figure('Heat load contributions', figs)
+    fig = ms.figure('Heat load contributions')
     fig.subplots_adjust(right=0.75, wspace=0.45, hspace=0.4)
     sp = None
 

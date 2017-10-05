@@ -1,5 +1,4 @@
 from __future__ import division
-import numpy as np
 import matplotlib.pyplot as plt
 
 import qbs_fill as qf
@@ -13,8 +12,8 @@ ms.mystyle_arial()
 plt.close('all')
 filln = 5219
 
-version = 5
-old_version = 4
+version = 7
+old_version = 6
 
 arc_key_list = HL.variable_lists_heatloads['AVG_ARC']
 quad_key_list = []
@@ -29,7 +28,7 @@ qbs_ob_old = qf.compute_qbs_fill(filln, version=old_version)
 fill_dict = {}
 
 
-data_dir = '/afs/cern.ch/work/l/lhcscrub/LHC_2016_25ns_beforeTS1/'
+data_dir = '/afs/cern.ch/project/spsecloud/LHC_2016_25ns/LHC_2016_25ns_beforeTS1/'
 fill_dict.update(tm.parse_timber_file(data_dir + 'fill_heatload_data_csvs/heatloads_fill_%d.csv' % filln, verbose=False))
 heatloads = SetOfHomogeneousNumericVariables(variable_list=arc_key_list, timber_variables=fill_dict)
 
@@ -78,10 +77,10 @@ for sp in sp_5, sp_6:
     sp.set_ylabel('Heat load [W]')
     sp.set_xlabel('Time [h]')
 
-fill_dict_v4 = qf.get_fill_dict(filln, version=4)
-fill_dict_v5 = qf.get_fill_dict(filln, version=5)
+fill_dict_old = qf.get_fill_dict(filln, version=old_version)
+fill_dict_new = qf.get_fill_dict(filln, version=version)
 
-for fd, title, ls in zip((fill_dict, fill_dict_v4, fill_dict_v5), ('logged', 'v4', 'v5'), (':', '--', '-')):
+for fd, title, ls in zip((fill_dict, fill_dict_old, fill_dict_new), ('logged', 'old v%i' % old_version, 'new v%i' % version), (':', '--', '-')):
     heatloads = SetOfHomogeneousNumericVariables(variable_list=quad_key_list, timber_variables=fd)
     for ctr, (key, tvl) in enumerate(heatloads.timber_variables.iteritems()):
         if key[7] == '5':
@@ -102,6 +101,5 @@ for fd, title, ls in zip((fill_dict, fill_dict_v4, fill_dict_v5), ('logged', 'v4
 for sp in sp_5, sp_6:
     sp.legend(bbox_to_anchor=(1.2,1))
 
-
-
 plt.show()
+
