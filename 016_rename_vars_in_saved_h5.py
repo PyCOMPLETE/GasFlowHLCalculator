@@ -1,15 +1,18 @@
+import sys
 import os
-import h5_storage
+
 import h5py
-import config_qbs as cq
 import numpy as np
 
-#import LHCMeasurementTools.myfilemanager as mfm
-#import LHCMeasurementTools.TimberManager as tm
+import h5_storage
+import config_qbs as cq
 
 dir_special = os.path.dirname(h5_storage.get_special_qbs_file(0))
 h5_files_special = filter(lambda x: x.endswith('.h5'), os.listdir(dir_special))
 h5_files_special = map(lambda x: dir_special + '/' + x, h5_files_special)
+
+if raw_input('Continue renaming saved data? yes/no\n') not in ('yes', 'y'):
+    sys.exit()
 
 # Rename 'qbs' to 'Qbs'
 

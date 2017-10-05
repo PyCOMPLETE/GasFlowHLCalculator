@@ -22,7 +22,7 @@ import compute_QBS_special as cqs
 # --> Solved by excluding the last magnet from the calculation, and also adding 31L2 to the normal gasflow list as the temp sensors are reversed (826 instead of 824).
 # To be checked with B.B.
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser('The curves in one of the subplots should overlap.')
 parser.add_argument('filln', help='LHC fill number', type=int)
 parser.add_argument('--savefig', help='Save in file.', action='store_true')
 parser.add_argument('--noshow', help='Do not call plt.show', action='store_true')

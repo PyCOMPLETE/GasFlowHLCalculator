@@ -19,7 +19,7 @@ class QbsMagnetCalculator(object):
         self.data_dictionary = atd.dictionary
 
     def Compute_QBS_magnet(self, cell, Tin_list, Tout_list):
-        print('Warning! Obsolete function Compute_QBS_magnet is called')
+        print('Warning! Obsolete function Compute_QBS_magnet is called. Call Compute_QBS_magnet_single instead!')
         cell_index = self.cell_list.index(cell)
         if not isinstance(Tin_list, list):
             Tin_list = [Tin_list]
