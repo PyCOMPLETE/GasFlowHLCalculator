@@ -11,9 +11,18 @@ from config_qbs import Config_qbs, config_qbs
 zeros = lambda *x: np.zeros(shape=(x), dtype=float)
 
 class HeatLoadComputer(object):
+    """
+    This class can be used to relate the raw timber data for a given cell or all cells.
+    Parameters:
+        -atd_ob: Timber data
+        -cq    : Compute_qbs instance
+        -strict: Raise error if there are missing variables. Default: True
+        -report: Print information on failed sensors.
+    """
+
     max_iterations = 5 # For pressure drop
 
-    def __init__(self, atd_ob, version=h5_storage.version, strict=True, details=False, use_dP=True, compute_Re=False):
+    def __init__(self, atd_ob, version=h5_storage.version, strict=True, details=False, use_dP=True, compute_Re=False, only_raw_data=False):
 
         # Initialization
         if version == h5_storage.version:
@@ -35,6 +44,11 @@ class HeatLoadComputer(object):
 
         # Read input variables: pressures temperatures, electrical heater etc.
         self._store_all_cell_data()
+
+        # Optionally stop here if no computation is desired
+        if only_raw_data:
+            self.report(details=details)
+            return
 
         # Main computation
         self.computed_values = {}
@@ -171,6 +185,9 @@ class HeatLoadComputer(object):
         self.computed_values['h3'] = h3
 
     def _compute_ro(self, use_P3):
+        """
+        Computes helium density.
+        """
         if use_P3:
             P = self.computed_values['P3']
         else:
@@ -187,6 +204,9 @@ class HeatLoadComputer(object):
         self.computed_values['ro'] = ro
 
     def _compute_Re(self):
+        """
+        Computes Reynold's number.
+        """
         m_L = self.computed_values['m_L']
         D   = 2*self.cq.Radius
         T_avg = (self.data_dict['T2'] + self.data_dict['T3'])/2.
@@ -204,7 +224,7 @@ class HeatLoadComputer(object):
 
     def _compute_P3(self):
         """
-        Iterative computation of P3.
+        Iterative computation of P3 (pressure drop).
         """
         P3_arr  = zeros(self.Nvalue, self.Ncell)
 
@@ -261,6 +281,9 @@ class HeatLoadComputer(object):
         self.computed_values['P3'] = P3_arr
 
     def _compute_heat_load(self):
+        """
+        Final step: mass flow and heat load.
+        """
 
         Qs_list = self.cq.Qs_list
         Kv_list = self.cq.Kv_list
@@ -293,15 +316,22 @@ class HeatLoadComputer(object):
         self.computed_values['qbs'] = qbs
 
     def get_single_cell_data(self, cell):
+        """
+        Returns recomputed and raw data for one single cell.
+        """
         output_dict = {}
-        for index, c in enumerate(self.cq.Cell_list):
-            if cell in c:
-                break
+        candidate_cells = filter(lambda x: cell in x, list(self.cq.Cell_list))
+        if len(candidate_cells) == 0:
+            raise ValueError('Cell %s not found!' % cell)
+        elif len(candidate_cells) != 1:
+            raise ValueError('Too many cells with %s: %s' % (cell, candidate_cells))
         else:
-            raise ValueError('Cell not found!')
+            index = list(self.cq.Cell_list).index(candidate_cells[0])
+
         for key, arr in self.computed_values.iteritems():
             output_dict[key] = arr[:,index]
-        output_dict.update(super(HeatLoadComputer, self).get_single_cell_data(cell))
+        for key, arr in self.data_dict.iteritems():
+            output_dict[key] = arr[:,index]
 
         return output_dict
 
@@ -337,7 +367,7 @@ class HeatLoadComputer(object):
 
     def _insert_to_problem_cells(self, cell_ctr, var, type_):
         """
-        Utility to store problems and at which cells they occur.
+        Utility to store what kind of problems and for which cells they occur.
         """
 
         problem_cells = self.problem_cells
