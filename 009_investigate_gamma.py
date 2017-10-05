@@ -15,9 +15,9 @@ import h5_storage
 import LHCMeasurementTools.mystyle as ms
 #import LHCMeasurementTools.savefig as sf
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser('For a typical fill, show values that are important to the computation, and how often they occur during a typical computation of a typical fill. Both at high energy and for the full duration.')
 parser.add_argument('--calc', help='Calculate instead of loading from pickle.', action='store_true')
-parser.add_argument('--savefig', help='Save in file.')
+parser.add_argument('--savefig', help='Save in files.')
 parser.add_argument('--noshow', help='Do not call plt.show', action='store_true')
 parser.add_argument('--onlyarcs', help='Only show arc_cells', action='store_true')
 parser.add_argument('--onlyinterp', help='Only show interp values', action='store_true')
@@ -25,11 +25,8 @@ args = parser.parse_args()
 
 recompute = args.calc
 only_interp = args.onlyinterp
-figs = []
-
 
 ms.mystyle()
-
 plt.close('all')
 
 filln = 5219
@@ -51,7 +48,7 @@ for j in xrange(hlc.Nvalue):
     for i in xrange(hlc.Ncell):
         gamma[j,i] = interp_P_T_gamma(P3[j,i], T3[j,i])
 
-fig = ms.figure('Interpolated Data', figs)
+fig = ms.figure('Interpolated Data')
 
 interps = (interp_P_T_hPT, interp_P_T_DPT, interp_P_T_mu, interp_P_T_gamma)
 titles  = ('Enthalpy', 'Density', 'Viscosity', 'Heat capacity ratio')
@@ -179,7 +176,7 @@ for cc in (1,2):
             affix = '(computed)'
         sp_ctr = ctr % 4 +1
         if cc == 1 and sp_ctr == 1:
-            fig = ms.figure(plot_title, figs)
+            fig = ms.figure(plot_title)
             fig.subplots_adjust(right=0.75, )
             fig_ctr += 1
         if cc == 1:
@@ -210,7 +207,8 @@ for cc in (1,2):
             sp.legend(loc=0)
 
 if args.savefig:
-    for fig in figs:
+    for num in plt.get_fignums():
+        fig = plt.figure(num)
         fig.savefig(os.path.expanduser(args.savefig) + '_%i.png' % fig.number)
 
 if not args.noshow:

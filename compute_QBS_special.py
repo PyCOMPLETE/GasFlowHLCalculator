@@ -236,27 +236,41 @@ def aligned_to_dict(qbs_ob):
 def aligned_to_dict_separate(qbs_ob):
     output = {}
     output['timestamps'] = qbs_ob.timestamps
-    output['cells'] = cell_list
-
-    # create structure
-    for cell in cell_list:
-        output[cell] = {}
-        for magnet_id in magnet_ids:
-            output[cell][magnet_id] = {}
+    cells = set()
 
     # reverse dict to aligned seperate
     for var, arr in qbs_ob.dictionary.iteritems():
         split_var = var.split('_')
         if len(split_var) == 3:
             cell, magnet_id, beam = split_var
+
+            if cell not in output:
+                output[cell] = {}
+            if magnet_id not in output[cell]:
+                output[cell][magnet_id] = {}
+
             output[cell][magnet_id][int(beam)] = arr
         elif len(split_var) == 2:
             cell, key = split_var
+            if cell not in output:
+                output[cell] = {}
+
             if key in ('Qbs', 'Sum'):
                 output[cell][key] = arr
             elif key in magnet_ids:
+                if key not  in output[cell]:
+                    output[cell][key] = {}
+
                 output[cell][key]['Sum'] = arr
             else:
                 raise ValueError(key)
+            cells.add(cell)
+
+    if set(cell_list) == cells:
+        cells = cell_list
+    elif set(cell_list_pre_EYETS16) == cells:
+        cells = cell_list_pre_EYETS16
+
+    output['cells'] = cells
     return output
 
