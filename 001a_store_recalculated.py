@@ -14,6 +14,7 @@ use_dPs = (True,False)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='random', action='store_true')
+parser.add_argument('--filln', help='specify fill number')
 args = parser.parse_args()
 
 re_file = re.compile('cryo_data_fill_(\d{4,}).h5')
@@ -26,6 +27,11 @@ for atd_file in atd_files:
     info = re_file.search(atd_file)
     if info is not None:
         filln = int(info.group(1))
+
+	if args.filln:
+	    if not int(filln)==int(args.filln):
+		#print 'Skipped fill', filln
+		continue  
 
         for use_dP in use_dPs:
             if filln < 3600:
