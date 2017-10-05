@@ -15,9 +15,12 @@ class HeatLoadComputer(object):
     This class can be used to relate the raw timber data for a given cell or all cells.
     Parameters:
         -atd_ob: Timber data
-        -cq    : Compute_qbs instance
+        -version: Which config_qbs version to use
         -strict: Raise error if there are missing variables. Default: True
-        -report: Print information on failed sensors.
+        -details: Print details of report() method.
+        -use_dP: Use pressure drop. This takes significantly longer.
+        -compute_Re: Compute reynold's number. (Not used any longer).
+        -only_raw_data: Only load the pressures, temperatures etc but do not compute anything.
     """
 
     max_iterations = 5 # For pressure drop
