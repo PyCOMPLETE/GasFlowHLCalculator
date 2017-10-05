@@ -12,6 +12,7 @@ from h5_storage import special_data_dir, special_version
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='random', action='store_true')
 parser.add_argument('--reverse', action='store_true')
+parser.add_argument('--filln', help='specify fill number')
 args = parser.parse_args()
 
 re_file = re.compile('special_data_fill_(\d{4,}).h5')
@@ -26,6 +27,12 @@ for atd_file in atd_files:
     info = re_file.search(atd_file)
     if info != None:
         filln = int(info.group(1))
+
+        if args.filln:
+            if not int(filln)==int(args.filln):
+                #print 'Skipped fill', filln
+                continue
+
         this_qbs_file = h5_storage.get_special_qbs_file(filln)
         if not os.path.isfile(this_qbs_file):
             time_0 = time.time()

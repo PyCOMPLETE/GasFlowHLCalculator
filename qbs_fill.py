@@ -121,7 +121,7 @@ def get_fill_dict(filln, version=default_version, use_dP=True):
     # Remove new special instrumented cell for older fills
     if filln <= 5456:
         regex = re.compile('^QRLAB_31L2_QBS943_\w\w.POSST$')
-        varlist_tmb = filter(lambda x: regex.match(x) == None, varlist_tmb)
+        varlist_tmb = filter(lambda x: regex.match(x) is None, varlist_tmb)
 
     for varname in varlist_tmb:
         tvl = tm.timber_variable_list()
@@ -130,6 +130,13 @@ def get_fill_dict(filln, version=default_version, use_dP=True):
             cell = varname.split('_')[1]
             tvl.values = qbs_special.dictionary[cell+special_id]
             tvl.t_stamps = qbs_special.timestamps
+            for beam in (1,2):
+                tvl2 = tm.timber_variable_list()
+                tvl2.values = qbs_special.dictionary[cell+special_id+'_%i' % beam]
+                tvl2.t_stamps = qbs_special.timestamps
+                tvl2.ms = np.zeros_like(tvl2.t_stamps)
+                output[varname+'_B%i' % beam] = tvl2
+
         elif varname.startswith('QRLEB_05L4'):
             tvl.values = qbs_ob.dictionary['05L4_947_comb']
             tvl.t_stamps = qbs_ob.timestamps
