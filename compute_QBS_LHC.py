@@ -7,35 +7,158 @@ from Helium_properties import interp_P_T_hPT, interp_P_T_DPT, interp_P_T_mu
 from valve_LT import valve_LT
 from Pressure_drop import pd_factory, calc_re
 from config_qbs import Config_qbs, config_qbs
-from var_getter import VarGetter
 
 zeros = lambda *x: np.zeros(shape=(x), dtype=float)
-max_iterations = 5 # For pressure drop
 
-class HeatLoadComputer(VarGetter):
+class HeatLoadComputer(object):
+    """
+    This class can be used to relate the raw timber data for a given cell or all cells.
+    Parameters:
+        -atd_ob: Timber data
+        -version: Which config_qbs version to use
+        -strict: Raise error if there are missing variables. Default: True
+        -details: Print details of report() method.
+        -use_dP: Use pressure drop. This takes significantly longer.
+        -compute_Re: Compute reynold's number. (Not used any longer).
+        -only_raw_data: Only load the pressures, temperatures etc but do not compute anything.
+    """
 
-    def __init__(self, atd_ob, version=h5_storage.version, strict=True, details=False, use_dP=True, compute_Re=False):
+    max_iterations = 5 # For pressure drop
+
+    def __init__(self, atd_ob, version=h5_storage.version, strict=True, details=False, use_dP=True, compute_Re=False, only_raw_data=False):
+
+        # Initialization
         if version == h5_storage.version:
             cq = config_qbs
         else:
             cq = Config_qbs(version)
-        super(HeatLoadComputer,self).__init__(atd_ob, cq, strict, report=False)
 
+        self.atd_ob  = atd_ob
+        self.cq      = cq
         self.use_dP = use_dP
+        self.strict  = strict
 
+        self.Ncell = len(cq.Cell_list)
+        self.Nvalue = len(atd_ob.timestamps)
+
+        self.problem_cells = {}
+        self.missing_variables = []
+        self.nan_arr = np.zeros(len(cq.Cell_list), dtype=np.bool)
+
+        # Read input variables: pressures temperatures, electrical heater etc.
+        self._store_all_cell_data()
+
+        # Optionally stop here if no computation is desired
+        if only_raw_data:
+            self.report(details=details)
+            return
+
+        # Main computation
         self.computed_values = {}
         self._compute_ro(use_P3=False)
+
         if self.use_dP:
             self._compute_P3()
             self._compute_ro(use_P3=True)
         self._compute_H()
         self._compute_heat_load()
+
         if compute_Re:
             self._compute_Re()
+
+        # Some sanity checks. Then report failing cells to stdout.
         self.assure()
         self.report(details=details)
 
+        # Create object that holds data
         self.qbs_atd = tm.AlignedTimberData(atd_ob.timestamps, self.computed_values['qbs'], cq.Cell_list)
+
+    def _store_all_cell_data(self):
+        """
+        Create a data_dict that contains all raw data.
+        """
+
+        cq = self.cq
+
+        # correct: If no data available, copy it from previous cell.
+        # negative: This data may be negative.
+        self.var_data_dict = {
+            'T1': {
+                'vars': cq.TT961_list,
+                'correct': True,
+                'negative': False,
+            },
+            'T3': {
+                'vars': cq.TT94x_list,
+                'correct': False,
+                'negative': False,
+            },
+            'CV': {
+                'vars': cq.CV94x_list,
+                'correct': False,
+                'negative': False,
+            },
+            'EH': {
+                'vars': cq.EH84x_list,
+                'correct': False,
+                'negative': True,
+            },
+            'P1': {
+                'vars': cq.PT961_list,
+                'correct': True,
+                'negative': False,
+            },
+            'P4': {
+                'vars': cq.PT991_list,
+                'correct': True,
+                'negative': False,
+            },
+            'T2': {
+                'vars': cq.TT84x_list,
+                'correct': False,
+                'negative': False,
+            },
+        }
+        data_dict = {}
+        for key, dd in self.var_data_dict.iteritems():
+            arr = np.zeros((self.Nvalue, self.Ncell), dtype=float)
+            negative_allowed = dd['negative']
+            can_be_corrected = dd['correct']
+
+            correct_first = False
+            for cell_ctr, var_name in enumerate(dd['vars']):
+                try:
+                    data = self.atd_ob.dictionary[var_name]
+                except KeyError:
+                    self.missing_variables.append(var_name)
+                    continue
+
+                arr[:,cell_ctr] = data
+                if (negative_allowed and np.all(arr[:,cell_ctr] == 0)) or (not negative_allowed and np.all(arr[:,cell_ctr] <= 0)):
+                    if can_be_corrected:
+                        if cell_ctr != 0:
+                            arr[:,cell_ctr] = arr[:,cell_ctr-1]
+                            self._insert_to_problem_cells(cell_ctr, var_name, 'corrected')
+                        else:
+                            correct_first = True
+                    else:
+                        self._insert_to_problem_cells(cell_ctr, var_name, 'no_data')
+                        self.nan_arr[cell_ctr] = True
+                elif not negative_allowed and np.any(arr[:,cell_ctr] <= 0):
+                    self._insert_to_problem_cells(cell_ctr, var_name, 'negative')
+
+            if correct_first:
+                arr[:,0] = arr[:,-1]
+
+            data_dict[key] = arr
+
+            if self.missing_variables:
+                print('Warning! Some variables are missing!')
+                print(self.missing_variables)
+                if self.strict:
+                    raise ValueError('Missing variables!')
+        self.data_dict = data_dict
+
 
     def _compute_H(self):
         """
@@ -65,6 +188,9 @@ class HeatLoadComputer(VarGetter):
         self.computed_values['h3'] = h3
 
     def _compute_ro(self, use_P3):
+        """
+        Computes helium density.
+        """
         if use_P3:
             P = self.computed_values['P3']
         else:
@@ -81,6 +207,9 @@ class HeatLoadComputer(VarGetter):
         self.computed_values['ro'] = ro
 
     def _compute_Re(self):
+        """
+        Computes Reynold's number.
+        """
         m_L = self.computed_values['m_L']
         D   = 2*self.cq.Radius
         T_avg = (self.data_dict['T2'] + self.data_dict['T3'])/2.
@@ -98,7 +227,7 @@ class HeatLoadComputer(VarGetter):
 
     def _compute_P3(self):
         """
-        Iterative computation of P3.
+        Iterative computation of P3 (pressure drop).
         """
         P3_arr  = zeros(self.Nvalue, self.Ncell)
 
@@ -125,12 +254,12 @@ class HeatLoadComputer(VarGetter):
 
             for j in xrange(self.Nvalue):
                 P3_temp = 0
-                counter_int = 0
+                iterations = 0
                 P3 = P1[j,i]
 
                 #iterative loop to compute the pressure drop with error of 1% or until max iteration
-                while abs((P3_temp-P3)/P3) > 0.01 and counter_int < max_iterations:
-                    counter_int += 1
+                while abs((P3_temp-P3)/P3) > 0.01 and iterations < self.max_iterations:
+                    iterations += 1
                     #protect against P3 < P4
                     if P3 < P4[j,i]:
                         break
@@ -149,12 +278,15 @@ class HeatLoadComputer(VarGetter):
                 else:
                     P3_arr[j,i] = P3_temp
 
-                if counter_int == max_iterations:
+                if iterations == self.max_iterations:
                     self._insert_to_problem_cells(i, j, 'max_iter')
 
         self.computed_values['P3'] = P3_arr
 
     def _compute_heat_load(self):
+        """
+        Final step: mass flow and heat load.
+        """
 
         Qs_list = self.cq.Qs_list
         Kv_list = self.cq.Kv_list
@@ -187,34 +319,73 @@ class HeatLoadComputer(VarGetter):
         self.computed_values['qbs'] = qbs
 
     def get_single_cell_data(self, cell):
+        """
+        Returns recomputed and raw data for one single cell.
+        """
         output_dict = {}
-        for index, c in enumerate(self.cq.Cell_list):
-            if cell in c:
-                break
+        candidate_cells = filter(lambda x: cell in x, list(self.cq.Cell_list))
+        if len(candidate_cells) == 0:
+            raise ValueError('Cell %s not found!' % cell)
+        elif len(candidate_cells) != 1:
+            raise ValueError('Too many cells with %s: %s' % (cell, candidate_cells))
         else:
-            raise ValueError('Cell not found!')
+            index = list(self.cq.Cell_list).index(candidate_cells[0])
+
         for key, arr in self.computed_values.iteritems():
             output_dict[key] = arr[:,index]
-        output_dict.update(super(HeatLoadComputer, self).get_single_cell_data(cell))
+        for key, arr in self.data_dict.iteritems():
+            output_dict[key] = arr[:,index]
 
         return output_dict
 
     def assure(self):
         """
+        Check conditions:
+        P1 > P4
         m_L > 0
         """
-        super(HeatLoadComputer, self).assure()
+
+        P1 = self.data_dict['P1']
+        P4 = self.data_dict['P4']
+        for cell_ctr, isnan in enumerate(self.nan_arr):
+            if not isnan and np.any(P1[:,cell_ctr] < P4[:,cell_ctr]):
+                self._insert_to_problem_cells(cell_ctr, 'P1 < P4', 'failed_checks')
 
         m_L = self.computed_values['m_L']
-        #qbs = self.computed_values['qbs']
         for cell_ctr, isnan in enumerate(self.nan_arr):
             if not isnan:
                 if np.any(m_L[:,cell_ctr] < 0):
                     self._insert_to_problem_cells(cell_ctr, 'm_L', 'negative')
-                #if np.any(qbs[:,cell_ctr] < 0):
-                #    self._insert_to_problem_cells(cell_ctr, 'qbs', 'negative')
 
+    def report(self, details=False):
+        """
+        Print out the missing and corrected variables as well as the nan cells.
+        """
 
+        for type_, dd in self.problem_cells.iteritems():
+            print('%i problems of type %s' % (len(dd), type_))
+            if details:
+                for cell, subdict in dd.iteritems():
+                    print('%s in S%s of type %s: %s' % (cell, subdict['sector'], subdict['type'], subdict['list']))
+
+    def _insert_to_problem_cells(self, cell_ctr, var, type_):
+        """
+        Utility to store what kind of problems and for which cells they occur.
+        """
+
+        problem_cells = self.problem_cells
+        cell = self.cq.Cell_list[cell_ctr]
+        if type_ not in problem_cells:
+            problem_cells[type_] = {}
+        if cell not in problem_cells[type_]:
+            problem_cells[type_][cell] = {
+                'sector': self.cq.Sector_list[cell_ctr],
+                'type': self.cq.Type_list[cell_ctr],
+                'list': set(),
+            }
+        problem_cells[type_][cell]['list'].add(var)
+
+# Main interface of this file
 def compute_qbs(atd_ob, use_dP, version=h5_storage.version, strict=True, details=False):
     hl_comp = HeatLoadComputer(atd_ob, version=version, strict=strict, use_dP=use_dP, details=details)
     return hl_comp.qbs_atd

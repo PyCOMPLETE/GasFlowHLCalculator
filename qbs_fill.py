@@ -25,8 +25,6 @@ def compute_qbs_fill(filln, use_dP=True, version=default_version, recompute_if_m
     if filln < 3600:
         version = -1
         print 'Warning in GasflowHLCalculator.qbs_fill: special case for pre LS1 fills. Specified version is ignored.'
-    else:
-        version = default_version
 
     h5_file = h5_storage.get_qbs_file(filln, version=version, use_dP=use_dP)
     if os.path.isfile(h5_file):

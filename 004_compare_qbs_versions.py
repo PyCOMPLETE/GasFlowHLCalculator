@@ -1,6 +1,8 @@
 from __future__ import division
 import os
 import re
+import argparse
+
 import matplotlib.pyplot as plt
 
 import h5_storage
@@ -10,12 +12,16 @@ from compute_QBS_LHC import compute_qbs
 
 import LHCMeasurementTools.mystyle as ms
 
+parser = argparse.ArgumentParser()
+parser.add_argument('filln', type=int)
+parser.add_argument('--include-current', action='store_true', help='Recompute using the current code')
+args = parser.parse_args()
 
 plt.close('all')
 ms.mystyle()
 
-filln = 5219
-show_current = False
+filln = args.filln
+show_current = args.include_current
 
 re_dir = re.compile('recalculated_qbs_(nodP_)?v(\d+)')
 dirs = filter(re_dir.match, os.listdir(h5_storage.recalc_dir))
@@ -38,7 +44,7 @@ for ctr, arc in enumerate(config_qbs.arc_list):
     sps.append(sp)
 
 for ctr, (dir_, nodp, version) in enumerate(dir_dp_version):
-    use_dP = nodp == None
+    use_dP = (nodp == None)
     if use_dP:
         label = 'V%s with dP' % version
     else:
