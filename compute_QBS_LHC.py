@@ -21,11 +21,13 @@ class HeatLoadComputer(object):
         -use_dP: Use pressure drop. This takes significantly longer.
         -compute_Re: Compute reynold's number. (Not used any longer).
         -only_raw_data: Only load the pressures, temperatures etc but do not compute anything.
+        -override_missing_heater: Calculate heat load also for cells that have a defunct electrical heater.
     """
 
     max_iterations = 5 # For pressure drop
 
-    def __init__(self, atd_ob, version=h5_storage.version, strict=True, details=False, use_dP=True, compute_Re=False, only_raw_data=False):
+    def __init__(self, atd_ob, version=h5_storage.version, strict=True, details=False, use_dP=True,
+                 compute_Re=False, only_raw_data=False, override_missing_heater=False):
 
         # Initialization
         if version == h5_storage.version:
@@ -33,6 +35,7 @@ class HeatLoadComputer(object):
         else:
             cq = Config_qbs(version)
 
+        self.override_missing_heater = override_missing_heater
         self.atd_ob  = atd_ob
         self.cq      = cq
         self.use_dP = use_dP
@@ -134,7 +137,10 @@ class HeatLoadComputer(object):
                     continue
 
                 arr[:,cell_ctr] = data
+
                 if (negative_allowed and np.all(arr[:,cell_ctr] == 0)) or (not negative_allowed and np.all(arr[:,cell_ctr] <= 0)):
+                    if key == 'EH' and self.override_missing_heater:
+                        self._insert_to_problem_cells(cell_ctr, var_name, 'override missing heater data')
                     if can_be_corrected:
                         if cell_ctr != 0:
                             arr[:,cell_ctr] = arr[:,cell_ctr-1]
