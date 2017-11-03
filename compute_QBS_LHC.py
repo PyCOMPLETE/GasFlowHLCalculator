@@ -141,7 +141,7 @@ class HeatLoadComputer(object):
                 if (negative_allowed and np.all(arr[:,cell_ctr] == 0)) or (not negative_allowed and np.all(arr[:,cell_ctr] <= 0)):
                     if key == 'EH' and self.override_missing_heater:
                         self._insert_to_problem_cells(cell_ctr, var_name, 'override missing heater data')
-                    if can_be_corrected:
+                    elif can_be_corrected:
                         if cell_ctr != 0:
                             arr[:,cell_ctr] = arr[:,cell_ctr-1]
                             self._insert_to_problem_cells(cell_ctr, var_name, 'corrected')
