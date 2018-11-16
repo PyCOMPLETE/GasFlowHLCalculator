@@ -136,17 +136,37 @@ def get_fill_dict(filln, version=default_version, use_dP=True):
                 output[varname+'_B%i' % beam] = tvl2
 
         elif varname.startswith('QRLEB_05L4'):
-            tvl.values = qbs_ob.dictionary['05L4_947_comb']
+            temp_name = '05L4_947_comb'
             tvl.t_stamps = qbs_ob.timestamps
+            if temp_name in qbs_ob.dictionary:
+                tvl.values = qbs_ob.dictionary[temp_name]
+            else:
+                tvl.values = tvl.t_stamps*0.
+                print 'Skipped %s due to key error!'%temp_name
         elif varname.startswith('QRLEB_05R4'):
-            tvl.values = qbs_ob.dictionary['05R4_947_comb']
+            temp_name = '05R4_947_comb'
             tvl.t_stamps = qbs_ob.timestamps
+            if temp_name in qbs_ob.dictionary:
+                tvl.values = qbs_ob.dictionary[temp_name]
+            else:
+                tvl.values = tvl.t_stamps*0.
+                print 'Skipped %s due to key error!'%temp_name
         elif varname.startswith('QRLFF_05L4'):
-            tvl.values = qbs_ob.dictionary['05L4_947_quad']
+            temp_name = '05L4_947_quad'
             tvl.t_stamps = qbs_ob.timestamps
+            if temp_name in qbs_ob.dictionary:
+                tvl.values = qbs_ob.dictionary[temp_name]
+            else:
+                tvl.values = tvl.t_stamps*0.
+                print 'Skipped %s due to key error!'%temp_name
         elif varname.startswith('QRLFF_05R4'):
-            tvl.values = qbs_ob.dictionary['05R4_947_quad']
+            temp_name = '05R4_947_quad'
             tvl.t_stamps = qbs_ob.timestamps
+            if temp_name in qbs_ob.dictionary:
+                tvl.values = qbs_ob.dictionary[temp_name]
+            else:
+                tvl.values = tvl.t_stamps*0.
+                print 'Skipped %s due to key error!'%temp_name
         elif '_QBS9' in varname:
             firstp, lastp = tuple(varname.split('_QBS'))
             kkk = firstp.split('_')[-1]+'_'+lastp.split('.')[0]
