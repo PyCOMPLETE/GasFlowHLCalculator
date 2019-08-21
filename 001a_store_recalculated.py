@@ -6,8 +6,12 @@ import argparse
 import random
 
 import compute_QBS_LHC as cql
-import h5_storage
-from h5_storage import data_dir
+
+from GasFlowHLCalculator.h5_storage import H5_storage
+
+h5_storage = H5_storage(h5_dir = '/eos/user/l/lhcecld/heatload_data_storage/')
+
+data_dir = h5_storage.data_dir
 
 new_version_default = 7
 use_dPs = (True,False)

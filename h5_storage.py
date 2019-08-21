@@ -11,11 +11,11 @@ class H5_storage(object):
         
         self.version = version
         self.special_version = special_version
-        self.h5_dir = h5_dir
+        self.h5_dir = h5_dir + '/'
         
         self.data_dir = self.h5_dir + '/cryo_heat_load_data/'
-        self.special_data_dir = self.h5_dir + 'cryo_special_cell_data/'
-        self.recalc_dir = h5_dir + 'recalculated_qbs/'
+        self.special_data_dir = self.h5_dir + '/cryo_special_cell_data/'
+        self.recalc_dir = h5_dir + '/recalculated_qbs/'
     
     # Filenames for recomputed dada
     def get_qbs_file(self, filln, use_dP, version=None):
@@ -51,18 +51,18 @@ class H5_storage(object):
     
     # Load raw data
     def load_data_file(self, filln):
-        ob =  mfm.h5_to_obj(get_data_file(filln))
+        ob =  mfm.h5_to_obj(self.get_data_file(filln))
         return tm.AlignedTimberData(ob.timestamps, ob.data, ob.variables)
     
     def load_special_data_file(self, filln):
-        ob = mfm.h5_to_obj(get_special_data_file(filln))
+        ob = mfm.h5_to_obj(self.get_special_data_file(filln))
         return tm.AlignedTimberData(ob.timestamps, ob.data, ob.variables)
     
     # Load recomputed data
     def load_qbs(self, filln, use_dP, version=None):
         if version is None:
             vesion = self.version
-        qbs_file = get_qbs_file(filln, version=version, use_dP=use_dP)
+        qbs_file = self.get_qbs_file(filln, version=version, use_dP=use_dP)
         qbs_ob = mfm.h5_to_obj(qbs_file)
         #print('Loaded file %s' % qbs_file)
         return tm.AlignedTimberData(qbs_ob.timestamps, qbs_ob.data, qbs_ob.variables)
@@ -70,7 +70,7 @@ class H5_storage(object):
     def load_special_qbs(self, filln, special_version=None):
         if special_version is None:
             special_version = self.special_version
-        qbs_file = get_special_qbs_file(filln, special_version=special_version)
+        qbs_file = self.get_special_qbs_file(filln, special_version=special_version)
         qbs_ob = mfm.h5_to_obj(qbs_file)
         return tm.AlignedTimberData(qbs_ob.timestamps, qbs_ob.data, qbs_ob.variables)
     
@@ -84,7 +84,7 @@ class H5_storage(object):
             - use_dP
             - version=version
         """
-        qbs_file = get_qbs_file(filln, version=version, use_dP=use_dP)
+        qbs_file = self.get_qbs_file(filln, version=version, use_dP=use_dP)
         if not os.path.isdir(os.path.dirname(qbs_file)):
             os.mkdir(os.path.dirname(qbs_file))
     
@@ -103,7 +103,7 @@ class H5_storage(object):
             - qbs_ob
             - special_version=special_version
         """
-        qbs_file = get_special_qbs_file(filln, special_version=special_version)
+        qbs_file = self.get_special_qbs_file(filln, special_version=special_version)
         if not os.path.isdir(os.path.dirname(qbs_file)):
             os.mkdir(os.path.dirname(qbs_file))
     

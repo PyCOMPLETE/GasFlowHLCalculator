@@ -6,8 +6,13 @@ import argparse
 import random
 
 import compute_QBS_special as cqs
-import h5_storage
-from h5_storage import special_data_dir, special_version
+
+from GasFlowHLCalculator.h5_storage import H5_storage
+
+h5_storage = H5_storage(h5_dir = '/eos/user/l/lhcecld/heatload_data_storage/')
+
+special_data_dir = h5_storage.special_data_dir
+special_version = h5_storage.special_version
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='random', action='store_true')

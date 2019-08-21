@@ -2,11 +2,10 @@ from __future__ import division, print_function
 import numpy as np
 import LHCMeasurementTools.TimberManager as tm
 
-import h5_storage
 from Helium_properties import interp_P_T_hPT, interp_P_T_DPT, interp_P_T_mu
 from valve_LT import valve_LT
 from Pressure_drop import pd_factory, calc_re
-from config_qbs import Config_qbs, config_qbs
+from config_qbs import Config_qbs
 
 zeros = lambda *x: np.zeros(shape=(x), dtype=float)
 
@@ -25,13 +24,10 @@ class HeatLoadComputer(object):
 
     max_iterations = 5 # For pressure drop
 
-    def __init__(self, atd_ob, version=h5_storage.version, strict=True, details=False, use_dP=True, compute_Re=False, only_raw_data=False):
+    def __init__(self, atd_ob, version, strict=True, details=False, use_dP=True, compute_Re=False, only_raw_data=False):
 
         # Initialization
-        if version == h5_storage.version:
-            cq = config_qbs
-        else:
-            cq = Config_qbs(version)
+        cq = Config_qbs(version)
 
         self.atd_ob  = atd_ob
         self.cq      = cq
@@ -386,7 +382,7 @@ class HeatLoadComputer(object):
         problem_cells[type_][cell]['list'].add(var)
 
 # Main interface of this file
-def compute_qbs(atd_ob, use_dP, version=h5_storage.version, strict=True, details=False):
+def compute_qbs(atd_ob, use_dP, version, strict=True, details=False):
     hl_comp = HeatLoadComputer(atd_ob, version=version, strict=strict, use_dP=use_dP, details=details)
     return hl_comp.qbs_atd
 

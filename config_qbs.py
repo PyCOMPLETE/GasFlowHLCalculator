@@ -1,7 +1,6 @@
 import numpy as np
 import csv
 import os
-from h5_storage import version
 
 latest_config_file_version = 3
 
@@ -39,7 +38,7 @@ def get_delimiter(version):
         return ','
 
 class Config_qbs(object):
-    def __init__(self, version=version):
+    def __init__(self, version):
         csv_file_name = os.path.dirname(os.path.abspath(__file__)) + get_config_file(version)
         with open(csv_file_name, 'r') as f:
             config_qbs = []
@@ -174,6 +173,4 @@ class Config_qbs(object):
         assert 'QRLEB' in self.CV94x_list[index_R]
         assert 'QRLEB' in self.CV94x_list[index_L+1]
 
-# Default object
-config_qbs = Config_qbs()
 
