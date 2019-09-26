@@ -14,7 +14,6 @@ class HeatLoadComputer(object):
     This class can be used to relate the raw timber data for a given cell or all cells.
     Parameters:
         -atd_ob: Timber data
-        -version: Which config_qbs version to use
         -strict: Raise error if there are missing variables. Default: True
         -details: Print details of report() method.
         -use_dP: Use pressure drop. This takes significantly longer.
@@ -24,10 +23,10 @@ class HeatLoadComputer(object):
 
     max_iterations = 5 # For pressure drop
 
-    def __init__(self, atd_ob, version, strict=True, details=False, use_dP=True, compute_Re=False, only_raw_data=False):
+    def __init__(self, atd_ob, strict=True, details=False, use_dP=True, compute_Re=False, only_raw_data=False):
 
         # Initialization
-        cq = Config_qbs(version)
+        cq = Config_qbs()
 
         self.atd_ob  = atd_ob
         self.cq      = cq
@@ -382,7 +381,7 @@ class HeatLoadComputer(object):
         problem_cells[type_][cell]['list'].add(var)
 
 # Main interface of this file
-def compute_qbs(atd_ob, use_dP, version, strict=True, details=False):
-    hl_comp = HeatLoadComputer(atd_ob, version=version, strict=strict, use_dP=use_dP, details=details)
+def compute_qbs(atd_ob, use_dP, strict=True, details=False):
+    hl_comp = HeatLoadComputer(atd_ob, strict=strict, use_dP=use_dP, details=details)
     return hl_comp.qbs_atd
 

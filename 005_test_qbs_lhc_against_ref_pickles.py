@@ -12,19 +12,16 @@ import h5_storage
 
 import LHCMeasurementTools.mystyle as ms
 
-trusted_version = 7
 filln = 5219
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--noshow', help='Do not call plt.show().', action='store_true')
 parser.add_argument('--ref', help='Create pickle for reference run.', action='store_true')
-parser.add_argument('--version', help='Version of computation to use', type=int, default=h5_storage.version)
 args = parser.parse_args()
 reference_run = args.ref
 
 plt.close('all')
 
-# Only set to true if you want to create the pickle for a new version
 
 for use_dP in (True, False):
 
@@ -33,12 +30,12 @@ for use_dP in (True, False):
     else:
         dp = 'without_dP'
 
-    ref_run_file = 'reference_%i_v%i_%s.pkl' % (filln, trusted_version, dp)
+    ref_run_file = 'reference_%i_%s.pkl' % (filln, dp)
 
     atd_ob = h5_storage.load_data_file(filln)
     tt = atd_ob.timestamps - atd_ob.timestamps[0]
 
-    qbs_ob = compute_qbs(atd_ob, use_dP, strict=False, version=args.version)
+    qbs_ob = compute_qbs(atd_ob, use_dP, strict=False)
     qbs_arc_avg = compute_qbs_arc_avg(qbs_ob).dictionary
 
     if reference_run:
@@ -78,7 +75,7 @@ for use_dP in (True, False):
     sp.grid(True)
 
     if reference_run:
-        fig.savefig('./cell_qbs_reference_%i_%s.png' % (trusted_version, dp), dpi=200)
+        fig.savefig('./cell_qbs_reference_%s.png' % (dp), dpi=200)
 
 if not args.noshow:
     plt.show()

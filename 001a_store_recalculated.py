@@ -31,31 +31,32 @@ for atd_file in atd_files:
     if info is not None:
         filln = int(info.group(1))
 
-	if args.filln:
+    if args.filln:
         if not int(filln)==int(args.filln):
             #print 'Skipped fill', filln
             continue
 
-        for use_dP in use_dPs:
-            kwargs = {'use_dP': use_dP}
-            this_qbs_file = h5_storage.get_qbs_file(filln, **kwargs)
-            if not os.path.isfile(this_qbs_file):
+    for use_dP in use_dPs:
+        kwargs = {'use_dP': use_dP}
+        this_qbs_file = h5_storage.get_qbs_file(filln, **kwargs)
+        if not os.path.isfile(this_qbs_file):
 
-                time_0 = time.time()
-                atd_ob = h5_storage.load_data_file(filln)
-                qbs_ob = cql.compute_qbs(atd_ob, **kwargs)
+            print('\nCalculation for fill %i (usedP: %s) started...' % (filln, use_dP))
+            time_0 = time.time()
+            atd_ob = h5_storage.load_data_file(filln)
+            qbs_ob = cql.compute_qbs(atd_ob, **kwargs)
 
-                n_tries = 5
-                while n_tries > 0:
-                    try:
-                        h5_storage.store_qbs(filln, qbs_ob, **kwargs)
-                        break
-                    except IOError:
-                        n_tries -= 1
-                        time.sleep(60)
-                else:
-                    raise IOError('Saving failed for fill %i!' % filln)
-                dt = time.time() - time_0
-                n_timesteps = len(qbs_ob.timestamps)
-                print('Calculation for fill %i (usedP: %s) with %i timesteps finished in %i s.' % (filln, use_dP, n_timesteps, dt))
+            n_tries = 5
+            while n_tries > 0:
+                try:
+                    h5_storage.store_qbs(filln, qbs_ob, **kwargs)
+                    break
+                except IOError:
+                    n_tries -= 1
+                    time.sleep(60)
+            else:
+                raise IOError('Saving failed for fill %i!' % filln)
+            dt = time.time() - time_0
+            n_timesteps = len(qbs_ob.timestamps)
+            print('Calculation for fill %i (usedP: %s) with %i timesteps finished in %i s.' % (filln, use_dP, n_timesteps, dt))
 
