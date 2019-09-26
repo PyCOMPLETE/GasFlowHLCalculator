@@ -16,15 +16,14 @@ arc_index = np.array(
        [364, 415],
        [427, 478]])
 
-def get_config_file():
-    return '/config_qbs_lhc_3.csv'
 
 def get_delimiter():
-    return '\t'
+    # In the past it used to be tab
+    return ','
 
 class Config_qbs(object):
-    def __init__(self):
-        csv_file_name = os.path.dirname(os.path.abspath(__file__)) + get_config_file()
+    def __init__(self, calibration_csv_file):
+        csv_file_name = calibration_csv_file
         with open(csv_file_name, 'r') as f:
             config_qbs = []
             tsv = csv.reader(f, delimiter=get_delimiter())

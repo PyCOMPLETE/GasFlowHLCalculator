@@ -41,10 +41,11 @@ def compute_qbs_fill(filln, h5_storage=None, use_dP=True, recompute_if_missing=F
 def special_qbs_fill(filln, h5_storage=None, recompute_if_missing=False, force_recalc=False, aligned=False):
 
     if force_recalc:
-        print('Force recalculated')
-        new_cell = filln > 5500
-        atd_ob = h5_storage.load_special_data_file(filln)
-        return cqs.compute_qbs_special(atd_ob, new_cell, aligned=aligned)
+        raise ValueError("Feature discontinued")
+        # print('Force recalculated')
+        # new_cell = filln > 5500
+        # atd_ob = h5_storage.load_special_data_file(filln)
+        # return cqs.compute_qbs_special(atd_ob, new_cell, aligned=aligned)
 
     h5_file = h5_storage.get_special_qbs_file(filln)
 
@@ -53,20 +54,21 @@ def special_qbs_fill(filln, h5_storage=None, recompute_if_missing=False, force_r
         cqs.aligned_to_dict_separate(qbs_ob)
 
     elif recompute_if_missing:
-
-
-        new_cell = filln > 5500
-        atd_ob = h5_storage.load_special_data_file(filln)
-        qbs_dict = cqs.compute_qbs_special(atd_ob, new_cell, aligned=False)
-        qbs_aligned = cqs.dict_to_aligned_separate(qbs_dict)
-        h5_storage.store_special_qbs(filln, qbs_aligned)
-        print('Stored h5 for fill %i.' % filln)
-        if aligned:
-            return qbs_aligned
-        else:
-            return qbs_dict
+        raise ValueError('This feature has been discontinued!')
+        # new_cell = filln > 5500
+        # atd_ob = h5_storage.load_special_data_file(filln)
+        # qbs_dict = cqs.compute_qbs_special(atd_ob, new_cell, aligned=False)
+        # qbs_aligned = cqs.dict_to_aligned_separate(qbs_dict)
+        # h5_storage.store_special_qbs(filln, qbs_aligned)
+        # print('Stored h5 for fill %i.' % filln)
+        # if aligned:
+        #     return qbs_aligned
+        # else:
+        #     return qbs_dict
     else:
-            raise ValueError('Set the correct flag if you want to recompute!')
+        raise ValueError('Not possible to find data!')
+
+    return qbs_ob
 
 # Compute average per ARC
 def compute_qbs_arc_avg(qbs_ob):

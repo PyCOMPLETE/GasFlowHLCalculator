@@ -10,6 +10,7 @@ import compute_QBS_LHC as cql
 from GasFlowHLCalculator.h5_storage import H5_storage
 
 h5_storage = H5_storage(h5_dir = '/eos/user/l/lhcecld/heatload_data_storage/')
+calibration_csv_file = '/afs/cern.ch/work/l/lhcecld/tools/LHCCryoHeatLoadCalibration/CryoBeamScreenData.csv'
 
 data_dir = h5_storage.data_dir
 
@@ -44,7 +45,8 @@ for atd_file in atd_files:
             print('\nCalculation for fill %i (usedP: %s) started...' % (filln, use_dP))
             time_0 = time.time()
             atd_ob = h5_storage.load_data_file(filln)
-            qbs_ob = cql.compute_qbs(atd_ob, **kwargs)
+            qbs_ob = cql.compute_qbs(atd_ob,
+                        calibration_csv_file=calibration_csv_file, **kwargs)
 
             n_tries = 5
             while n_tries > 0:

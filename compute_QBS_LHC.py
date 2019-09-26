@@ -23,10 +23,12 @@ class HeatLoadComputer(object):
 
     max_iterations = 5 # For pressure drop
 
-    def __init__(self, atd_ob, strict=True, details=False, use_dP=True, compute_Re=False, only_raw_data=False):
+    def __init__(self, atd_ob, calibration_csv_file=None,
+                 strict=True, details=False, use_dP=True,
+                 compute_Re=False, only_raw_data=False):
 
         # Initialization
-        cq = Config_qbs()
+        cq = Config_qbs(calibration_csv_file=calibration_csv_file)
 
         self.atd_ob  = atd_ob
         self.cq      = cq
@@ -381,7 +383,8 @@ class HeatLoadComputer(object):
         problem_cells[type_][cell]['list'].add(var)
 
 # Main interface of this file
-def compute_qbs(atd_ob, use_dP, strict=True, details=False):
-    hl_comp = HeatLoadComputer(atd_ob, strict=strict, use_dP=use_dP, details=details)
+def compute_qbs(atd_ob, use_dP, calibration_csv_file=None, strict=True, details=False):
+    hl_comp = HeatLoadComputer(atd_ob, calibration_csv_file=calibration_csv_file,
+                    strict=strict, use_dP=use_dP, details=details)
     return hl_comp.qbs_atd
 
