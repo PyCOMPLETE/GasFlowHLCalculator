@@ -9,7 +9,7 @@ import compute_QBS_special as cqs
 import compute_QBS_LHC as cql
 
 # Load data for one fill
-def compute_qbs_fill(filln, use_dP=True, recompute_if_missing=False):
+def compute_qbs_fill(filln, h5_storage=None, use_dP=True, recompute_if_missing=False):
     """
     Arguments:
         -filln
@@ -38,7 +38,7 @@ def compute_qbs_fill(filln, use_dP=True, recompute_if_missing=False):
 #     return cql.compute_qbs(atd_ob, use_dP)
 
 # Special cells
-def special_qbs_fill(filln, recompute_if_missing=False, force_recalc=False, aligned=False):
+def special_qbs_fill(filln, h5_storage=None, recompute_if_missing=False, force_recalc=False, aligned=False):
 
     if force_recalc:
         print('Force recalculated')
@@ -66,7 +66,7 @@ def special_qbs_fill(filln, recompute_if_missing=False, force_recalc=False, alig
         else:
             return qbs_dict
     else:
-        raise ValueError('Set the correct flag if you want to recompute!')
+            raise ValueError('Set the correct flag if you want to recompute!')
 
 # Compute average per ARC
 def compute_qbs_arc_avg(qbs_ob):
@@ -77,9 +77,9 @@ def compute_qbs_arc_avg(qbs_ob):
     return tm.AlignedTimberData(qbs_ob.timestamps, qbs_arc_avg, arc_list)
 
 # plug-in replacement of old heat load procedure, the fill dict
-def get_fill_dict(filln, use_dP=True):
-    qbs_ob = compute_qbs_fill(filln, use_dP=use_dP)
-    qbs_special = special_qbs_fill(filln, aligned=True)
+def get_fill_dict(filln, h5_storage=None, use_dP=True):
+    qbs_ob = compute_qbs_fill(filln, h5_storage=h5_storage, use_dP=use_dP)
+    qbs_special = special_qbs_fill(filln, h5_storage=h5_storage, aligned=True)
 
     # arcs
     qbs_arc_avg = compute_qbs_arc_avg(qbs_ob)
