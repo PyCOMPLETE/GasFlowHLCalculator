@@ -2,7 +2,6 @@ import numpy as np
 import csv
 import os
 
-latest_config_file_version = 3
 
 arc_list = ['S12','S23','S34','S45','S56','S67','S78','S81']
 Radius = 3.7e-3/2.  #internal radius of beam screen cooling pipe
@@ -17,32 +16,18 @@ arc_index = np.array(
        [364, 415],
        [427, 478]])
 
-def get_config_file(version):
-    if version == -1:
-        return '/LHCCryoHeatLoadCalibration/CryoBeamScreenData_beforeLS1_arcs.csv'
-    if version == 2:
-        return '/config_qbs_lhc_2.csv'
-    elif 2 < version < 8:
-        return '/config_qbs_lhc_3.csv'
-    elif version == 8:
-        return '/LHCCryoHeatLoadCalibration/CryoBeamScreenData.csv'
-    else:
-        raise ValueError('Config file not defined!')
+def get_config_file():
+    return '/config_qbs_lhc_3.csv'
 
-def get_delimiter(version):
-    if version == -1:
-        return ','
-    if version < 8:
-        return '\t'
-    else:
-        return ','
+def get_delimiter():
+    return '\t'
 
 class Config_qbs(object):
-    def __init__(self, version):
-        csv_file_name = os.path.dirname(os.path.abspath(__file__)) + get_config_file(version)
+    def __init__(self):
+        csv_file_name = os.path.dirname(os.path.abspath(__file__)) + get_config_file()
         with open(csv_file_name, 'r') as f:
             config_qbs = []
-            tsv = csv.reader(f, delimiter=get_delimiter(version))
+            tsv = csv.reader(f, delimiter=get_delimiter())
             for ctr, row in enumerate(tsv):
                 if ctr == 0:
                     first_row = row
@@ -60,7 +45,7 @@ class Config_qbs(object):
                     pass
             setattr(self, key, value)
 
-        if get_delimiter(version) == ',':
+        if get_delimiter() == ',':
             self.Sector_list    = self.Sector
             self.Type_list      = self.Type
             self.Cell_list      = self.Loop
