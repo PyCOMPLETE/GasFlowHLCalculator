@@ -62,6 +62,13 @@ def mass_flow(atd, new_cell):
         Qbs[:,i] = m_L[:,i]*(h3[:,i] - hC[:,i]) - Qs - EH[:,i]
 
     mag_calc = cqm.QbsMagnetCalculator(interp_P_T_hPT, atd, P1, m_L, cell_list)
+    mag_calc.ddd = {
+            'Qbs': Qbs,
+            'm_L': m_L,
+            'ro': ro,
+            'hC': hC,
+            'h3': h3
+        }
     return mag_calc, Qbs
 
 def make_dict(mag_calc, Qbs, atd, new_cell):
