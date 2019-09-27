@@ -87,7 +87,7 @@ mask_iter = P3 > P4
 for i_iter in range(N_iter_max):
 
     P3_prev_iter = P3[mask_iter].copy()
-    DP_prev_iter = P1 - P3_prev_iter
+    DP_prev_iter = P1[mask_iter] - P3_prev_iter
 
     m_L_iter = valve_LT(pin=P3[mask_iter], pout=P4[mask_iter], rho=rho[mask_iter],
             kv=cell_calibration['Kv'], u=CV[mask_iter], R=cell_calibration['R'])
@@ -112,21 +112,22 @@ for i_iter in range(N_iter_max):
     # Identify negative (P3-P4)
     mask_negative_iter = P3_iter < P4[mask_iter]
 
-    # Update only positive (P3-P4)  
-    P3[mask_iter][~mask_negative_iter] = P3_iter[~mask_negative_iter]
-
     # Stop iteration for negative values
     mask_iter[mask_iter][mask_negative_iter] = False
 
+    # Update only positive (P3-P4)  
+    P3[mask_iter] = P3_iter[~mask_negative_iter]
+
     # Stop iteration for point where convergence is found
-    mask_iter[mask_iter][~mask_negative_iter] = (np.abs((P3_iter[~mask_negative_iter] \
+    mask_iter[mask_iter] = (np.abs((P3_iter[~mask_negative_iter] \
             - P3_prev_iter[~mask_negative_iter])\
-             /P3_prev_iter[~mask_negative_iter]) < 0.01)
+             / P3_prev_iter[~mask_negative_iter]) > 0.01)
 
     if np.sum(mask_iter) == 0:
         break
 
     P3_list.append(P3.copy())
+
 
 P3_list = np.array(P3_list)
 
