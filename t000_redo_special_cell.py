@@ -53,7 +53,7 @@ P4 = obraw.dictionary[cell_description['P4']]
 CV= obraw.dictionary[cell_description['CV']]
 EH = obraw.dictionary[cell_description['EH']]
 
-T2 = obraw.dictionary[cell_description['T2']]
+# T2 = obraw.dictionary[cell_description['T2']]
 
 # Evaluate density at circuit entrance
 rho = hp.interp_P_T_DPT(P1, T1)
@@ -76,31 +76,64 @@ pressure_drop = pd_factory(D=2*cell_description['channel_radius'],
                            rug=cell_description['roughness'])
 
 P3 = P3_0.copy()
-m_L = m_L_0.copy()
-H3 = H3_0.copy() # In fact it is not updated in the calculation
-
 P3_list = []
 
-for _ in range(30):
+DP_prev = 0.
+N_iter_max = 100
+scale_correction = 0.3
 
-    m_L =valve_LT(pin=P3, pout=P4, rho=rho, kv=cell_calibration['Kv'],
-        u=CV, R=cell_calibration['R'])
+mask_iter = P3 > P4
 
-    #H3 = hp.interp_P_T_hPT(P3, T3)
-    H2 = (m_L * H1 + EH) / m_L
-    H_ave = 0.5*(H2 + H3)
-    rho_DP = hp.interp_P_H_DPH(P3, H_ave)
-    mu = hp.inperp_P_H_mu(P3, H_ave)
+for i_iter in range(N_iter_max):
+
+    P3_prev_iter = P3[mask_iter].copy()
+    DP_prev_iter = P1 - P3_prev_iter
+
+    m_L_iter = valve_LT(pin=P3[mask_iter], pout=P4[mask_iter], rho=rho[mask_iter],
+            kv=cell_calibration['Kv'], u=CV[mask_iter], R=cell_calibration['R'])
+
+    H3_iter = hp.interp_P_T_hPT(P3[mask_iter], T3[mask_iter])
+    H2_iter = (m_L_iter * H1[mask_iter] + EH[mask_iter]) / m_L_iter
+    H_ave_iter = 0.5*(H2_iter + H3_iter)
+    rho_DP_iter = hp.interp_P_H_DPH(P3[mask_iter], H_ave_iter)
+    mu_iter = hp.inperp_P_H_mu(P3[mask_iter], H_ave_iter)
 
     #T_ave = (T2 + T3)/2.
     #rho_DP = hp.interp_P_T_DPT(P3, T_ave)
     #mu = hp.interp_P_T_mu(P3, T_ave)
 
-    DP = pressure_drop(m=m_L/cell_description['n_channels_tot'],
-            L=cell_description['length'], mu=mu , rho=rho_DP)
-    P3 = P1 - DP
+    DP_new_iter = pressure_drop(m=m_L_iter/cell_description['n_channels_tot'],
+                    L=cell_description['length'], mu=mu_iter , rho=rho_DP_iter)
+
+    DP_iter = DP_prev_iter + scale_correction * (DP_new_iter - DP_prev_iter)
+
+    P3_iter = P1[mask_iter] - DP_iter
+
+    # Identify negative (P3-P4)
+    mask_negative_iter = P3_iter < P4[mask_iter]
+
+    # Update only positive (P3-P4)  
+    P3[mask_iter][~mask_negative_iter] = P3_iter[~mask_negative_iter]
+
+    # Stop iteration for negative values
+    mask_iter[mask_iter][mask_negative_iter] = False
+
+    # Stop iteration for point where convergence is found
+    mask_iter[mask_iter][~mask_negative_iter] = (np.abs((P3_iter[~mask_negative_iter] \
+            - P3_prev_iter[~mask_negative_iter])\
+             /P3_prev_iter[~mask_negative_iter]) < 0.01)
+
+    if np.sum(mask_iter) == 0:
+        break
 
     P3_list.append(P3.copy())
 
 P3_list = np.array(P3_list)
+
+# Re-evaluate mass flow
+m_L = valve_LT(pin=P3, pout=P4, rho=rho, kv=cell_calibration['Kv'],
+        u=CV, R=cell_calibration['R'])
+
+# Compute heat load
+
 
