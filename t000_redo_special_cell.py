@@ -30,7 +30,12 @@ cell_description = {
                           'QBBI_B31L2_TT824.POSST', 'QQBI_31L2_TT826.POSST',
                           'QBQI_32L2_TT825.POSST'],
 
+    'n_channels_circuit_1': 2,
+    'n_channels_circuit_2': 2,
+
+
     'magnet_sequence': ['Q1', 'D2', 'D3', 'D4'],
+    'magnet_legnths': [5.9, 15.7, 15.7, 15.7],
 
     'b1_circuit': [1,2,1,2],
     'b2_circuit': [2,1,2,1],
@@ -142,4 +147,32 @@ H3 = hp.interp_P_T_hPT(P3, T3)
 # Compute heat load
 Q_bs = m_L * (H3 - H1) - cell_calibration['Qs'] - EH
 
+#####################################################################
+frac_flow_list = []
+dp_diff_list = []
+frac_flow = 0.5 + 0*Q_bs
+for i_iter in xrange(N_iter_max):
+    mL_circuits = [m_L * frac_flow, m_L * (1. - frac_flow)]
+    dp_circuits = []
+    for circuit, mL_circuit in zip([1, 2], mL_circuits):
+        # Compute share
+        n_channels_circuit = cell_description['n_channels_circuit_%d'%circuit]
+        out_sensor_names = cell_description['circuit_%d_sensors'%circuit][1:]
+        magnet_legnths = cell_description['magnet_legnths']
 
+        T_out_magnets = [obraw.dictionary[vv] for vv in out_sensor_names]
+
+        rho_out_magnets = [hp.interp_P_T_DPT(P1, ttout) for ttout in T_out_magnets]
+        mu_out_magnets = [hp.interp_P_T_mu(P1, ttout) for ttout in T_out_magnets]
+
+        dp_magnets = [pressure_drop(m=mL_circuit/n_channels_circuit, # This is not there in Benjamin's implementation!!!!
+                            L=ll, mu=mumu , rho=rhorho) for ll, mumu, rhorho in zip(magnet_legnths, mu_out_magnets, rho_out_magnets)]
+
+        dp_circuit = np.sum(np.array(dp_magnets), axis=0)
+
+        dp_circuits.append(dp_circuit.copy())
+
+    frac_flow *= (1 + 0.05*(dp_circuits[1] - dp_circuits[0])/(dp_circuits[1] + dp_circuits[0]))
+
+    dp_diff_list.append(dp_circuits[0] - dp_circuits[1])
+    frac_flow_list.append(frac_flow.copy())
