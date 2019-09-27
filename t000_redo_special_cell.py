@@ -55,17 +55,17 @@ EH = obraw.dictionary[cell_description['EH']]
 
 # T2 = obraw.dictionary[cell_description['T2']]
 
-# Evaluate density at circuit entrance
-rho = hp.interp_P_T_DPT(P1, T1)
-
 # Evaluate enthalpy at circuit entrance
 H1 = hp.interp_P_T_hPT(P1, T1)
 
 # We initially neglect the pressure drop
-P3_0 = P1
+P3_0 = P1.copy()
 
 # Evaluate enthalpy at circuit exit 
 H3_0 = hp.interp_P_T_hPT(P3_0, T3)
+
+# Evaluate density at valve
+rho = hp.interp_P_T_DPT(P3_0, T3)
 
 # Evaluate the mass flow from the valve characteristics
 m_L_0 = valve_LT(pin=P3_0, pout=P4, rho=rho, kv=cell_calibration['Kv'],
@@ -92,6 +92,7 @@ for i_iter in range(N_iter_max):
     m_L_iter = valve_LT(pin=P3[mask_iter], pout=P4[mask_iter], rho=rho[mask_iter],
             kv=cell_calibration['Kv'], u=CV[mask_iter], R=cell_calibration['R'])
 
+    #H3_iter = H3_0[mask_iter]
     H3_iter = hp.interp_P_T_hPT(P3[mask_iter], T3[mask_iter])
     H2_iter = (m_L_iter * H1[mask_iter] + EH[mask_iter]) / m_L_iter
     H_ave_iter = 0.5*(H2_iter + H3_iter)
@@ -121,7 +122,7 @@ for i_iter in range(N_iter_max):
     # Stop iteration for point where convergence is found
     mask_iter[mask_iter] = (np.abs((P3_iter[~mask_negative_iter] \
             - P3_prev_iter[~mask_negative_iter])\
-             / P3_prev_iter[~mask_negative_iter]) > 0.01)
+             / P3_prev_iter[~mask_negative_iter]) > 0.001)
 
     if np.sum(mask_iter) == 0:
         break
@@ -135,6 +136,10 @@ P3_list = np.array(P3_list)
 m_L = valve_LT(pin=P3, pout=P4, rho=rho, kv=cell_calibration['Kv'],
         u=CV, R=cell_calibration['R'])
 
+# Re-evaluate H3
+H3 = hp.interp_P_T_hPT(P3, T3)
+
 # Compute heat load
+Q_bs = m_L * (H3 - H1) - cell_calibration['Qs'] - EH
 
 
