@@ -1,5 +1,7 @@
 import pandas
 
+import LHCMeasurementTools.TimestampHelpers as th
+
 calibration_config = [
         {'name': 'Run1',
          'start': '2008_09_01 00:00:00',
@@ -17,6 +19,8 @@ calibration_config = [
 class Calibration(object):
 
     def __init__(self, calibration_csv_file):
+
+        self.calibration_csv_file = calibration_csv_file
 
         self.caldata = pandas.read_csv(calibration_csv_file)
         self.caldata.set_index('Qbs', inplace=True,
@@ -52,13 +56,22 @@ class Calibration(object):
         return ddd
 
 
-
-
 class CalibrationManager(object):
 
     def __init__(self, calibration_config):
 
         self.calibration_config = calibration_config
+        self.names = [cc['name'] for cc in calibration_config]
+        self.files = [cc['file'] for cc in calibration_config]
+        self.calibrations = [Calibration(ff) for ff in self.files]
+
+        self.start_timestamps = [th.localtime2unixstamp(cc['start'])
+                for cc in calibration_config]
+
+        self.end_timestamps = [th.localtime2unixstamp(cc['end'])
+                for cc in calibration_config]
 
 
-calib = Calibration(calibration_csv_file=calibration_config[1]['file']) 
+cal_manager = CalibrationManager(calibration_config=calibration_config)
+
+calib = Calibration(calibration_csv_file=calibration_config[1]['file'])
