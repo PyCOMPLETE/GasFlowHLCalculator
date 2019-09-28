@@ -23,22 +23,22 @@ cell_description = {
 
     'length': 53.,
 
-    'circuit_1_sensors': ['QBQI_31L2_TT825.POSST', 'QBBI_A31L2_TT824.POSST',
+    'circuit_A_sensors': ['QBQI_31L2_TT825.POSST', 'QBBI_A31L2_TT824.POSST',
                           'QBBI_B31L2_TT826.POSST', 'QQBI_31L2_TT824.POSST',
                           'QBQI_32L2_TT825.POSST'],
-    'circuit_2_sensors': ['QBQI_31L2_TT825.POSST', 'QBBI_A31L2_TT826.POSST',
+    'circuit_B_sensors': ['QBQI_31L2_TT825.POSST', 'QBBI_A31L2_TT826.POSST',
                           'QBBI_B31L2_TT824.POSST', 'QQBI_31L2_TT826.POSST',
                           'QBQI_32L2_TT825.POSST'],
 
-    'n_channels_circuit_1': 2,
-    'n_channels_circuit_2': 2,
+    'n_channels_circuit_A': 2,
+    'n_channels_circuit_B': 2,
 
 
     'magnet_sequence': ['Q1', 'D2', 'D3', 'D4'],
-    'magnet_legnths': [5.9, 15.7, 15.7, 15.7],
+    'magnet_lengths': [5.9, 15.7, 15.7, 15.7],
 
-    'b1_circuit': [1,2,1,2],
-    'b2_circuit': [2,1,2,1],
+    'b1_circuit': ['A', 'B', 'A', 'B'],
+    'b2_circuit': ['B', 'A', 'B', 'A'],
 }
 
 cell_calibration = {
@@ -148,19 +148,38 @@ H3 = hp.interp_P_T_hPT(P3, T3)
 Q_bs = m_L * (H3 - H1) - cell_calibration['Qs'] - EH
 
 #####################################################################
+# Compute share between the two beam screens
+
+n_channels_circuits = [cell_description['n_channels_circuit_%s'%cc]
+                            for cc in ['A', 'B']]
+magnet_lengths_circuits = [cell_description['magnet_lengths']
+                                for _ in ['A', 'B']]
+
+out_sensor_names_circuits = [cell_description['circuit_%s_sensors'%cc][1:]
+                                for cc in ['A', 'B']]
+
+in_sensor_names_circuits = [cell_description['circuit_%s_sensors'%cc][:-1]
+                                for cc in ['A', 'B']]
+
+T_out_magnets_circuits = [[obraw.dictionary[vv] for vv in
+        out_sensor_names_circuits[ii]] for ii in [0, 1]]
+
+T_in_magnets_circuits = [[obraw.dictionary[vv] for vv in
+        in_sensor_names_circuits[ii]] for ii in [0, 1]]
+
+
 frac_flow_list = []
 dp_diff_list = []
 frac_flow = 0.5 + 0*Q_bs
+
 for i_iter in xrange(N_iter_max):
     mL_circuits = [m_L * frac_flow, m_L * (1. - frac_flow)]
     dp_circuits = []
-    for circuit, mL_circuit in zip([1, 2], mL_circuits):
-        # Compute share
-        n_channels_circuit = cell_description['n_channels_circuit_%d'%circuit]
-        out_sensor_names = cell_description['circuit_%d_sensors'%circuit][1:]
-        magnet_legnths = cell_description['magnet_legnths']
+    for i_circ, mL_circuit in enumerate(mL_circuits):
 
-        T_out_magnets = [obraw.dictionary[vv] for vv in out_sensor_names]
+        T_out_magnets = T_in_magnets_circuits[i_circ]
+        magnet_lengths = magnet_lengths_circuits[i_circ]
+        n_channels_circuit = n_channels_circuits[i_circ]
 
         rho_out_magnets = [
                 hp.interp_P_T_DPT(P1, ttout) for ttout in T_out_magnets]
@@ -168,7 +187,9 @@ for i_iter in xrange(N_iter_max):
                 hp.interp_P_T_mu(P1, ttout) for ttout in T_out_magnets]
 
         dp_magnets = [pressure_drop(m=mL_circuit/n_channels_circuit, # This is not there in Benjamin's implementation!!!!
-                            L=ll, mu=mumu , rho=rhorho) for ll, mumu, rhorho in zip(magnet_legnths, mu_out_magnets, rho_out_magnets)]
+                            L=ll, mu=mumu , rho=rhorho)
+                                for ll, mumu, rhorho in zip(magnet_lengths,
+                                        mu_out_magnets, rho_out_magnets)]
 
         dp_circuit = np.sum(np.array(dp_magnets), axis=0)
 
@@ -179,3 +200,10 @@ for i_iter in xrange(N_iter_max):
 
     dp_diff_list.append(dp_circuits[0] - dp_circuits[1])
     frac_flow_list.append(frac_flow.copy())
+
+
+# Final mass flow sharing
+mL_circuits = [m_L * frac_flow, m_L * (1. - frac_flow)]
+
+# Qbs for individual beam screens
+
