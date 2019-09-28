@@ -1,3 +1,6 @@
+import numpy as np
+import LHCMeasurementTools.TimberManager as tm
+
 from calibration_config import calibration_config
 from calibration import Calibration, CalibrationManager
 from h5_storage import H5_storage
@@ -41,4 +44,10 @@ for ii, circuit in enumerate(calibration.circuits):
         qbs_recalc.append(Q_bs)
     except KeyError as err:
         print('Got', err)
+        qbs_recalc.append(obraw.timestamps+np.nan)
+
+qbs_recalc = np.array(qbs_recalc)
+
+obhl = tm.AlignedTimberData(timestamps=obraw.timestamps,
+        data=qbs_recalc.T, variables=calibration.circuits)
 
