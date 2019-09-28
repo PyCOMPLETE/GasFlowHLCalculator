@@ -36,7 +36,7 @@ cell_description = {
     'n_channels_circuit_B': 2,
 
 
-    'magnet_names': ['Q1', 'D2', 'D3', 'D4'],
+    'magnet_names': ['D4', 'D3', 'D2', 'Q1'],
     'magnet_lengths': [5.9, 15.7, 15.7, 15.7],
 
     'circuit_A_beam': [1,2,1,2],
@@ -44,8 +44,8 @@ cell_description = {
 }
 
 cell_calibration = {
- 'R': 38.,
- 'Qs': 8.,
+ 'R': 54.,
+ 'Qs': 5.,
  'Kv': 0.39
  }
 
@@ -178,7 +178,7 @@ frac_flow_list = []
 dp_diff_list = []
 frac_flow = 0.5 + 0*Q_bs
 
-for i_iter in []:#xrange(N_iter_max):
+for i_iter in xrange(N_iter_max):
     mL_circuits = [m_L * frac_flow, m_L * (1. - frac_flow)]
     dp_circuits = []
     for i_circ, mL_circuit in enumerate(mL_circuits):
