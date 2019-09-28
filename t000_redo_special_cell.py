@@ -162,8 +162,10 @@ for i_iter in xrange(N_iter_max):
 
         T_out_magnets = [obraw.dictionary[vv] for vv in out_sensor_names]
 
-        rho_out_magnets = [hp.interp_P_T_DPT(P1, ttout) for ttout in T_out_magnets]
-        mu_out_magnets = [hp.interp_P_T_mu(P1, ttout) for ttout in T_out_magnets]
+        rho_out_magnets = [
+                hp.interp_P_T_DPT(P1, ttout) for ttout in T_out_magnets]
+        mu_out_magnets = [
+                hp.interp_P_T_mu(P1, ttout) for ttout in T_out_magnets]
 
         dp_magnets = [pressure_drop(m=mL_circuit/n_channels_circuit, # This is not there in Benjamin's implementation!!!!
                             L=ll, mu=mumu , rho=rhorho) for ll, mumu, rhorho in zip(magnet_legnths, mu_out_magnets, rho_out_magnets)]
@@ -172,7 +174,8 @@ for i_iter in xrange(N_iter_max):
 
         dp_circuits.append(dp_circuit.copy())
 
-    frac_flow *= (1 + 0.05*(dp_circuits[1] - dp_circuits[0])/(dp_circuits[1] + dp_circuits[0]))
+    frac_flow *= (1 + 0.05*(dp_circuits[1] - dp_circuits[0])
+            /(dp_circuits[1] + dp_circuits[0]))
 
     dp_diff_list.append(dp_circuits[0] - dp_circuits[1])
     frac_flow_list.append(frac_flow.copy())
