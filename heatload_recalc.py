@@ -38,6 +38,9 @@ def compute_heat_load(P1, T1, T3, P4, CV, EH, Qs_calib, Kv_calib, R_calib,
         mask_iter = P3 > P4
         for i_iter in range(N_iter_max):
 
+            if np.sum(mask_iter) == 0:
+                break
+
             P3_prev_iter = P3[mask_iter].copy()
             DP_prev_iter = P1[mask_iter] - P3_prev_iter
 
@@ -76,9 +79,6 @@ def compute_heat_load(P1, T1, T3, P4, CV, EH, Qs_calib, Kv_calib, R_calib,
             mask_iter[mask_iter] = (np.abs((P3_iter[~mask_negative_iter] \
                     - P3_prev_iter[~mask_negative_iter])\
                      / P3_prev_iter[~mask_negative_iter]) > iter_toll)
-
-            if np.sum(mask_iter) == 0:
-                break
 
             P3_list.append(P3.copy())
 
