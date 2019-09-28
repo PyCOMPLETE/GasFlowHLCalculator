@@ -177,6 +177,7 @@ T_in_magnets_circuits = [[obraw.dictionary[vv] for vv in
 frac_flow_list = []
 dp_diff_list = []
 frac_flow = 0.5 + 0*Q_bs
+dp_toll = 0.001
 
 for i_iter in xrange(N_iter_max):
     mL_circuits = [m_L * frac_flow, m_L * (1. - frac_flow)]
@@ -204,9 +205,12 @@ for i_iter in xrange(N_iter_max):
     frac_flow *= (1 + 0.05*(dp_circuits[1] - dp_circuits[0])
             /(dp_circuits[1] + dp_circuits[0]))
 
-    dp_diff_list.append(dp_circuits[0] - dp_circuits[1])
+    dp_diff = dp_circuits[0] - dp_circuits[1]
+    dp_diff_list.append(dp_diff)
     frac_flow_list.append(frac_flow.copy())
 
+    if np.sum(dp_diff>dp_toll) == 0:
+        break
 
 # Final mass flow sharing
 mL_circuits = [m_L * frac_flow, m_L * (1. - frac_flow)]
