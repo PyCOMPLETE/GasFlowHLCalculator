@@ -6,6 +6,8 @@ from valve_LT import valve_LT
 from Pressure_drop import pd_factory
 
 cell_description = {
+    'QBS': 'QRLAB_31L2_QBS943.POSST',
+
     'P1': 'QRLAA_29L2_PT961.POSST',
     'P4': 'QRLAA_29L2_PT991.POSST',
     'T1': 'QRLAA_29L2_TT961.POSST',
@@ -34,11 +36,11 @@ cell_description = {
     'n_channels_circuit_B': 2,
 
 
-    'magnet_sequence': ['Q1', 'D2', 'D3', 'D4'],
+    'magnet_names': ['Q1', 'D2', 'D3', 'D4'],
     'magnet_lengths': [5.9, 15.7, 15.7, 15.7],
 
-    'b1_circuit': ['A', 'B', 'A', 'B'],
-    'b2_circuit': ['B', 'A', 'B', 'A'],
+    'circuit_A_beam': [1,2,1,2],
+    'circuit_B_beam': [2,1,2,1],
 }
 
 cell_calibration = {
@@ -161,6 +163,9 @@ out_sensor_names_circuits = [cell_description['circuit_%s_sensors'%cc][1:]
 in_sensor_names_circuits = [cell_description['circuit_%s_sensors'%cc][:-1]
                                 for cc in ['A', 'B']]
 
+magnet_beam_circuits = [cell_description['circuit_%s_beam'%cc]
+                                for cc in ['A', 'B']]
+
 T_out_magnets_circuits = [[obraw.dictionary[vv] for vv in
         out_sensor_names_circuits[ii]] for ii in [0, 1]]
 
@@ -168,11 +173,12 @@ T_in_magnets_circuits = [[obraw.dictionary[vv] for vv in
         in_sensor_names_circuits[ii]] for ii in [0, 1]]
 
 
+
 frac_flow_list = []
 dp_diff_list = []
 frac_flow = 0.5 + 0*Q_bs
 
-for i_iter in xrange(N_iter_max):
+for i_iter in []:#xrange(N_iter_max):
     mL_circuits = [m_L * frac_flow, m_L * (1. - frac_flow)]
     dp_circuits = []
     for i_circ, mL_circuit in enumerate(mL_circuits):
@@ -219,5 +225,24 @@ for i_circ in [0, 1]:
         Qbs_mag = mL_c * (Hout - Hin)
         Qbs_magnets_circuits[i_circ].append(Qbs_mag)
 
+QBS_name = cell_description['QBS']
 
+dict_output = {
+    QBS_name: Q_bs}
+magnet_names = cell_description['magnet_names']
+for i_circ in [0, 1]:
+    magnets_beam_c = magnet_beam_circuits[i_circ]
+
+    for i_mag, name_mag in enumerate(magnet_names):
+        dict_output[QBS_name.split('.POSST')[0]
+               +'_%sB%s.POSST'%(name_mag, magnets_beam_c[i_mag])]=\
+        Qbs_magnets_circuits[i_circ][i_mag]
+
+for name_mag in magnet_names:
+    dict_output[QBS_name.split('.POSST')[0]
+        +'_%s.POSST'%(name_mag)] = \
+         dict_output[QBS_name.split('.POSST')[0]
+               +'_%sB%s.POSST'%(name_mag, 1)] +\
+         dict_output[QBS_name.split('.POSST')[0]
+               +'_%sB%s.POSST'%(name_mag, 2)]
 
