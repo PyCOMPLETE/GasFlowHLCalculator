@@ -204,6 +204,20 @@ for i_iter in xrange(N_iter_max):
 
 # Final mass flow sharing
 mL_circuits = [m_L * frac_flow, m_L * (1. - frac_flow)]
-
+Qbs_magnets_circuits = [[], []]
 # Qbs for individual beam screens
+for i_circ in [0, 1]:
+    mL_c = mL_circuits[i_circ]
+    magnet_lengths_c = magnet_lengths_circuits[i_circ]
+    T_in_magnets_c = T_in_magnets_circuits[i_circ]
+    T_out_magnets_c = T_out_magnets_circuits[i_circ]
+
+    for i_mag, lmag in enumerate(magnet_lengths_c):
+        Hin = hp.interp_P_T_hPT(P1, T_in_magnets_c[i_mag])
+        Hout = hp.interp_P_T_hPT(P1, T_out_magnets_c[i_mag])
+
+        Qbs_mag = mL_c * (Hout - Hin)
+        Qbs_magnets_circuits[i_circ].append(Qbs_mag)
+
+
 
