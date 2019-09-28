@@ -72,6 +72,14 @@ class CalibrationManager(object):
                 for cc in calibration_config]
 
 
+    def get_calibration(self, t_stamp):
+        for i_calib, calib in enumerate(self.calibrations):
+            if ((t_stamp > self.start_timestamps[i_calib]) and
+                    (t_stamp < self.end_timestamps[i_calib])):
+                return calib
+        raise ValueError('Calibration not found!')
+
+
 cal_manager = CalibrationManager(calibration_config=calibration_config)
 
 calib = Calibration(calibration_csv_file=calibration_config[1]['file'])
