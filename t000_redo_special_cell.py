@@ -51,7 +51,9 @@ cell_calibration = {
 
 h5_storage = H5_storage(h5_dir='/eos/user/l/lhcecld/heatload_data_storage')
 
-obraw = h5_storage.load_special_data_file(filln=6737)
+filln = 6737
+filln = 6966
+obraw = h5_storage.load_special_data_file(filln=filln)
 
 T1 = obraw.dictionary[cell_description['T1']]
 T3 = obraw.dictionary[cell_description['T3']]
