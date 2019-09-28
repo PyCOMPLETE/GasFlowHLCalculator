@@ -250,3 +250,30 @@ for name_mag in magnet_names:
          dict_output[QBS_name.split('.POSST')[0]
                +'_%sB%s.POSST'%(name_mag, 2)]
 
+# Hide last magnet
+name_last_magnet = magnet_names[-1]
+
+for kk in dict_output.keys():
+    for bb in [1,2]:
+        if '_%sB%d'%(name_last_magnet, bb) in kk:
+            dict_output[kk] *= 0.
+
+# Some plots
+
+import matplotlib.pyplot as plt
+plt.close('all')
+
+for i_mag, name_mag in enumerate(magnet_names):
+    fig = plt.figure(i_mag+1)
+    ax = fig.add_subplot(111)
+
+    nn = QBS_name.replace('.POSST', '_%s.POSST'%name_mag)
+    nnb1 = QBS_name.replace('.POSST', '_%sB1.POSST'%name_mag)
+    nnb2 = QBS_name.replace('.POSST', '_%sB2.POSST'%name_mag)
+
+    ax.plot(dict_output[nn], color='k')
+    ax.plot(dict_output[nnb1], color='b')
+    ax.plot(dict_output[nnb2], color='r')
+
+    fig.suptitle(name_mag)
+plt.show()
