@@ -1,5 +1,7 @@
 import numpy as np
+
 import LHCMeasurementTools.TimberManager as tm
+import LHCMeasurementTools.LHC_Heatloads as HL
 
 from calibration_config import calibration_config
 from calibration import Calibration, CalibrationManager
@@ -50,9 +52,24 @@ for ii, circuit in enumerate(calibration.circuits):
         print('\n'.join(other['issues']))
         issues.append([circuit, other['issues']])
 
-qbs_recalc = np.array(qbs_recalc)
-
+# Build temporary object to compute arc averages
 obhl = tm.AlignedTimberData(timestamps=obraw.timestamps,
-        data=qbs_recalc.T, variables=calibration.circuits)
+        data=np.array(qbs_recalc).T, variables=calibration.circuits)
 
-h5_storage.store_qbs(filln=filln, qbs_ob=obhl, use_dP=with_P_drop)
+avg_loads = []
+avg_varnames = []
+# Compute arc averages
+for arc in '12 23 34 45 56 67 78 81'.split():
+    arc_circuits =  HL.arc_cells_by_sector['S'+arc]
+    arc_loads = np.array([obhl.dictionary[kk] for kk in arc_circuits])
+    avg_load = np.nanmean(arc_loads, axis=0)
+
+    avg_loads.append(avg_load)
+    avg_varname = 'S%s_QBS_AVG_ARC.POSST'%arc
+
+# Build temporary object to compute arc averages
+obhl_store = tm.AlignedTimberData(timestamps=obraw.timestamps,
+        data=np.array(qbs_recalc + avg_loads).T,
+        variables=(calibration.circuits + avg_varnames))
+
+h5_storage.store_qbs(filln=filln, qbs_ob=obhl_store, use_dP=with_P_drop)
