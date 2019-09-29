@@ -36,6 +36,8 @@ def compute_heat_load(P1, T1, T3, P4, CV, EH, Qs_calib, Kv_calib, R_calib,
     if with_P_drop:
         DP_prev = 0.
         mask_iter = P3 > P4
+        mask_negative = P4 > P1
+        n_iter = np.zeros_like(P4, dtype=np.int)
         for i_iter in range(N_iter_max):
 
             if np.sum(mask_iter) == 0:
@@ -70,7 +72,8 @@ def compute_heat_load(P1, T1, T3, P4, CV, EH, Qs_calib, Kv_calib, R_calib,
             mask_negative_iter = P3_iter < P4[mask_iter]
 
             # Stop iteration for negative values
-            mask_iter[mask_iter][mask_negative_iter] = False
+            mask_negative[mask_iter] = mask_negative[mask_iter] | mask_negative_iter
+            mask_iter[mask_iter] = (mask_iter[mask_iter]) & (~mask_negative_iter)
 
             # Update only positive (P3-P4)  
             P3[mask_iter] = P3_iter[~mask_negative_iter]
@@ -81,6 +84,8 @@ def compute_heat_load(P1, T1, T3, P4, CV, EH, Qs_calib, Kv_calib, R_calib,
                      / P3_prev_iter[~mask_negative_iter]) > iter_toll)
 
             P3_list.append(P3.copy())
+
+            n_iter[mask_iter] = i_iter + 1
 
         P3_list = np.array(P3_list)
 
@@ -94,11 +99,37 @@ def compute_heat_load(P1, T1, T3, P4, CV, EH, Qs_calib, Kv_calib, R_calib,
     # Compute heat load
     Q_bs = m_L * (H3 - H1) - Qs_calib - EH
 
+    list_issues = []
+
+    # Remove invalid data
+    mask_invalid_data = (P1 == 0) | (P4==0) | (T1==0) | (T3==0) | (CV==0)
+    N_invalid = np.sum(mask_invalid_data)
+    if N_invalid > 0:
+        Q_bs[mask_invalid_data] = np.nan
+        list_issues.append('Invalid data in %d points of %d.'%(N_invalid,
+            len(mask_invalid_data)))
+
+    N_negative = np.sum(mask_negative)
+    if N_negative > 0:
+        Q_bs[mask_negative] = np.nan
+        list_issues.append('Negative pressure drop in %d points of %d.'%(
+            N_negative, len(mask_negative)))
+
+    N_convergence = np.sum(mask_iter)
+    if N_convergence > 0:
+        Q_bs[mask_iter] = np.nan
+        list_issues.append('No convergence in P drop for %d points of %d.'%(
+            N_convergence, len(mask_iter)))
+
+
     other = {
         'H1': H1,
         'H3': H3,
         'P3': P3,
-        'mass_flow': m_L
+        'mass_flow': m_L,
+        'P3_list': P3_list,
+        'n_iter': n_iter,
+        'issues': list_issues
         }
 
     return Q_bs, other
