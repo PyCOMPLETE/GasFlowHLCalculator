@@ -4,79 +4,79 @@ import re
 
 import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.LHC_Heatloads as HL
-from config_qbs import arc_index, arc_list
-import compute_QBS_special as cqs
-import compute_QBS_LHC as cql
+#from config_qbs import arc_index, arc_list
+#import compute_QBS_special as cqs
+#import compute_QBS_LHC as cql
 
-# Load data for one fill
-def compute_qbs_fill(filln, h5_storage=None, use_dP=True, recompute_if_missing=False):
-    """
-    Arguments:
-        -filln
-        -use_dP = True
-        -recompute_if_missing = False
-    """
-    h5_file = h5_storage.get_qbs_file(filln, use_dP=use_dP)
-    if os.path.isfile(h5_file):
-        return h5_storage.load_qbs(filln, use_dP=use_dP)
-
-    if not recompute_if_missing:
-        raise ValueError("""File %s does not exist.
-                         Set the correct flag if you want to recompute!""" % h5_file)
-
-    atd_ob = h5_storage.load_data_file(filln)
-    qbs_ob = cql.compute_qbs(atd_ob, use_dP)
-    h5_storage.store_qbs(filln, qbs_ob, use_dP)
-    print('Stored h5 for fill %i.' % filln)
-    return qbs_ob
-
-# def test_compute_qbs(filln, use_dP=True):
-#     """
-#     Never loads or saves recomputed data.
-#     """
-#     atd_ob = h5_storage.load_data_file(filln)
-#     return cql.compute_qbs(atd_ob, use_dP)
-
-# Special cells
-def special_qbs_fill(filln, h5_storage=None, recompute_if_missing=False, force_recalc=False, aligned=False):
-
-    if force_recalc:
-        raise ValueError("Feature discontinued")
-        # print('Force recalculated')
-        # new_cell = filln > 5500
-        # atd_ob = h5_storage.load_special_data_file(filln)
-        # return cqs.compute_qbs_special(atd_ob, new_cell, aligned=aligned)
-
-    h5_file = h5_storage.get_special_qbs_file(filln)
-
-    if os.path.isfile(h5_file):
-        qbs_ob = h5_storage.load_special_qbs(filln)
-        cqs.aligned_to_dict_separate(qbs_ob)
-
-    elif recompute_if_missing:
-        raise ValueError('This feature has been discontinued!')
-        # new_cell = filln > 5500
-        # atd_ob = h5_storage.load_special_data_file(filln)
-        # qbs_dict = cqs.compute_qbs_special(atd_ob, new_cell, aligned=False)
-        # qbs_aligned = cqs.dict_to_aligned_separate(qbs_dict)
-        # h5_storage.store_special_qbs(filln, qbs_aligned)
-        # print('Stored h5 for fill %i.' % filln)
-        # if aligned:
-        #     return qbs_aligned
-        # else:
-        #     return qbs_dict
-    else:
-        raise ValueError('Not possible to find data!')
-
-    return qbs_ob
-
-# Compute average per ARC
-def compute_qbs_arc_avg(qbs_ob):
-    qbs_arc_avg = np.zeros((len(qbs_ob.timestamps),8), dtype=float)
-    for k in xrange(8):
-        first, last = arc_index[k,:]
-        qbs_arc_avg[:,k] = np.nanmean(qbs_ob.data[:,first:last+1], axis=1)
-    return tm.AlignedTimberData(qbs_ob.timestamps, qbs_arc_avg, arc_list)
+#### # Load data for one fill
+#### def compute_qbs_fill(filln, h5_storage=None, use_dP=True, recompute_if_missing=False):
+####     """
+####     Arguments:
+####         -filln
+####         -use_dP = True
+####         -recompute_if_missing = False
+####     """
+####     h5_file = h5_storage.get_qbs_file(filln, use_dP=use_dP)
+####     if os.path.isfile(h5_file):
+####         return h5_storage.load_qbs(filln, use_dP=use_dP)
+#### 
+####     if not recompute_if_missing:
+####         raise ValueError("""File %s does not exist.
+####                          Set the correct flag if you want to recompute!""" % h5_file)
+#### 
+####     atd_ob = h5_storage.load_data_file(filln)
+####     qbs_ob = cql.compute_qbs(atd_ob, use_dP)
+####     h5_storage.store_qbs(filln, qbs_ob, use_dP)
+####     print('Stored h5 for fill %i.' % filln)
+####     return qbs_ob
+#### 
+#### # def test_compute_qbs(filln, use_dP=True):
+#### #     """
+#### #     Never loads or saves recomputed data.
+#### #     """
+#### #     atd_ob = h5_storage.load_data_file(filln)
+#### #     return cql.compute_qbs(atd_ob, use_dP)
+#### 
+#### # Special cells
+#### def special_qbs_fill(filln, h5_storage=None, recompute_if_missing=False, force_recalc=False, aligned=False):
+#### 
+####     if force_recalc:
+####         raise ValueError("Feature discontinued")
+####         # print('Force recalculated')
+####         # new_cell = filln > 5500
+####         # atd_ob = h5_storage.load_special_data_file(filln)
+####         # return cqs.compute_qbs_special(atd_ob, new_cell, aligned=aligned)
+#### 
+####     h5_file = h5_storage.get_special_qbs_file(filln)
+#### 
+####     if os.path.isfile(h5_file):
+####         qbs_ob = h5_storage.load_special_qbs(filln)
+####         cqs.aligned_to_dict_separate(qbs_ob)
+#### 
+####     elif recompute_if_missing:
+####         raise ValueError('This feature has been discontinued!')
+####         # new_cell = filln > 5500
+####         # atd_ob = h5_storage.load_special_data_file(filln)
+####         # qbs_dict = cqs.compute_qbs_special(atd_ob, new_cell, aligned=False)
+####         # qbs_aligned = cqs.dict_to_aligned_separate(qbs_dict)
+####         # h5_storage.store_special_qbs(filln, qbs_aligned)
+####         # print('Stored h5 for fill %i.' % filln)
+####         # if aligned:
+####         #     return qbs_aligned
+####         # else:
+####         #     return qbs_dict
+####     else:
+####         raise ValueError('Not possible to find data!')
+#### 
+####     return qbs_ob
+#### 
+#### # Compute average per ARC
+#### def compute_qbs_arc_avg(qbs_ob):
+####     qbs_arc_avg = np.zeros((len(qbs_ob.timestamps),8), dtype=float)
+####     for k in xrange(8):
+####         first, last = arc_index[k,:]
+####         qbs_arc_avg[:,k] = np.nanmean(qbs_ob.data[:,first:last+1], axis=1)
+####     return tm.AlignedTimberData(qbs_ob.timestamps, qbs_arc_avg, arc_list)
 
 # plug-in replacement of old heat load procedure, the fill dict
 def get_fill_dict(filln, h5_storage=None, use_dP=True):

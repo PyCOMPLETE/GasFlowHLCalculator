@@ -8,6 +8,8 @@ import heatload_recalc as hlr
 
 cal_manager = CalibrationManager(calibration_config=calibration_config)
 
+with_P_drop = True
+
 filln = 6737
 
 h5_storage = H5_storage(h5_dir='/eos/user/l/lhcecld/heatload_data_storage')
@@ -39,7 +41,7 @@ for ii, circuit in enumerate(calibration.circuits):
             n_channels=cell_calib['n_channels_tot'],
             channel_radius=cell_calib['channel_radius'],
             channel_roughness=cell_calib['roughness'],
-            with_P_drop=True, N_iter_max=100, scale_correction=0.3,
+            with_P_drop=with_P_drop, N_iter_max=100, scale_correction=0.3,
             iter_toll=1e-3)
 
     qbs_recalc.append(Q_bs)
@@ -53,3 +55,4 @@ qbs_recalc = np.array(qbs_recalc)
 obhl = tm.AlignedTimberData(timestamps=obraw.timestamps,
         data=qbs_recalc.T, variables=calibration.circuits)
 
+h5_storage.store_qbs(filln=filln, qbs_ob=obhl, use_dP=with_P_drop)
