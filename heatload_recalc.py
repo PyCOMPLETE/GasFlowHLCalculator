@@ -33,10 +33,11 @@ def compute_heat_load(P1, T1, T3, P4, CV, EH, Qs_calib, Kv_calib, R_calib,
 
     P3 = P3_0.copy()
     P3_list = []
+    mask_negative = P4 > P1
+    n_iter = np.nan
     if with_P_drop:
         DP_prev = 0.
         mask_iter = P3 > P4
-        mask_negative = P4 > P1
         n_iter = np.zeros_like(P4, dtype=np.int)
         for i_iter in range(N_iter_max):
 
@@ -102,31 +103,29 @@ def compute_heat_load(P1, T1, T3, P4, CV, EH, Qs_calib, Kv_calib, R_calib,
     list_issues = []
 
     # Remove invalid data
-    mask_invalid_data = (P1 == 0) | (T1==0) | (T3==0) | (CV==0)
+    mask_invalid_data = (T3==0) | (CV==0)
     N_invalid = np.sum(mask_invalid_data)
     if N_invalid > 0:
         Q_bs[mask_invalid_data] = np.nan
         list_issues.append('Invalid data in %d points of %d.'%(N_invalid,
             len(mask_invalid_data)))
 
-    mask_P4is0 =  (P4==0)
-    N_P4is0 = np.sum(mask_P4is0)
-    if N_P4is0 > 0:
-        list_issues.append('P4 is 0. in %d points of %d.'%(N_P4is0,
-            len(mask_P4is0)))
-
+    mask_P1T1P4is0 = (P4==0) | (T1==0) | (P1==0)
+    N_P1T1P4is0 = np.sum(mask_P1T1P4is0)
+    if N_P1T1P4is0 > 0:
+        list_issues.append('P1, P4 or T1 is 0. in %d points of %d.'%(N_P1T1P4is0,
+            len(mask_P1T1P4is0)))
 
     N_negative = np.sum(mask_negative)
     if N_negative > 0:
-        Q_bs[mask_negative] = np.nan
         list_issues.append('Negative pressure drop in %d points of %d.'%(
             N_negative, len(mask_negative)))
 
-    N_convergence = np.sum(mask_iter)
-    if N_convergence > 0:
-        Q_bs[mask_iter] = np.nan
-        list_issues.append('No convergence in P drop for %d points of %d.'%(
-            N_convergence, len(mask_iter)))
+    if with_P_drop:
+        N_convergence = np.sum(mask_iter)
+        if N_convergence > 0:
+            list_issues.append('No convergence in P drop for %d points of %d.'%(
+                N_convergence, len(mask_iter)))
 
 
     other = {
