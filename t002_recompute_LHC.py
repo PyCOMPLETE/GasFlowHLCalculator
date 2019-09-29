@@ -65,7 +65,7 @@ for arc in '12 23 34 45 56 67 78 81'.split():
     avg_load = np.nanmean(arc_loads, axis=0)
 
     avg_loads.append(avg_load)
-    avg_varname = 'S%s_QBS_AVG_ARC.POSST'%arc
+    avg_varnames.append('S%s_QBS_AVG_ARC.POSST'%arc)
 
 # Build temporary object to compute arc averages
 obhl_store = tm.AlignedTimberData(timestamps=obraw.timestamps,
