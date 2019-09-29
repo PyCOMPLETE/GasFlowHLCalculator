@@ -102,12 +102,19 @@ def compute_heat_load(P1, T1, T3, P4, CV, EH, Qs_calib, Kv_calib, R_calib,
     list_issues = []
 
     # Remove invalid data
-    mask_invalid_data = (P1 == 0) | (P4==0) | (T1==0) | (T3==0) | (CV==0)
+    mask_invalid_data = (P1 == 0) | (T1==0) | (T3==0) | (CV==0)
     N_invalid = np.sum(mask_invalid_data)
     if N_invalid > 0:
         Q_bs[mask_invalid_data] = np.nan
         list_issues.append('Invalid data in %d points of %d.'%(N_invalid,
             len(mask_invalid_data)))
+
+    mask_P4is0 =  (P4==0)
+    N_P4is0 = np.sum(mask_P4is0)
+    if N_P4is0 > 0:
+        list_issues.append('P4 is 0. in %d points of %d.'%(N_P4is0,
+            len(mask_P4is0)))
+
 
     N_negative = np.sum(mask_negative)
     if N_negative > 0:
