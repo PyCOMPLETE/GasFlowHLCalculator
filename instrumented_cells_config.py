@@ -23,8 +23,12 @@ instrumented_cells_config = {
 
     'QRLAA_13L5_QBS943_D4B1.POSST': {
 
-        'circuit_A_sensors': [],
-        'circuit_B_sensors': [],
+        'circuit_A_sensors': ['QBQI_13L5_TT825.POSST', 'QBBI_A13L5_TT826.POSST',
+                        'QBBI_B13L5_TT824.POSST', 'QQBI_13L5_TT826.POSST',
+                        'QBQI_14L5_TT825.POSST'],
+        'circuit_B_sensors': ['QBQI_13L5_TT825.POSST', 'QBBI_A13L5_TT824.POSST',
+                        'QBBI_B13L5_TT826.POSST', 'QQBI_13L5_TT824.POSST',
+                        'QBQI_14L5_TT825.POSST'],
 
         'n_channels_circuit_A': 2,
         'n_channels_circuit_B': 2,
