@@ -54,7 +54,7 @@ if compute_instrumented:
 
     (n_channels_circuits, magnet_lengths_circuits, in_sensor_names_circuits,
             out_sensor_names_circuits) = \
-                hlr.extract_info_from_intrum_config_dict(
+                hlr.extract_info_from_instrum_config_dict(
                     config_dict=instrum_cell_config)
 
     T_out_magnets_circuits = [[obraw.dictionary[vv] for vv in

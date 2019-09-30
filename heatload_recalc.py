@@ -211,7 +211,7 @@ def compute_heat_loads_instrumented_cell(mass_flow, P1,
     return Qbs_magnets_circuits, other
 
 
-def extract_info_from_intrum_config_dict(config_dict):
+def extract_info_from_instrum_config_dict(config_dict):
 
     n_channels_circuits = [config_dict['n_channels_circuit_%s'%cc]
                                 for cc in ['A', 'B']]
