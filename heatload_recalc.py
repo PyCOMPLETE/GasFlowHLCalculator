@@ -5,7 +5,6 @@ from valve_LT import valve_LT
 from Pressure_drop import pd_factory
 
 
-# Functions
 def compute_heat_load(P1, T1, T3, P4, CV, EH, Qs_calib, Kv_calib, R_calib,
         cell_length, n_channels, channel_radius, channel_roughness,
         with_P_drop=True, N_iter_max=100, scale_correction=0.3,
@@ -211,5 +210,22 @@ def compute_heat_loads_instrumented_cell(mass_flow, P1,
 
     return Qbs_magnets_circuits, other
 
+
+def extract_info_from_intrum_config_dict(config_dict):
+
+    n_channels_circuits = [config_dict['n_channels_circuit_%s'%cc]
+                                for cc in ['A', 'B']]
+    magnet_lengths_circuits = [config_dict['magnet_lengths']
+                                    for _ in ['A', 'B']]
+    out_sensor_names_circuits = [config_dict['circuit_%s_sensors'%cc][1:]
+                                    for cc in ['A', 'B']]
+    in_sensor_names_circuits = [config_dict['circuit_%s_sensors'%cc][:-1]
+                                    for cc in ['A', 'B']]
+
+    return (n_channels_circuits, magnet_lengths_circuits, in_sensor_names_circuits,
+            out_sensor_names_circuits)
+
+#    magnet_beam_circuits = [config_dict['circuit_%s_beam'%cc]
+#                                    for cc in ['A', 'B']]
 
 

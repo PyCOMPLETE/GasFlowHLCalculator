@@ -52,16 +52,10 @@ if compute_instrumented:
 
     instrum_cell_config = instrumented_cells_config[circuit]
 
-    n_channels_circuits = [instrum_cell_config['n_channels_circuit_%s'%cc]
-                                for cc in ['A', 'B']]
-    magnet_lengths_circuits = [instrum_cell_config['magnet_lengths']
-                                    for _ in ['A', 'B']]
-    out_sensor_names_circuits = [instrum_cell_config['circuit_%s_sensors'%cc][1:]
-                                    for cc in ['A', 'B']]
-    in_sensor_names_circuits = [instrum_cell_config['circuit_%s_sensors'%cc][:-1]
-                                    for cc in ['A', 'B']]
-    magnet_beam_circuits = [instrum_cell_config['circuit_%s_beam'%cc]
-                                    for cc in ['A', 'B']]
+    (n_channels_circuits, magnet_lengths_circuits, in_sensor_names_circuits,
+            out_sensor_names_circuits) = \
+                hlr.extract_info_from_intrum_config_dict(
+                    config_dict=instrum_cell_config)
 
     T_out_magnets_circuits = [[obraw.dictionary[vv] for vv in
             out_sensor_names_circuits[ii]] for ii in [0, 1]]
@@ -77,6 +71,9 @@ if compute_instrumented:
         channel_radius=cell_calib['channel_radius'],
         channel_roughness=cell_calib['roughness'],
         dp_toll = 0.001, N_iter_max=200)
+
+    magnet_beam_circuits = [instrum_cell_config['circuit_%s_beam'%cc]
+                                    for cc in ['A', 'B']]
 
     QBS_name = circuit
 
