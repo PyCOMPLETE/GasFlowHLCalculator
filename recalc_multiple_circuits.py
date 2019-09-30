@@ -74,22 +74,22 @@ def recalc_multiple_circuits(raw_data_object, calibration,
 
             qbs_magnets_circuits, other_instr = \
                 hlr.compute_heat_loads_instrumented_cell(
-                    mass_flow = other['mass_flow'], p1=p1,
-                    t_in_magnets_circuits=t_in_magnets_circuits,
-                    t_out_magnets_circuits=t_out_magnets_circuits,
+                    mass_flow = other['mass_flow'], P1=P1,
+                    T_in_magnets_circuits=t_in_magnets_circuits,
+                    T_out_magnets_circuits=t_out_magnets_circuits,
                     magnet_lengths_circuits=magnet_lengths_circuits,
                     n_channels_circuits=n_channels_circuits,
                     channel_radius=cell_calib['channel_radius'],
                     channel_roughness=cell_calib['roughness'],
-                    dp_toll = 0.001, n_iter_max=200)
+                    dp_toll = 0.001, N_iter_max=200)
 
             magnet_beam_circuits = [
                     instrum_cell_config['circuit_%s_beam'%cc]
-                                    for cc in ['a', 'b']]
+                                    for cc in ['A', 'A']]
 
             dict_output = hlr.build_instrumented_hl_dict(
                 config_dict=instrum_cell_config, circuit=circuit,
-                 qbs_magnets_circuits=qbs_magnets_circuits)
+                 Qbs_magnets_circuits=qbs_magnets_circuits)
 
             instrum_cell_recalc_dict.update(dict_output)
 
@@ -116,7 +116,7 @@ def recalc_multiple_circuits(raw_data_object, calibration,
 
     obhl_store = tm.AlignedTimberData(timestamps=obraw.timestamps,
             data=np.array(qbs_recalc + avg_loads + instrum_qbs_recalc).T,
-            variables=(calibration.circuits + avg_varnames + instrum_varnames))
+            variables=(circuits + avg_varnames + instrum_varnames))
 
     other = {}
     other['issues'] = issues
