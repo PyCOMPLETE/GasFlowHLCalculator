@@ -9,20 +9,26 @@ from h5_storage import H5_storage
 import heatload_recalc as hlr
 
 cal_manager = CalibrationManager(calibration_config=calibration_config)
-
+h5_storage = H5_storage(h5_dir='/eos/user/l/lhcecld/heatload_data_storage')
 with_P_drop = True
 
 filln = 6737
 
-h5_storage = H5_storage(h5_dir='/eos/user/l/lhcecld/heatload_data_storage')
 obraw = h5_storage.load_data_file(filln=filln)
 
 calibration = cal_manager.get_calibration(obraw.timestamps[0])
 
+circuits = calibration.circuits
+
 qbs_recalc = []
 issues = []
-for ii, circuit in enumerate(calibration.circuits):
-    print(ii, circuit)
+for ii, circuit in enumerate(circuits):
+
+    if len(circuits) > 100:
+        if np.mod(ii, 20) == 0:
+            print('Circuit %d/%d'%(ii, len(circuits)))
+    else:
+        print(ii, circuit)
 
     cell_calib = calibration.get_circuit(circuit)
 
@@ -49,6 +55,7 @@ for ii, circuit in enumerate(calibration.circuits):
     qbs_recalc.append(Q_bs)
 
     if len(other['issues'])>0:
+        print('Issues found for circuit %s:'%circuit)
         print('\n'.join(other['issues']))
         issues.append([circuit, other['issues']])
 
