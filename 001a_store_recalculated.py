@@ -5,12 +5,14 @@ import time
 import argparse
 import random
 
-import compute_QBS_LHC as cql
-
 from GasFlowHLCalculator.h5_storage import H5_storage
+import GasFlowHLCalculator.recalc_multiple_circuits as rmc
+
+from GasFlowHLCalculator.calibration_config import calibration_config
+from GasFlowHLCalculator.calibration import Calibration, CalibrationManager
 
 h5_storage = H5_storage(h5_dir = '/eos/user/l/lhcecld/heatload_data_storage/')
-calibration_csv_file = '/afs/cern.ch/work/l/lhcecld/tools/LHCCryoHeatLoadCalibration/CryoBeamScreenData.csv'
+cal_manager = CalibrationManager(calibration_config=calibration_config)
 
 data_dir = h5_storage.data_dir
 
@@ -43,10 +45,14 @@ for atd_file in atd_files:
         if not os.path.isfile(this_qbs_file):
 
             print('\nCalculation for fill %i (usedP: %s) started...' % (filln, use_dP))
-            time_0 = time.time()
+            time_0 = time.mktime(time.localtime())
             atd_ob = h5_storage.load_data_file(filln)
-            qbs_ob = cql.compute_qbs(atd_ob,
-                        calibration_csv_file=calibration_csv_file, **kwargs)
+
+            calibration = cal_manager.get_calibration(atd_ob.timestamps[0])
+
+            qbs_ob, other = rmc.recalc_multiple_circuits(atd_ob,
+                calibration, circuit_selection='full_lhc',
+                with_P_drop=use_dP)
 
             n_tries = 5
             while n_tries > 0:
@@ -58,7 +64,7 @@ for atd_file in atd_files:
                     time.sleep(60)
             else:
                 raise IOError('Saving failed for fill %i!' % filln)
-            dt = time.time() - time_0
+            dt = time.mktime(time.localtime()) - time_0
             n_timesteps = len(qbs_ob.timestamps)
             print('Calculation for fill %i (usedP: %s) with %i timesteps finished in %i s.' % (filln, use_dP, n_timesteps, dt))
 
