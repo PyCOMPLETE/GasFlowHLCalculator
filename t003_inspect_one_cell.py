@@ -75,46 +75,21 @@ if compute_instrumented:
     magnet_beam_circuits = [instrum_cell_config['circuit_%s_beam'%cc]
                                     for cc in ['A', 'B']]
 
-    QBS_name = circuit
-
-    dict_output = {
-        QBS_name: Q_bs}
-    magnet_names = instrum_cell_config['magnet_names']
-    for i_circ in [0, 1]:
-        magnets_beam_c = magnet_beam_circuits[i_circ]
-
-        for i_mag, name_mag in enumerate(magnet_names):
-            dict_output[QBS_name.split('.POSST')[0]
-                   +'_%sB%s.POSST'%(name_mag, magnets_beam_c[i_mag])]=\
-            Qbs_magnets_circuits[i_circ][i_mag]
-
-    for name_mag in magnet_names:
-        dict_output[QBS_name.split('.POSST')[0]
-            +'_%s.POSST'%(name_mag)] = \
-             dict_output[QBS_name.split('.POSST')[0]
-                   +'_%sB%s.POSST'%(name_mag, 1)] +\
-             dict_output[QBS_name.split('.POSST')[0]
-                   +'_%sB%s.POSST'%(name_mag, 2)]
-
-    # Hide last magnet
-    name_last_magnet = magnet_names[-1]
-    for kk in dict_output.keys():
-        for bb in [1,2]:
-            if '_%sB%d'%(name_last_magnet, bb) in kk:
-                dict_output[kk] *= 0.
+    dict_output = hlr.build_instrumented_hl_dict(
+            config_dict=instrum_cell_config, circuit=circuit,
+            Qbs_magnets_circuits=Qbs_magnets_circuits)
 
     # Some plots
-
     import matplotlib.pyplot as plt
     plt.close('all')
 
-    for i_mag, name_mag in enumerate(magnet_names):
+    for i_mag, name_mag in enumerate(instrum_cell_config['magnet_names']):
         fig = plt.figure(i_mag+1)
         ax = fig.add_subplot(111)
 
-        nn = QBS_name.replace('.POSST', '_%s.POSST'%name_mag)
-        nnb1 = QBS_name.replace('.POSST', '_%sB1.POSST'%name_mag)
-        nnb2 = QBS_name.replace('.POSST', '_%sB2.POSST'%name_mag)
+        nn = circuit.replace('.POSST', '_%s.POSST'%name_mag)
+        nnb1 = circuit.replace('.POSST', '_%sB1.POSST'%name_mag)
+        nnb2 = circuit.replace('.POSST', '_%sB2.POSST'%name_mag)
 
         ax.plot(dict_output[nn], color='k')
         ax.plot(dict_output[nnb1], color='b')

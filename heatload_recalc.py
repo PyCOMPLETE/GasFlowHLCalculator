@@ -225,7 +225,38 @@ def extract_info_from_intrum_config_dict(config_dict):
     return (n_channels_circuits, magnet_lengths_circuits, in_sensor_names_circuits,
             out_sensor_names_circuits)
 
-#    magnet_beam_circuits = [config_dict['circuit_%s_beam'%cc]
-#                                    for cc in ['A', 'B']]
+
+def build_instrumented_hl_dict(config_dict, circuit, Qbs_magnets_circuits):
+    dict_output = {}
+
+    magnet_beam_circuits = [config_dict['circuit_%s_beam'%cc]
+                                    for cc in ['A', 'B']]
+
+    magnet_names = config_dict['magnet_names']
+    for i_circ in [0, 1]:
+        magnets_beam_c = magnet_beam_circuits[i_circ]
+
+        for i_mag, name_mag in enumerate(magnet_names):
+            dict_output[circuit.split('.POSST')[0]
+                   +'_%sB%s.POSST'%(name_mag, magnets_beam_c[i_mag])]=\
+            Qbs_magnets_circuits[i_circ][i_mag]
+
+    for name_mag in magnet_names:
+        dict_output[circuit.split('.POSST')[0]
+            +'_%s.POSST'%(name_mag)] = \
+             dict_output[circuit.split('.POSST')[0]
+                   +'_%sB%s.POSST'%(name_mag, 1)] +\
+             dict_output[circuit.split('.POSST')[0]
+                   +'_%sB%s.POSST'%(name_mag, 2)]
+
+    # Hide last magnet
+    name_last_magnet = magnet_names[-1]
+    for kk in dict_output.keys():
+        for bb in [1,2]:
+            if '_%sB%d'%(name_last_magnet, bb) in kk:
+                dict_output[kk] *= 0.
+
+    return dict_output
+
 
 
