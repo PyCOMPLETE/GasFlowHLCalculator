@@ -11,11 +11,12 @@ cal_manager = CalibrationManager(calibration_config=calibration_config)
 with_P_drop = True
 compute_instrumented = True
 
-filln = 6737
+filln = 6966
 circuit = 'QRLAB_23L2_QBS947.POSST' # Missing P4 (same result as logginh)
 #circuit = 'QRLAB_15L2_QBS943.POSST' # Missing T1 (same result as logging)
 #circuit = 'QRLAB_27L4_QBS943.POSST' # Missing P1 (result different from logging)
 circuit = 'QRLAB_31L2_QBS943.POSST' # Instrumented cell
+circuit = 'QRLAA_13L5_QBS943.POSST' # Instrumented cell
 
 h5_storage = H5_storage(h5_dir='/eos/user/l/lhcecld/heatload_data_storage')
 
