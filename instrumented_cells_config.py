@@ -40,4 +40,4 @@ instrumented_cells_config = {
         'circuit_B_beam': [2,1,2,1],
 
     },
-
+}
