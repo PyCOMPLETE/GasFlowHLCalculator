@@ -85,22 +85,44 @@ if compute_instrumented:
             config_dict=instrum_cell_config, circuit=circuit,
             Qbs_magnets_circuits=Qbs_magnets_circuits)
 
-    # Some plots
-    import matplotlib.pyplot as plt
-    plt.close('all')
 
+# Some plots
+import matplotlib.pyplot as plt
+plt.close('all')
+
+t_h = (obraw.timestamps - obraw.timestamps[0])/3600.
+
+figtot = plt.figure(100)
+axtot = figtot.add_subplot(111)
+
+axtot.plot(t_h, Q_bs, color = 'black', label="Total")
+
+axlist = [axtot]
+
+if compute_instrumented:
     for i_mag, name_mag in enumerate(instrum_cell_config['magnet_names']):
         fig = plt.figure(i_mag+1)
-        ax = fig.add_subplot(111)
+        ax = fig.add_subplot(111, sharex=axtot, sharey=axtot)
 
         nn = circuit.replace('.POSST', '_%s.POSST'%name_mag)
         nnb1 = circuit.replace('.POSST', '_%sB1.POSST'%name_mag)
         nnb2 = circuit.replace('.POSST', '_%sB2.POSST'%name_mag)
 
-        ax.plot(dict_output[nn], color='k')
-        ax.plot(dict_output[nnb1], color='b')
-        ax.plot(dict_output[nnb2], color='r')
+        ax.plot(t_h, dict_output[nn], color='k', label='Total')
+        ax.plot(t_h, dict_output[nnb1], color='b', label='B1')
+        ax.plot(t_h, dict_output[nnb2], color='r', label='B2')
 
-        fig.suptitle(name_mag)
-    plt.show()
+        fig.suptitle(circuit + ' - ' +name_mag)
+
+        axtot.plot(t_h, dict_output[nn], label=name_mag)
+        axlist.append(ax)
+
+for aa in axlist:
+    aa.legend(loc='best')
+    aa.set_xlabel('t [h]')
+    aa.set_ylabel('Heat load [W]')
+    aa.grid(True)
+
+figtot.suptitle(circuit)
+plt.show()
 
