@@ -21,6 +21,7 @@ circuit = 'QRLAB_23L2_QBS947.POSST' # Missing P4 (same result as logginh)
 circuit = 'QRLAB_31L2_QBS943.POSST' # Instrumented cell
 circuit = 'QRLAA_13L5_QBS943.POSST' # Instrumented cell
 circuit = 'QRLAA_13R4_QBS947.POSST' # Instrumented cell
+circuit = 'QRLAA_33L5_QBS947.POSST' # Instrumented cell
 
 h5_storage = H5_storage(h5_dir='/eos/user/l/lhcecld/heatload_data_storage')
 
