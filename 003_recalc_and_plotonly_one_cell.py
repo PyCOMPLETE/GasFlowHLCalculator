@@ -121,7 +121,7 @@ for aa in axlist:
     aa.legend(loc='best')
     aa.set_xlabel('t [h]')
     aa.set_ylabel('Heat load [W]')
-    aa.grid(True)
+    aa.grid(True, linestyle='--', alpha=.5)
 
 figtot.suptitle(circuit)
 plt.show()
