@@ -15,7 +15,7 @@ compute_instrumented = True
 
 filln = 6737
 filln = 6966
-filln = 6967
+#filln = 6967
 
 circuit = 'QRLAB_23L2_QBS947.POSST' # Missing P4 (same result as logginh)
 #circuit = 'QRLAB_15L2_QBS943.POSST' # Missing T1 (same result as logging)
@@ -32,7 +32,8 @@ plt.close('all')
 
 fill_dict = qf.get_fill_dict(filln, h5_storage=h5_storage, use_dP=with_P_drop)
 
-t_h = fill_dict[circuit].t_stamps
+t_unix = fill_dict[circuit].t_stamps
+t_h = (t_unix - t_unix[0])/3600.
 
 figtot = plt.figure(100)
 axtot = figtot.add_subplot(111)
