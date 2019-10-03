@@ -1,3 +1,4 @@
+import numpy as np
 import pickle
 
 from LHCMeasurementTools.LHC_Fills import Fills_Info
@@ -39,5 +40,9 @@ class MockPytimber(object):
                 output[vv][0] += list(fdict[vv].t_stamps[mask]
                                     +1e-3*fdict[vv].ms[mask])
                 output[vv][1] += list(fdict[vv].values[mask])
+
+        for vv in variables:
+            for ii in [0, 1]:
+                output[vv][ii] = np.array(output[vv][ii])
 
         return(output)
