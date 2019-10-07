@@ -8,4 +8,4 @@ It provides tools to:
  - Store the recomputed heat-load data for each fill in hdf5 format
  - Provide access to the recomputed data with an interface similar to the one used with the logging database
  
-The code relies on the (https://github.com/PyCOMPLETE/LHCMeasurementTools)[LHCMeasurementTools] packege
+The code relies on the [LHCMeasurementTools](https://github.com/PyCOMPLETE/LHCMeasurementTools) packege
