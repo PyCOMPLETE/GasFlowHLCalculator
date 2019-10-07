@@ -5,9 +5,16 @@ import time
 import argparse
 import random
 
-import compute_QBS_special as cqs
-import h5_storage
-from h5_storage import special_data_dir, special_version
+from GasFlowHLCalculator.h5_storage import H5_storage
+import GasFlowHLCalculator.recalc_multiple_circuits as rmc
+
+from GasFlowHLCalculator.calibration_config import calibration_config
+from GasFlowHLCalculator.calibration import Calibration, CalibrationManager
+
+h5_storage = H5_storage(h5_dir = '/eos/user/l/lhcecld/heatload_data_storage/')
+cal_manager = CalibrationManager(calibration_config=calibration_config)
+
+special_data_dir = h5_storage.special_data_dir
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='random', action='store_true')
@@ -35,21 +42,26 @@ for atd_file in atd_files:
 
         this_qbs_file = h5_storage.get_special_qbs_file(filln)
         if not os.path.isfile(this_qbs_file):
-            time_0 = time.time()
+            time_0 = time.mktime(time.localtime())
             atd_ob = h5_storage.load_special_data_file(filln)
-            new_cell = filln > 5600
-            qbs_ob = cqs.compute_qbs_special(atd_ob, new_cell=new_cell, separate=True, aligned=True)
+
+            calibration = cal_manager.get_calibration(atd_ob.timestamps[0])
+
+            qbs_ob, other = rmc.recalc_multiple_circuits(atd_ob,
+                calibration, circuit_selection='all_instrumented',
+                with_P_drop=True)
+
             n_tries = 5
             while n_tries > 0:
                 try:
-                    h5_storage.store_special_qbs(filln, qbs_ob, special_version)
+                    h5_storage.store_special_qbs(filln, qbs_ob)
                     break
                 except IOError:
                     n_tries -= 1
                     time.sleep(5)
             else:
                 raise IOError('Saving failed for fill %i!' % filln)
-            dt = time.time() - time_0
+            dt = time.mktime(time.localtime()) - time_0
             n_timesteps = len(qbs_ob.timestamps)
             print('Calculation for fill %i with %i timesteps finished in %i s.' % (filln, n_timesteps, dt))
 

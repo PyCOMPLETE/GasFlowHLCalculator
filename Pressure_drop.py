@@ -27,17 +27,4 @@ def pd_factory(D, rug):
 
     return Pressure_drop
 
-if __name__ == '__main__':
-    from config_qbs import config_qbs
-
-    r = lambda : 1e6**np.random.random(100)
-    n_args = 6
-    def function(*args):
-        return pd_factory(*args[:2])(*args[2:])
-    args = [r() for i in xrange(n_args)]
-
-    single = np.zeros_like(args[0])
-    for ctr, arg in enumerate(zip(*args)):
-        single[ctr] = function(*arg)
-    assert np.all(single == function(*args))
 
