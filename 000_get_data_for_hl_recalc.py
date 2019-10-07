@@ -12,7 +12,8 @@ from GasFlowHLCalculator.h5_storage import H5_storage
 
 import GasFlowHLCalculator
 
-h5_storage = H5_storage(h5_dir = '/eos/user/l/lhcecld/heatload_data_storage')
+default_pkl_filename = '/afs/cern.ch/work/e/ecldcode/heat_load_workspace/heat_load_storage/fills_and_bmodes.pkl'
+h5_storage = H5_storage(h5_dir = '/afs/cern.ch/work/e/ecldcode/heat_load_workspace/heat_load_storage')
 
 # Config
 dt_seconds = 60
@@ -23,7 +24,7 @@ blacklist.append(5488) # 40 hour long fill, also exceeds memory
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='reversed', action='store_true')
-parser.add_argument('--year', choices=[2012, 2015, 2016, 2017, 2018, 2019], type=int, default=2019)
+parser.add_argument('--year', choices=[0, 2012, 2015, 2016, 2017, 2018, 2019], type=int, default=0)
 
 args = parser.parse_args()
 year = args.year
@@ -41,7 +42,9 @@ temp_filepaths = ['./tmp/' + f for f in file_names]
 temp_files = [t + '_%i.csv' for t in temp_filepaths]
 data_file_funcs = [h5_storage.get_data_file, h5_storage.get_special_data_file]
 
-if year == 2012:
+if year == 0:
+    fills_pkl_name = default_pkl_filename
+elif year == 2012:
     fills_pkl_name = '/afs/cern.ch/project/spsecloud/LHC_2012_selected_periods/fills_and_bmodes.pkl'
 elif year == 2015:
     fills_pkl_name = '/afs/cern.ch/project/spsecloud/LHC_2015_PhysicsAfterTS2/fills_and_bmodes.pkl'

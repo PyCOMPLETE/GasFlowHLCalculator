@@ -12,8 +12,8 @@ with_P_drop = True
 compute_instrumented = True
 
 filln = 6737
-filln = 6966
-filln = 6967
+# filln = 6966
+# filln = 6967
 
 circuit = 'QRLAB_23L2_QBS947.POSST' # Missing P4 (same result as logginh)
 #circuit = 'QRLAB_15L2_QBS943.POSST' # Missing T1 (same result as logging)
@@ -23,7 +23,7 @@ circuit = 'QRLAA_13L5_QBS943.POSST' # Instrumented cell
 circuit = 'QRLAA_13R4_QBS947.POSST' # Instrumented cell
 circuit = 'QRLAA_33L5_QBS947.POSST' # Instrumented cell
 
-h5_storage = H5_storage(h5_dir='/eos/user/l/lhcecld/heatload_data_storage')
+h5_storage = H5_storage(h5_dir='/afs/cern.ch/work/e/ecldcode/heat_load_workspace/heat_load_storage')
 
 if compute_instrumented:
     obraw = h5_storage.load_special_data_file(filln=filln)
