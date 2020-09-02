@@ -3,10 +3,10 @@ import numpy as np
 import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.LHC_Heatloads as HL
 
-from calibration_config import calibration_config
-from calibration import Calibration, CalibrationManager
-from h5_storage import H5_storage
-import heatload_recalc as hlr
+from .calibration_config import calibration_config
+from .calibration import Calibration, CalibrationManager
+from .h5_storage import H5_storage
+from . import heatload_recalc as hlr
 
 cal_manager = CalibrationManager(calibration_config=calibration_config)
 h5_storage = H5_storage(h5_dir='/eos/user/l/lhcecld/heatload_data_storage')
@@ -26,9 +26,9 @@ for ii, circuit in enumerate(circuits):
 
     if len(circuits) > 100:
         if np.mod(ii, 20) == 0:
-            print('Circuit %d/%d'%(ii, len(circuits)))
+            print(('Circuit %d/%d'%(ii, len(circuits))))
     else:
-        print(ii, circuit)
+        print((ii, circuit))
 
     cell_calib = calibration.get_circuit(circuit)
 
@@ -55,8 +55,8 @@ for ii, circuit in enumerate(circuits):
     qbs_recalc.append(Q_bs)
 
     if len(other['issues'])>0:
-        print('Issues found for circuit %s:'%circuit)
-        print('\n'.join(other['issues']))
+        print(('Issues found for circuit %s:'%circuit))
+        print(('\n'.join(other['issues'])))
         issues.append([circuit, other['issues']])
 
 # Build temporary object to compute arc averages

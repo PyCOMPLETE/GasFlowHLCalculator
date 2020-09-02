@@ -1,8 +1,8 @@
 import numpy as np
 
-import Helium_properties as hp
-from valve_LT import valve_LT
-from Pressure_drop import pd_factory
+from . import Helium_properties as hp
+from .valve_LT import valve_LT
+from .Pressure_drop import pd_factory
 
 
 def compute_heat_load(P1, T1, T3, P4, CV, EH, Qs_calib, Kv_calib, R_calib,
@@ -154,7 +154,7 @@ def compute_heat_loads_instrumented_cell(mass_flow, P1,
     dp_diff_list = []
     frac_flow = 0.5 + 0 * mass_flow
 
-    for i_iter in xrange(N_iter_max):
+    for i_iter in range(N_iter_max):
         mL_circuits = [m_L * frac_flow, m_L * (1. - frac_flow)]
         dp_circuits = []
         for i_circ, mL_circuit in enumerate(mL_circuits):
@@ -251,7 +251,7 @@ def build_instrumented_hl_dict(config_dict, circuit, Qbs_magnets_circuits):
 
     # Hide last magnet
     name_last_magnet = magnet_names[-1]
-    for kk in dict_output.keys():
+    for kk in list(dict_output.keys()):
         for bb in [1,2]:
             if '_%sB%d'%(name_last_magnet, bb) in kk:
                 dict_output[kk] *= 0.

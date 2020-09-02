@@ -1,4 +1,4 @@
-from __future__ import division
+
 import os
 import re
 import time
@@ -44,7 +44,7 @@ for atd_file in atd_files:
         this_qbs_file = h5_storage.get_qbs_file(filln, **kwargs)
         if not os.path.isfile(this_qbs_file):
 
-            print('\nCalculation for fill %i (usedP: %s) started...' % (filln, use_dP))
+            print(('\nCalculation for fill %i (usedP: %s) started...' % (filln, use_dP)))
             time_0 = time.mktime(time.localtime())
             atd_ob = h5_storage.load_data_file(filln)
 
@@ -66,5 +66,5 @@ for atd_file in atd_files:
                 raise IOError('Saving failed for fill %i!' % filln)
             dt = time.mktime(time.localtime()) - time_0
             n_timesteps = len(qbs_ob.timestamps)
-            print('Calculation for fill %i (usedP: %s) with %i timesteps finished in %i s.' % (filln, use_dP, n_timesteps, dt))
+            print(('Calculation for fill %i (usedP: %s) with %i timesteps finished in %i s.' % (filln, use_dP, n_timesteps, dt)))
 

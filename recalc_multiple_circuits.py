@@ -3,9 +3,9 @@ import numpy as np
 import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.LHC_Heatloads as HL
 
-import heatload_recalc as hlr
+from . import heatload_recalc as hlr
 
-from instrumented_cells_config import instrumented_cells_config
+from .instrumented_cells_config import instrumented_cells_config
 
 def recalc_multiple_circuits(raw_data_object, calibration,
         circuit_selection, with_P_drop):
@@ -26,9 +26,9 @@ def recalc_multiple_circuits(raw_data_object, calibration,
 
         if len(circuits) > 100:
             if np.mod(ii, 20) == 0:
-                print('Circuit %d/%d'%(ii, len(circuits)))
+                print(('Circuit %d/%d'%(ii, len(circuits))))
         else:
-            print(ii, circuit)
+            print((ii, circuit))
 
         cell_calib = calibration.get_circuit(circuit)
 
@@ -55,8 +55,8 @@ def recalc_multiple_circuits(raw_data_object, calibration,
         qbs_recalc.append(Q_bs)
 
         if len(other['issues'])>0:
-            print('Issues found for circuit %s:'%circuit)
-            print('\n'.join(other['issues']))
+            print(('Issues found for circuit %s:'%circuit))
+            print(('\n'.join(other['issues'])))
             issues.append([circuit, other['issues']])
 
         if circuit_selection == 'all_instrumented':

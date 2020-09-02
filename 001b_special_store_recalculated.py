@@ -1,4 +1,4 @@
-from __future__ import division
+
 import os
 import re
 import time
@@ -63,5 +63,5 @@ for atd_file in atd_files:
                 raise IOError('Saving failed for fill %i!' % filln)
             dt = time.mktime(time.localtime()) - time_0
             n_timesteps = len(qbs_ob.timestamps)
-            print('Calculation for fill %i with %i timesteps finished in %i s.' % (filln, n_timesteps, dt))
+            print(('Calculation for fill %i with %i timesteps finished in %i s.' % (filln, n_timesteps, dt)))
 

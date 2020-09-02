@@ -1,6 +1,6 @@
-from __future__ import division
+
 import os
-import cPickle as pickle
+import pickle as pickle
 import argparse
 import time
 
@@ -65,16 +65,16 @@ with open(fills_pkl_name, 'rb') as fid:
 for variable_file, h5_dir, file_name, temp_filepath, temp_file, data_file_func in \
         zip(variable_files, h5_dirs, file_names, temp_filepaths, temp_files, data_file_funcs):
 
-    fill_sublist = sorted(dict_fill_bmodes.keys(), reverse=args.r)
+    fill_sublist = sorted(list(dict_fill_bmodes.keys()), reverse=args.r)
     fill_sublist_2 = []
     data_files = os.listdir(os.path.dirname(data_file_func(0)))
     for filln in fill_sublist:
         if os.path.basename(data_file_func(filln)) in data_files:
             pass
         elif filln in blacklist:
-            print('Fill %i is blacklisted' % filln)
+            print(('Fill %i is blacklisted' % filln))
         elif not dict_fill_bmodes[filln]['flag_complete']:
-            print('Fill %i is not completed' % filln)
+            print(('Fill %i is not completed' % filln))
         else:
             t_start_fill = dict_fill_bmodes[filln]['t_startfill']
             t_end_fill   = dict_fill_bmodes[filln]['t_endfill']
@@ -82,13 +82,13 @@ for variable_file, h5_dir, file_name, temp_filepath, temp_file, data_file_func i
             if fill_hrs < max_fill_hrs:
                 fill_sublist_2.append(filln)
             else:
-                print('Fill %i exceeds %i hours and is skipped' % (filln, max_fill_hrs))
-    print('Processing %i fills!' % len(fill_sublist_2))
+                print(('Fill %i exceeds %i hours and is skipped' % (filln, max_fill_hrs)))
+    print(('Processing %i fills!' % len(fill_sublist_2)))
     time.sleep(5)
 
     with open(variable_file, 'r') as f:
         varlist = f.read().splitlines()[0].split(',')
-    print '%i Timber variables' % len(varlist)
+    print('%i Timber variables' % len(varlist))
     for ii, var in enumerate(varlist):
         if '.POSST' not in var:
             raise ValueError('%s does not have a .POSST' % var)
@@ -101,15 +101,15 @@ for variable_file, h5_dir, file_name, temp_filepath, temp_file, data_file_func i
         if h5_file in os.listdir(os.path.dirname(h5_file)):
             continue
         this_temp_file = temp_file % filln
-        print('Downloading csv for fill %i' % filln)
+        print(('Downloading csv for fill %i' % filln))
         t_start_fill = dict_fill_bmodes[filln]['t_startfill']
         t_end_fill   = dict_fill_bmodes[filln]['t_endfill']
         lldb.dbquery(varlist, t_start_fill, t_end_fill, this_temp_file)
-        print('Aligning data for fill %i' % filln)
+        print(('Aligning data for fill %i' % filln))
         htd_ob = SetOfHomogeneousNumericVariables(varlist, this_temp_file).aligned_object(dt_seconds)
-        print('Creating h5 file for fill %i' % filln)
+        print(('Creating h5 file for fill %i' % filln))
         n_tries_max = 5
-        for n_try in xrange(n_tries_max):
+        for n_try in range(n_tries_max):
             try:
                 mfm.aligned_obj_to_h5(htd_ob, h5_file)
                 break
@@ -117,12 +117,12 @@ for variable_file, h5_dir, file_name, temp_filepath, temp_file, data_file_func i
                 print('Saving of h5 failed')
                 time.sleep(10)
         else:
-            print('Raise error after trying to save the h5 file %i times' % n_tries_max)
+            print(('Raise error after trying to save the h5 file %i times' % n_tries_max))
             raise
 
         if os.path.isfile(h5_file) and os.path.getsize(h5_file) > 500:
             os.remove(this_temp_file)
-            print('Deleted temporary file %s!' % (this_temp_file))
+            print(('Deleted temporary file %s!' % (this_temp_file)))
         else:
-            print('Warning! Something went wrong for file %s!\nKeeping temporary file %s.' % (h5_file % filln, temp_file % filln))
+            print(('Warning! Something went wrong for file %s!\nKeeping temporary file %s.' % (h5_file % filln, temp_file % filln)))
 

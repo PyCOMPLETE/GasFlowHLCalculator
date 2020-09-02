@@ -1,9 +1,9 @@
 import numpy as np
 
-from h5_storage import H5_storage
-import Helium_properties as hp
-from valve_LT import valve_LT
-from Pressure_drop import pd_factory
+from .h5_storage import H5_storage
+from . import Helium_properties as hp
+from .valve_LT import valve_LT
+from .Pressure_drop import pd_factory
 
 cell_description = {
     'QBS': 'QRLAB_31L2_QBS943.POSST',
@@ -181,7 +181,7 @@ dp_diff_list = []
 frac_flow = 0.5 + 0*Q_bs
 dp_toll = 0.001
 
-for i_iter in xrange(N_iter_max):
+for i_iter in range(N_iter_max):
     mL_circuits = [m_L * frac_flow, m_L * (1. - frac_flow)]
     dp_circuits = []
     for i_circ, mL_circuit in enumerate(mL_circuits):
@@ -255,7 +255,7 @@ for name_mag in magnet_names:
 # Hide last magnet
 name_last_magnet = magnet_names[-1]
 
-for kk in dict_output.keys():
+for kk in list(dict_output.keys()):
     for bb in [1,2]:
         if '_%sB%d'%(name_last_magnet, bb) in kk:
             dict_output[kk] *= 0.

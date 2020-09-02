@@ -1,10 +1,10 @@
 import numpy as np
 import LHCMeasurementTools.TimberManager as tm
 
-from calibration_config import calibration_config
-from calibration import Calibration, CalibrationManager
-from h5_storage import H5_storage
-import heatload_recalc as hlr
+from .calibration_config import calibration_config
+from .calibration import Calibration, CalibrationManager
+from .h5_storage import H5_storage
+from . import heatload_recalc as hlr
 
 cal_manager = CalibrationManager(calibration_config=calibration_config)
 
@@ -54,7 +54,7 @@ Q_bs, other = hlr.compute_heat_load(P1, T1, T3, P4, CV, EH,
         iter_toll=1e-3)
 
 if compute_instrumented:
-    from instrumented_cells_config import instrumented_cells_config
+    from .instrumented_cells_config import instrumented_cells_config
 
     instrum_cell_config = instrumented_cells_config[circuit]
 
