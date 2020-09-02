@@ -115,16 +115,11 @@ for variable_file, h5_dir, file_name, temp_filepath, temp_file, data_file_func i
         #lldb.dbquery(varlist, t_start_fill, t_end_fill, this_temp_file)
         data = {}
         for ii, vv in enumerate(varlist):
-            #if np.mod(ii, len(varlist)//10)==0:
-            #sys.stdout.flush()
-            #sys.stdout.write("\r" +
-            #        f'{ii}/{len(varlist)} - {vv}')
             print(f'{ii}/{len(varlist)} - {vv}', end='\r', flush=True)
             data.update(tm.CalsVariables_from_pytimber(
                 ldb.get([vv], t_start_fill, t_end_fill)))
-        prrrrr
         print(('Aligning data for fill %i' % filln))
-        htd_ob = SetOfHomogeneousNumericVariables(varlist, this_temp_file).aligned_object(dt_seconds)
+        htd_ob = SetOfHomogeneousNumericVariables(varlist, data).aligned_object(dt_seconds)
         print(('Creating h5 file for fill %i' % filln))
         n_tries_max = 5
         for n_try in range(n_tries_max):
@@ -139,9 +134,9 @@ for variable_file, h5_dir, file_name, temp_filepath, temp_file, data_file_func i
             print(('Raise error after trying to save the h5 file %i times' % n_tries_max))
             raise e
 
-        if os.path.isfile(h5_file) and os.path.getsize(h5_file) > 500:
-            os.remove(this_temp_file)
-            print(('Deleted temporary file %s!' % (this_temp_file)))
-        else:
-            print(('Warning! Something went wrong for file %s!\nKeeping temporary file %s.' % (h5_file % filln, temp_file % filln)))
+        #if os.path.isfile(h5_file) and os.path.getsize(h5_file) > 500:
+        #    os.remove(this_temp_file)
+        #    print(('Deleted temporary file %s!' % (this_temp_file)))
+        #else:
+        #    print(('Warning! Something went wrong for file %s!\nKeeping temporary file %s.' % (h5_file % filln, temp_file % filln)))
 
