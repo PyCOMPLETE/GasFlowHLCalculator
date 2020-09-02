@@ -1,12 +1,16 @@
+import sys
 import os
 import json
 import argparse
 import time
 
+import numpy as np
+
 import LHCMeasurementTools.lhc_log_db_query as lldb
 from LHCMeasurementTools.SetOfHomogeneousVariables import SetOfHomogeneousNumericVariables
 import LHCMeasurementTools.myfilemanager as mfm
 from LHCMeasurementTools.LHC_Fill_LDB_Query import load_fill_dict_from_json
+import LHCMeasurementTools.TimberManager as tm
 
 from GasFlowHLCalculator.h5_storage import H5_storage
 
@@ -43,6 +47,8 @@ temp_files = [t + '_%i.csv' for t in temp_filepaths]
 data_file_funcs = [h5_storage.get_data_file, h5_storage.get_special_data_file]
 
 if year == 0:
+    if default_json_filename is None:
+        raise ValueError("Default json not set!")
     fills_json_name = default_json_filename
 elif year == 2012:
     fills_json_name = '/afs/cern.ch/project/spsecloud/LHC_2012_selected_periods/fills_and_bmodes.json'
@@ -60,6 +66,9 @@ else:
     raise ValueError('Invalid year')
 
 dict_fill_bmodes = load_fill_dict_from_json(fills_json_name)
+
+import pytimber
+ldb = pytimber.LoggingDB()
 
 for variable_file, h5_dir, file_name, temp_filepath, temp_file, data_file_func in \
         zip(variable_files, h5_dirs, file_names, temp_filepaths, temp_files, data_file_funcs):
@@ -103,7 +112,17 @@ for variable_file, h5_dir, file_name, temp_filepath, temp_file, data_file_func i
         print(('Downloading csv for fill %i' % filln))
         t_start_fill = dict_fill_bmodes[filln]['t_startfill']
         t_end_fill   = dict_fill_bmodes[filln]['t_endfill']
-        lldb.dbquery(varlist, t_start_fill, t_end_fill, this_temp_file)
+        #lldb.dbquery(varlist, t_start_fill, t_end_fill, this_temp_file)
+        data = {}
+        for ii, vv in enumerate(varlist):
+            #if np.mod(ii, len(varlist)//10)==0:
+            #sys.stdout.flush()
+            #sys.stdout.write("\r" +
+            #        f'{ii}/{len(varlist)} - {vv}')
+            print(f'{ii}/{len(varlist)} - {vv}', end='\r', flush=True)
+            data.update(tm.CalsVariables_from_pytimber(
+                ldb.get([vv], t_start_fill, t_end_fill)))
+        prrrrr
         print(('Aligning data for fill %i' % filln))
         htd_ob = SetOfHomogeneousNumericVariables(varlist, this_temp_file).aligned_object(dt_seconds)
         print(('Creating h5 file for fill %i' % filln))
@@ -112,12 +131,13 @@ for variable_file, h5_dir, file_name, temp_filepath, temp_file, data_file_func i
             try:
                 mfm.aligned_obj_to_h5(htd_ob, h5_file)
                 break
-            except Exception as e:
+            #except Exception as e:
+            except KeyError as e:
                 print('Saving of h5 failed')
                 time.sleep(10)
         else:
             print(('Raise error after trying to save the h5 file %i times' % n_tries_max))
-            raise
+            raise e
 
         if os.path.isfile(h5_file) and os.path.getsize(h5_file) > 500:
             os.remove(this_temp_file)
