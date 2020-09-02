@@ -1,19 +1,19 @@
-
 import os
-import pickle as pickle
+import json
 import argparse
 import time
 
 import LHCMeasurementTools.lhc_log_db_query as lldb
 from LHCMeasurementTools.SetOfHomogeneousVariables import SetOfHomogeneousNumericVariables
 import LHCMeasurementTools.myfilemanager as mfm
+from LHCMeasurementTools.LHC_Fill_LDB_Query import load_fill_dict_from_json
 
 from GasFlowHLCalculator.h5_storage import H5_storage
 
 import GasFlowHLCalculator
 
-default_pkl_filename = '/afs/cern.ch/work/e/ecldcode/heat_load_workspace/heat_load_storage/fills_and_bmodes.pkl'
-h5_storage = H5_storage(h5_dir = '/afs/cern.ch/work/e/ecldcode/heat_load_workspace/heat_load_storage')
+default_json_filename = None
+h5_storage = H5_storage(h5_dir = '/eos/user/l/lhcecld/heatload_data_storage/')
 
 # Config
 dt_seconds = 60
@@ -43,24 +43,23 @@ temp_files = [t + '_%i.csv' for t in temp_filepaths]
 data_file_funcs = [h5_storage.get_data_file, h5_storage.get_special_data_file]
 
 if year == 0:
-    fills_pkl_name = default_pkl_filename
+    fills_json_name = default_json_filename
 elif year == 2012:
-    fills_pkl_name = '/afs/cern.ch/project/spsecloud/LHC_2012_selected_periods/fills_and_bmodes.pkl'
+    fills_json_name = '/afs/cern.ch/project/spsecloud/LHC_2012_selected_periods/fills_and_bmodes.json'
 elif year == 2015:
-    fills_pkl_name = '/afs/cern.ch/project/spsecloud/LHC_2015_PhysicsAfterTS2/fills_and_bmodes.pkl'
+    fills_json_name = '/afs/cern.ch/project/spsecloud/LHC_2015_PhysicsAfterTS2/fills_and_bmodes.json'
 elif year == 2016:
-    fills_pkl_name = '/afs/cern.ch/project/spsecloud/LHC_2016_25ns/LHC_2016_25ns_beforeTS1/fills_and_bmodes.pkl'
+    fills_json_name = '/afs/cern.ch/project/spsecloud/LHC_2016_25ns/LHC_2016_25ns_beforeTS1/fills_and_bmodes.json'
 elif year == 2017:
-    fills_pkl_name = '/afs/cern.ch/project/spsecloud/LHC_2017_operation/LHC_2017_operation/fills_and_bmodes.pkl'
+    fills_json_name = '/afs/cern.ch/project/spsecloud/LHC_2017_operation/LHC_2017_operation/fills_and_bmodes.json'
 elif year == 2018:
-    fills_pkl_name = '/afs/cern.ch/work/l/lhcscrub/LHC_2018_followup/fills_and_bmodes.pkl'
+    fills_json_name = '/afs/cern.ch/work/l/lhcscrub/LHC_2018_followup/fills_and_bmodes.json'
 elif year == 2019:
-    fills_pkl_name = '/afs/cern.ch/work/l/lhcecld/LHC_followup_download_scripts/fills_and_bmodes.pkl'
+    fills_json_name = '/afs/cern.ch/work/l/lhcecld/run3_setup/LHC_followup_download_scripts/fills_and_bmodes.json'
 else:
     raise ValueError('Invalid year')
 
-with open(fills_pkl_name, 'rb') as fid:
-    dict_fill_bmodes = pickle.load(fid)
+dict_fill_bmodes = load_fill_dict_from_json(fills_json_name)
 
 for variable_file, h5_dir, file_name, temp_filepath, temp_file, data_file_func in \
         zip(variable_files, h5_dirs, file_names, temp_filepaths, temp_files, data_file_funcs):
