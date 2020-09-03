@@ -7,6 +7,12 @@ import numpy as np
 import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.myfilemanager as mfm
 
+def decode_if_needed(ss):
+    if hasattr(ss, 'decode'):
+        return ss.decode('utf-8')
+    else:
+        return ss
+
 class H5_storage(object):
 
     def __init__(self, h5_dir):
@@ -40,12 +46,12 @@ class H5_storage(object):
     # Load raw data
     def load_data_file(self, filln):
         ob =  mfm.h5_to_obj(self.get_data_file(filln))
-        variables = [vv.decode('utf-8') for vv in ob.variables]
+        variables = [decode_if_needed(vv) for vv in ob.variables]
         return tm.AlignedTimberData(ob.timestamps, ob.data, variables)
 
     def load_special_data_file(self, filln):
         ob = mfm.h5_to_obj(self.get_special_data_file(filln))
-        variables = [vv.decode('utf-8') for vv in ob.variables]
+        variables = [decode_if_needed(vv) for vv in ob.variables]
         return tm.AlignedTimberData(ob.timestamps, ob.data, variables)
 
     # Load recomputed data
@@ -53,12 +59,14 @@ class H5_storage(object):
         qbs_file = self.get_qbs_file(filln, use_dP=use_dP)
         qbs_ob = mfm.h5_to_obj(qbs_file)
         #print('Loaded file %s' % qbs_file)
-        return tm.AlignedTimberData(qbs_ob.timestamps, qbs_ob.data, qbs_ob.variables)
+        variables = [decode_if_needed(vv) for vv in qbs_ob.variables]
+        return tm.AlignedTimberData(qbs_ob.timestamps, qbs_ob.data, variables)
 
     def load_special_qbs(self, filln):
         qbs_file = self.get_special_qbs_file(filln)
         qbs_ob = mfm.h5_to_obj(qbs_file)
-        return tm.AlignedTimberData(qbs_ob.timestamps, qbs_ob.data, qbs_ob.variables)
+        variables = [decode_if_needed(vv) for vv in qbs_ob.variables]
+        return tm.AlignedTimberData(qbs_ob.timestamps, qbs_ob.data, variables)
 
 
     # Store recomputed data
