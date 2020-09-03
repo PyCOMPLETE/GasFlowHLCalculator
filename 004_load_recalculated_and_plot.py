@@ -1,10 +1,10 @@
 import numpy as np
 import LHCMeasurementTools.TimberManager as tm
 
-from .calibration_config import calibration_config
-from .calibration import Calibration, CalibrationManager
-from .h5_storage import H5_storage
-from . import heatload_recalc as hlr
+from GasFlowHLCalculator.calibration_config import calibration_config
+from GasFlowHLCalculator.calibration import Calibration, CalibrationManager
+from GasFlowHLCalculator.h5_storage import H5_storage
+from GasFlowHLCalculator import heatload_recalc as hlr
 
 import GasFlowHLCalculator.qbs_fill as qf
 

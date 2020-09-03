@@ -1,9 +1,9 @@
 import numpy as np
 
-from .calibration_config import calibration_config
-from .calibration import Calibration, CalibrationManager
-from .h5_storage import H5_storage
-from . import recalc_multiple_circuits as rmc
+from GasFlowHLCalculator.calibration_config import calibration_config
+from GasFlowHLCalculator.calibration import Calibration, CalibrationManager
+from GasFlowHLCalculator.h5_storage import H5_storage
+from GasFlowHLCalculator import recalc_multiple_circuits as rmc
 
 filln = 6737
 with_P_drop = True
