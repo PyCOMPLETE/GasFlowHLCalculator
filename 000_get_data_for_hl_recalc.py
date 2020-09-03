@@ -118,7 +118,7 @@ for variable_file, h5_dir, file_name, temp_filepath, temp_file, data_file_func i
             print(f'{ii}/{len(varlist)} - {vv}', end='\r', flush=True)
             data.update(tm.CalsVariables_from_pytimber(
                 ldb.get([vv], t_start_fill, t_end_fill)))
-        print(('Aligning data for fill %i' % filln))
+        print(('\nAligning data for fill %i' % filln))
         htd_ob = SetOfHomogeneousNumericVariables(varlist, data).aligned_object(dt_seconds)
         print(('Creating h5 file for fill %i' % filln))
         n_tries_max = 5
@@ -126,13 +126,13 @@ for variable_file, h5_dir, file_name, temp_filepath, temp_file, data_file_func i
             try:
                 mfm.aligned_obj_to_h5(htd_ob, h5_file)
                 break
-            #except Exception as e:
-            except KeyError as e:
+            except Exception as e:
+            #except KeyError as e:
                 print('Saving of h5 failed')
                 time.sleep(10)
         else:
             print(('Raise error after trying to save the h5 file %i times' % n_tries_max))
-            raise e
+            raise
 
         #if os.path.isfile(h5_file) and os.path.getsize(h5_file) > 500:
         #    os.remove(this_temp_file)

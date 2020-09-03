@@ -1,6 +1,9 @@
 import h5py
 import time
 import os
+
+import numpy as np
+
 import LHCMeasurementTools.TimberManager as tm
 import LHCMeasurementTools.myfilemanager as mfm
 
@@ -37,11 +40,13 @@ class H5_storage(object):
     # Load raw data
     def load_data_file(self, filln):
         ob =  mfm.h5_to_obj(self.get_data_file(filln))
-        return tm.AlignedTimberData(ob.timestamps, ob.data, ob.variables)
+        variables = [vv.decode('utf-8') for vv in ob.variables]
+        return tm.AlignedTimberData(ob.timestamps, ob.data, variables)
 
     def load_special_data_file(self, filln):
         ob = mfm.h5_to_obj(self.get_special_data_file(filln))
-        return tm.AlignedTimberData(ob.timestamps, ob.data, ob.variables)
+        variables = [vv.decode('utf-8') for vv in ob.variables]
+        return tm.AlignedTimberData(ob.timestamps, ob.data, variables)
 
     # Load recomputed data
     def load_qbs(self, filln, use_dP):
@@ -70,7 +75,8 @@ class H5_storage(object):
 
         with h5py.File(qbs_file, 'w') as h5_handle:
             h5_handle.create_dataset('timestamps', data=qbs_ob.timestamps)
-            h5_handle.create_dataset('variables', data=qbs_ob.variables)
+            h5_handle.create_dataset('variables', data=np.string_(
+                        qbs_ob.variables))
             qbs_dataset = h5_handle.create_dataset('data', data=qbs_ob.data)
             qbs_dataset.attrs['with_dP'] = use_dP
             qbs_dataset.attrs['time_created'] = tm.UnixTimeStamp2UTCTimberTimeString(time.time())
@@ -87,7 +93,8 @@ class H5_storage(object):
 
         with h5py.File(qbs_file, 'w') as h5_handle:
             h5_handle.create_dataset('timestamps', data=qbs_ob.timestamps)
-            h5_handle.create_dataset('variables', data=qbs_ob.variables)
+            h5_handle.create_dataset('variables',
+                    data=np.string_(qbs_ob.variables))
             qbs_dataset = h5_handle.create_dataset('data', data=qbs_ob.data)
             qbs_dataset.attrs['time_created'] = tm.UnixTimeStamp2UTCTimberTimeString(time.time())
 
