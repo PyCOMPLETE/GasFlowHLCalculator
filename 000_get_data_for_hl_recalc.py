@@ -17,6 +17,7 @@ from GasFlowHLCalculator.h5_storage import H5_storage
 import GasFlowHLCalculator
 
 flag_nxcals = True
+n_vars_per_extraction = 200
 
 default_json_filename = None
 h5_storage = H5_storage(h5_dir = '/eos/user/l/lhcecld/heatload_data_storage/')
@@ -126,7 +127,6 @@ for variable_file, h5_dir, file_name, temp_filepath, temp_file, data_file_func i
         #     data.update(tm.CalsVariables_from_pytimber(
         #         ldb.get([vv], t_start_fill, t_end_fill)))
 
-        n_vars_per_extraction = 100
         for ii in range(0, len(varlist), n_vars_per_extraction):
             thesevars = varlist[ii: ii + n_vars_per_extraction]
             print(f'{ii}/{len(varlist)}: {thesevars[0]} ... {thesevars[-1]}', end='\r', flush=True)
