@@ -1,9 +1,9 @@
 import numpy as np
 
-from calibration_config import calibration_config
-from calibration import Calibration, CalibrationManager
-from h5_storage import H5_storage
-import recalc_multiple_circuits as rmc
+from GasFlowHLCalculator.calibration_config import calibration_config
+from GasFlowHLCalculator.calibration import Calibration, CalibrationManager
+from GasFlowHLCalculator.h5_storage import H5_storage
+from GasFlowHLCalculator import recalc_multiple_circuits as rmc
 
 filln = 6737
 with_P_drop = True
@@ -19,7 +19,7 @@ if circuit_selection == 'full_lhc':
 elif circuit_selection == 'all_instrumented':
     obraw = h5_storage.load_special_data_file(filln=filln)
 else:
-    raise(ValueError('Invalid circuit selection!'))
+    raise ValueError
 
 calibration = cal_manager.get_calibration(obraw.timestamps[0])
 
@@ -34,4 +34,4 @@ if circuit_selection == 'full_lhc':
 elif circuit_selection == 'all_instrumented':
     h5_storage.store_special_qbs(filln=filln, qbs_ob=obhl_store)
 else:
-    raise(ValueError('Invalid circuit selection!'))
+    raise ValueError

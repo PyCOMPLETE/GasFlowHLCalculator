@@ -1,7 +1,7 @@
 import numpy as np
 
-from h5_storage import H5_storage
-import heatload_recalc as hlr
+from .h5_storage import H5_storage
+from . import heatload_recalc as hlr
 
 cell_description = {
     'QBS': 'QRLAB_31L2_QBS943.POSST',
@@ -136,7 +136,7 @@ for name_mag in magnet_names:
 # Hide last magnet
 name_last_magnet = magnet_names[-1]
 
-for kk in dict_output.keys():
+for kk in list(dict_output.keys()):
     for bb in [1,2]:
         if '_%sB%d'%(name_last_magnet, bb) in kk:
             dict_output[kk] *= 0.

@@ -1,10 +1,10 @@
 import numpy as np
 import LHCMeasurementTools.TimberManager as tm
 
-from calibration_config import calibration_config
-from calibration import Calibration, CalibrationManager
-from h5_storage import H5_storage
-import heatload_recalc as hlr
+from GasFlowHLCalculator.calibration_config import calibration_config
+from GasFlowHLCalculator.calibration import Calibration, CalibrationManager
+from GasFlowHLCalculator.h5_storage import H5_storage
+from GasFlowHLCalculator import heatload_recalc as hlr
 
 cal_manager = CalibrationManager(calibration_config=calibration_config)
 
@@ -23,7 +23,7 @@ circuit = 'QRLAA_13L5_QBS943.POSST' # Instrumented cell
 circuit = 'QRLAA_13R4_QBS947.POSST' # Instrumented cell
 circuit = 'QRLAA_33L5_QBS947.POSST' # Instrumented cell
 
-h5_storage = H5_storage(h5_dir='/afs/cern.ch/work/e/ecldcode/heat_load_workspace/heat_load_storage')
+h5_storage = H5_storage(h5_dir = '/eos/user/l/lhcecld/heatload_data_storage/')
 
 if compute_instrumented:
     obraw = h5_storage.load_special_data_file(filln=filln)
@@ -54,7 +54,7 @@ Q_bs, other = hlr.compute_heat_load(P1, T1, T3, P4, CV, EH,
         iter_toll=1e-3)
 
 if compute_instrumented:
-    from instrumented_cells_config import instrumented_cells_config
+    from GasFlowHLCalculator.instrumented_cells_config import instrumented_cells_config
 
     instrum_cell_config = instrumented_cells_config[circuit]
 

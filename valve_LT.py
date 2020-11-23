@@ -1,4 +1,4 @@
-from __future__ import division
+
 import numpy as np
 
 
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     r = lambda : np.random.random(1000)
     n_args = 6
     function = valve_LT
-    args = [r() for i in xrange(n_args)]
+    args = [r() for i in range(n_args)]
 
     single = np.zeros_like(args[0])
     for ctr, arg in enumerate(zip(*args)):
@@ -50,5 +50,5 @@ if __name__ == '__main__':
         K = np.where(x <= .42, 1., np.sqrt(A * x**B * (1.-x**C)))
         return K
 
-    print A, B, C
-    print K(np.array([ .41, .42, .43]))
+    print(A, B, C)
+    print(K(np.array([ .41, .42, .43])))
