@@ -18,6 +18,8 @@ data_dir = h5_storage.data_dir
 
 use_dPs = (True,False)
 
+blacklist = [8113]
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='random', action='store_true')
 parser.add_argument('--filln', help='specify fill number')
@@ -33,6 +35,9 @@ for atd_file in atd_files:
     info = re_file.search(atd_file)
     if info is not None:
         filln = int(info.group(1))
+
+    if int(filln) in blacklist:
+        continue
 
     if args.filln:
         if not int(filln)==int(args.filln):
