@@ -31,7 +31,8 @@ blacklist.append(5488) # 40 hour long fill, also exceeds memory
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='reversed', action='store_true')
-parser.add_argument('--year', choices=[0, 2012, 2015, 2016, 2017, 2018, 2019], type=int, default=0)
+parser.add_argument('--year', choices=[0, 2012, 2015, 2016, 2017, 2018, 2019, 2022], type=int, default=0)
+parser.add_argument('--fills', help='Format filln,filln,...', default=None)
 
 args = parser.parse_args()
 year = args.year
@@ -65,6 +66,8 @@ elif year == 2018:
     fills_json_name = '/afs/cern.ch/work/l/lhcscrub/LHC_2018_followup/fills_and_bmodes.json'
 elif year == 2019:
     fills_json_name = '/afs/cern.ch/work/l/lhcecld/run3_setup/LHC_followup_download_scripts/fills_and_bmodes.json'
+elif year == 2022:
+    fills_json_name = '/afs/cern.ch/work/l/lhcecld/run3_test/LHC_followup_download_scripts/fills_and_bmodes.json'
 else:
     raise ValueError('Invalid year')
 
@@ -81,6 +84,8 @@ for variable_file, h5_dir, file_name, temp_filepath, temp_file, data_file_func i
         zip(variable_files, h5_dirs, file_names, temp_filepaths, temp_files, data_file_funcs):
 
     fill_sublist = sorted(list(dict_fill_bmodes.keys()), reverse=args.r)
+    if args.fills is not None:
+        fill_sublist = list(map(int, args.fills.split(',')))
     fill_sublist_2 = []
     data_files = os.listdir(os.path.dirname(data_file_func(0)))
     for filln in fill_sublist:
