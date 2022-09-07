@@ -2,6 +2,12 @@ import pandas
 
 import LHCMeasurementTools.TimestampHelpers as th
 
+def _add_posst(name):
+    if name.endswith('.POSST'):
+        return name
+    else:
+        return name+'.POSST'
+
 class Calibration(object):
 
     def __init__(self, calibration_csv_file):
@@ -14,21 +20,25 @@ class Calibration(object):
 
     @property
     def circuits(self):
-        return list(self.caldata.index)
+        return list(map(_add_posst, self.caldata.index))
 
 
     def get_circuit(self, name):
 
-        dat = self.caldata.loc[name, :]
+        if name in self.caldata.index:
+            dat = self.caldata.loc[name, :]
+        else:
+            dat = self.caldata.loc[name.replace('.POSST', ''), :]
         ddd = {
-            'QBS': name,
-            'P1': dat.P1,
-            'P4': dat.P4,
-            'T1': dat.T1,
-            'T3': dat.T3,
-            'T2': dat.T2,
-            'CV': dat.CV1,
-            'EH': dat.QEH,
+            'QBS': _add_posst(name),
+            'P1': _add_posst(dat.P1),
+            'P4': _add_posst(dat.P4),
+            'T1': _add_posst(dat.T1),
+            'T3': _add_posst(dat.T3),
+            'T2': _add_posst(dat.T2),
+            'CV1': _add_posst(dat.CV1),
+            'CV2': _add_posst(dat.CV2),
+            'EH': _add_posst(dat.QEH),
 
             'channel_radius': 3.7e-3/2.,
             'roughness': 1e-5,
@@ -37,7 +47,8 @@ class Calibration(object):
             'length': float(dat.L),
             'R_calib': float(dat.R),
             'Qs_calib': float(dat.QS),
-            'Kv_calib': float(dat.Kvmax)
+            'Kv_calib': float(dat.Kvmax),
+            'u0_calib': float(dat.u0)
             }
         return ddd
 

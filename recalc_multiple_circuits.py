@@ -36,15 +36,17 @@ def recalc_multiple_circuits(raw_data_object, calibration,
         T3 = obraw.dictionary[cell_calib['T3']]
         P1 = obraw.dictionary[cell_calib['P1']]
         P4 = obraw.dictionary[cell_calib['P4']]
-        CV= obraw.dictionary[cell_calib['CV']]
+        CV1 = obraw.dictionary[cell_calib['CV1']]
+        CV2 = obraw.dictionary.get(cell_calib['CV2'], None)
         EH = obraw.dictionary[cell_calib['EH']]
 
         # T2 = obraw.dictionary[cell_calib['T2']]
 
-        Q_bs, other = hlr.compute_heat_load(P1, T1, T3, P4, CV, EH,
-                Qs_calib=cell_calib['Qs_calib'],
-                Kv_calib=cell_calib['Kv_calib'],
-                R_calib=cell_calib['R_calib'],
+        Q_bs, other = hlr.compute_heat_load(P1=P1, T1=T1, T3=T3, P4=P4, CV1=CV1, CV2=CV2, EH=EH,
+                Qs=cell_calib['Qs_calib'],
+                Kvmax=cell_calib['Kv_calib'],
+                R=cell_calib['R_calib'],
+                u0=cell_calib['u0_calib'],
                 cell_length=cell_calib['length'],
                 n_channels=cell_calib['n_channels_tot'],
                 channel_radius=cell_calib['channel_radius'],
