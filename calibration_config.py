@@ -4,10 +4,15 @@ calibration_config = [
          'end':   '2013_06_01 00:00:00',
          'file': '/afs/cern.ch/work/l/lhcecld/run3_test/tools/LHCCryoHeatLoadCalibration/Cryo_Beam_Screen_Calibration_Run1.csv'
          },
-         {'name': 'Run2',
+         # {'name': 'Run2',
+         # 'start': '2015_01_01 00:00:00',
+         # 'end':   '2019_06_01 00:00:00',
+         # 'file': '/afs/cern.ch/work/l/lhcecld/run3_test/tools/LHCCryoHeatLoadCalibration/Cryo_Beam_Screen_Calibration_Run2.csv'
+         # },
+         {'name': 'Run2_withRun3calib',
          'start': '2015_01_01 00:00:00',
          'end':   '2019_06_01 00:00:00',
-         'file': '/afs/cern.ch/work/l/lhcecld/run3_test/tools/LHCCryoHeatLoadCalibration/Cryo_Beam_Screen_Calibration_Run2.csv'
+         'file': '/afs/cern.ch/work/l/lhcecld/run3_test/tools/LHCCryoHeatLoadCalibration/CryoBeamScreenParameters_Run2_withRun3Calib.csv'
          },
          {'name': 'Run3',
          'start': '2022_01_01 00:00:00',
