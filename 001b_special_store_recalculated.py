@@ -29,7 +29,7 @@ if args.r:
     random.shuffle(atd_files)
 elif args.reverse:
     atd_files = atd_files[::-1]
-
+print(atd_files)
 for atd_file in atd_files:
     info = re_file.search(atd_file)
     if info != None:
@@ -56,8 +56,10 @@ for atd_file in atd_files:
                 try:
                     h5_storage.store_special_qbs(filln, qbs_ob)
                     break
-                except IOError:
+                except IOError as err:
                     n_tries -= 1
+                    print(err)
+                    print("Retrying...")
                     time.sleep(5)
             else:
                 raise IOError('Saving failed for fill %i!' % filln)

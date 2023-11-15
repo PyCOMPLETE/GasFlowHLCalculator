@@ -31,7 +31,7 @@ blacklist.append(5488) # 40 hour long fill, also exceeds memory
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='reversed', action='store_true')
-parser.add_argument('--year', choices=[0, 2012, 2015, 2016, 2017, 2018, 2019, 2022], type=int, default=0)
+parser.add_argument('--year', choices=[0, 2012, 2015, 2016, 2017, 2018, 2019, 2020, 2022, 2023], type=int, default=0)
 parser.add_argument('--fills', help='Format filln,filln,...', default=None)
 
 args = parser.parse_args()
@@ -42,7 +42,11 @@ h5_dir_0 = h5_storage.data_dir
 
 # [For all cells, for 3 special cells]
 gfolder = '/'.join(GasFlowHLCalculator.__file__.split('/')[:-1])
-variable_files = [gfolder+'/variable_list_complete.txt',
+if year < 2022:
+    variable_files = [gfolder+'/variable_list_complete_old.txt',
+	gfolder+'/variable_list_special_old.txt']
+else:
+    variable_files = [gfolder+'/variable_list_complete.txt',
 	gfolder+'/variable_list_special.txt']
 h5_dirs = [h5_dir_0, h5_dir_0 + 'special_cells/']
 file_names = ['cryo_data_fill', 'special_data_fill']
@@ -66,7 +70,11 @@ elif year == 2018:
     fills_json_name = '/afs/cern.ch/work/l/lhcscrub/LHC_2018_followup/fills_and_bmodes.json'
 elif year == 2019:
     fills_json_name = '/afs/cern.ch/work/l/lhcecld/run3_setup/LHC_followup_download_scripts/fills_and_bmodes.json'
+elif year == 2020:
+    fills_json_name = '/afs/cern.ch/work/l/lhcecld/run3_test/Run2_LHC_followup_download_scripts/fills_and_bmodes.json'
 elif year == 2022:
+    fills_json_name = '/afs/cern.ch/project/spsecloud/LHC_2022_data/LHC_followup_download_scripts/fills_and_bmodes.json'
+elif year == 2023:
     fills_json_name = '/afs/cern.ch/work/l/lhcecld/run3_test/LHC_followup_download_scripts/fills_and_bmodes.json'
 else:
     raise ValueError('Invalid year')

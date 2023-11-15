@@ -18,7 +18,7 @@ data_dir = h5_storage.data_dir
 
 use_dPs = (True,False)
 
-blacklist = [8113]
+blacklist = [8050, 8113, 8121, 8147, 8251, 8259, 8273, 8303, 8322]
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-r', help='random', action='store_true')
