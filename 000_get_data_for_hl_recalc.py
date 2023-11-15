@@ -44,7 +44,7 @@ h5_dir_0 = h5_storage.data_dir
 gfolder = '/'.join(GasFlowHLCalculator.__file__.split('/')[:-1])
 if year < 2022:
     variable_files = [gfolder+'/variable_list_complete_old.txt',
-	gfolder+'/variable_list_special.txt']
+	gfolder+'/variable_list_special_old.txt']
 else:
     variable_files = [gfolder+'/variable_list_complete.txt',
 	gfolder+'/variable_list_special.txt']
