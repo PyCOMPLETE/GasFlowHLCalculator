@@ -3,9 +3,9 @@ import hepak as hep
 from pycryo import pressureDrop
 from pycryo import valve_m
 
-from . import Helium_properties as hp
-from .valve_LT import valve_LT
-from .Pressure_drop import pd_factory
+# from . import Helium_properties as hp
+# from .valve_LT import valve_LT
+# from .Pressure_drop import pd_factory
 
 
 def compute_heat_load(P1, T1, T3, P4, CV1,CV2, EH, Qs, Kvmax, R, u0,
@@ -347,76 +347,77 @@ def massflowDistrib(m, TT_circuit1, TT_circuit2, Pin, hc_type_list, D, rug):
 
 #     return Q_bs, other
 
-def compute_heat_loads_instrumented_cell(mass_flow, P1,
-        T_in_magnets_circuits, T_out_magnets_circuits,
-        magnet_lengths_circuits, n_channels_circuits,
-        channel_radius, channel_roughness,
-        N_iter_max=200, dp_toll = 0.001):
-
-    m_L = mass_flow
-
-    pressure_drop = pd_factory(D=2*channel_radius,
-                           rug=channel_roughness)
-
-    frac_flow_list = []
-    dp_diff_list = []
-    frac_flow = 0.5 + 0 * mass_flow
-
-    for i_iter in range(N_iter_max):
-        mL_circuits = [m_L * frac_flow, m_L * (1. - frac_flow)]
-        dp_circuits = []
-        for i_circ, mL_circuit in enumerate(mL_circuits):
-
-            T_out_magnets = T_in_magnets_circuits[i_circ]
-            magnet_lengths = magnet_lengths_circuits[i_circ]
-            n_channels_circuit = n_channels_circuits[i_circ]
-
-            rho_out_magnets = [
-                    hp.interp_P_T_DPT(P1, ttout) for ttout in T_out_magnets]
-            mu_out_magnets = [
-                    hp.interp_P_T_mu(P1, ttout) for ttout in T_out_magnets]
-
-            dp_magnets = [pressure_drop(m=mL_circuit/n_channels_circuit, # This is not there in Benjamin's implementation!!!!
-                                L=ll, mu=mumu , rho=rhorho)
-                                    for ll, mumu, rhorho in zip(magnet_lengths,
-                                            mu_out_magnets, rho_out_magnets)]
-
-            dp_circuit = np.sum(np.array(dp_magnets), axis=0)
-
-            dp_circuits.append(dp_circuit.copy())
-
-        frac_flow *= (1 + 0.05*(dp_circuits[1] - dp_circuits[0])
-                /(dp_circuits[1] + dp_circuits[0]))
-
-        dp_diff = dp_circuits[0] - dp_circuits[1]
-        dp_diff_list.append(dp_diff)
-        frac_flow_list.append(frac_flow.copy())
-
-        if np.sum(dp_diff>dp_toll) == 0:
-            break
-
-    # Final mass flow sharing
-    mL_circuits = [m_L * frac_flow, m_L * (1. - frac_flow)]
-    Qbs_magnets_circuits = [[], []]
-    # Qbs for individual beam screens
-    for i_circ in [0, 1]:
-        mL_c = mL_circuits[i_circ]
-        magnet_lengths_c = magnet_lengths_circuits[i_circ]
-        T_in_magnets_c = T_in_magnets_circuits[i_circ]
-        T_out_magnets_c = T_out_magnets_circuits[i_circ]
-
-        for i_mag, lmag in enumerate(magnet_lengths_c):
-            Hin = hp.interp_P_T_hPT(P1, T_in_magnets_c[i_mag])
-            Hout = hp.interp_P_T_hPT(P1, T_out_magnets_c[i_mag])
-
-            Qbs_mag = mL_c * (Hout - Hin)
-            Qbs_magnets_circuits[i_circ].append(Qbs_mag)
-
-    other = {
-            'mass_flow_circuits': mL_circuits
-        }
-
-    return Qbs_magnets_circuits, other
+# Old function (possibly to be used for Run 2 data)
+# def compute_heat_loads_instrumented_cell(mass_flow, P1,
+#         T_in_magnets_circuits, T_out_magnets_circuits,
+#         magnet_lengths_circuits, n_channels_circuits,
+#         channel_radius, channel_roughness,
+#         N_iter_max=200, dp_toll = 0.001):
+# 
+#     m_L = mass_flow
+# 
+#     pressure_drop = pd_factory(D=2*channel_radius,
+#                            rug=channel_roughness)
+# 
+#     frac_flow_list = []
+#     dp_diff_list = []
+#     frac_flow = 0.5 + 0 * mass_flow
+# 
+#     for i_iter in range(N_iter_max):
+#         mL_circuits = [m_L * frac_flow, m_L * (1. - frac_flow)]
+#         dp_circuits = []
+#         for i_circ, mL_circuit in enumerate(mL_circuits):
+# 
+#             T_out_magnets = T_in_magnets_circuits[i_circ]
+#             magnet_lengths = magnet_lengths_circuits[i_circ]
+#             n_channels_circuit = n_channels_circuits[i_circ]
+# 
+#             rho_out_magnets = [
+#                     hp.interp_P_T_DPT(P1, ttout) for ttout in T_out_magnets]
+#             mu_out_magnets = [
+#                     hp.interp_P_T_mu(P1, ttout) for ttout in T_out_magnets]
+# 
+#             dp_magnets = [pressure_drop(m=mL_circuit/n_channels_circuit, # This is not there in Benjamin's implementation!!!!
+#                                 L=ll, mu=mumu , rho=rhorho)
+#                                     for ll, mumu, rhorho in zip(magnet_lengths,
+#                                             mu_out_magnets, rho_out_magnets)]
+# 
+#             dp_circuit = np.sum(np.array(dp_magnets), axis=0)
+# 
+#             dp_circuits.append(dp_circuit.copy())
+# 
+#         frac_flow *= (1 + 0.05*(dp_circuits[1] - dp_circuits[0])
+#                 /(dp_circuits[1] + dp_circuits[0]))
+# 
+#         dp_diff = dp_circuits[0] - dp_circuits[1]
+#         dp_diff_list.append(dp_diff)
+#         frac_flow_list.append(frac_flow.copy())
+# 
+#         if np.sum(dp_diff>dp_toll) == 0:
+#             break
+# 
+#     # Final mass flow sharing
+#     mL_circuits = [m_L * frac_flow, m_L * (1. - frac_flow)]
+#     Qbs_magnets_circuits = [[], []]
+#     # Qbs for individual beam screens
+#     for i_circ in [0, 1]:
+#         mL_c = mL_circuits[i_circ]
+#         magnet_lengths_c = magnet_lengths_circuits[i_circ]
+#         T_in_magnets_c = T_in_magnets_circuits[i_circ]
+#         T_out_magnets_c = T_out_magnets_circuits[i_circ]
+# 
+#         for i_mag, lmag in enumerate(magnet_lengths_c):
+#             Hin = hp.interp_P_T_hPT(P1, T_in_magnets_c[i_mag])
+#             Hout = hp.interp_P_T_hPT(P1, T_out_magnets_c[i_mag])
+# 
+#             Qbs_mag = mL_c * (Hout - Hin)
+#             Qbs_magnets_circuits[i_circ].append(Qbs_mag)
+# 
+#     other = {
+#             'mass_flow_circuits': mL_circuits
+#         }
+# 
+#     return Qbs_magnets_circuits, other
 
 
 def extract_info_from_instrum_config_dict(config_dict):

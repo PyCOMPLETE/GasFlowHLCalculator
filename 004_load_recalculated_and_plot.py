@@ -1,6 +1,4 @@
 import numpy as np
-import sys
-sys.path.append("..")
 import LHCMeasurementTools.TimberManager as tm
 
 from GasFlowHLCalculator.calibration_config import calibration_config
@@ -31,7 +29,7 @@ circuit = 'QRLAA_17L6_QBS943.POSST' # Instrumented cell
 circuit = 'QRLAB_27L8_QBS947.POSST' # Instrumented cell
 circuit = 'QRLAD_33R2_QBS947.POSST' # Instrumented cell
 
-h5_storage = H5_storage(h5_dir='/home/kparasch/workspace/Instrumented_HL_calc/heatload_data_storage/')
+h5_storage = H5_storage(h5_dir='/eos/user/l/lhcecld/heatload_data_storage/')
 # Some plots
 import matplotlib.pyplot as plt
 plt.close('all')

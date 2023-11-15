@@ -20,7 +20,7 @@ flag_nxcals = True
 n_vars_per_extraction = 200
 
 default_json_filename = None
-h5_storage = H5_storage(h5_dir = '/home/kparasch/workspace/Instrumented_HL_calc/heatload_data_storage/')
+h5_storage = H5_storage(h5_dir = '/eos/user/l/lhcecld/heatload_data_storage/')
 
 # Config
 dt_seconds = 60

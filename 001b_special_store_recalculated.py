@@ -11,7 +11,7 @@ import GasFlowHLCalculator.recalc_multiple_circuits as rmc
 from GasFlowHLCalculator.calibration_config import calibration_config
 from GasFlowHLCalculator.calibration import Calibration, CalibrationManager
 
-h5_storage = H5_storage(h5_dir = '/home/kparasch/workspace/Instrumented_HL_calc/heatload_data_storage/')
+h5_storage = H5_storage(h5_dir = '/eos/user/l/lhcecld/heatload_data_storage/')
 cal_manager = CalibrationManager(calibration_config=calibration_config)
 
 special_data_dir = h5_storage.special_data_dir
