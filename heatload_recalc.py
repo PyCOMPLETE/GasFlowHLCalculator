@@ -134,6 +134,84 @@ def compute_heat_load(P1, T1, T3, P4, CV1,CV2, EH, Qs, Kvmax, R, u0,
 
     return Q_bs,other
 
+def hlr_mag(Tin1, Tin2, Tout, P1, P3, m):
+    nVal = len(m)
+    P1[P1<1.0] = 3.0
+    P3[P3<1.0] = 3.0
+    
+    #if a temperature is below 4K ==> sensor error, force QBS = 0.0
+    if np.mean(Tin1) < 4.0 or np.mean(Tin2) < 4.0 or np.mean(Tout) < 4.0:
+        QBS = np.zeros(nVal)
+    else:
+        hin1=hep.calculate(9,1,P1*1e5,2,Tin1)
+        hin2=hep.calculate(9,1,P1*1e5,2,Tin2)
+        hout=hep.calculate(9,1,P3*1e5,2,Tout)
+        havg=np.true_divide(np.add(hin1,hin2),2)
+        QBS=np.multiply(m,np.subtract(hout,havg))
+        QBS[np.isnan(QBS)] = 0
+    
+    return QBS
+
+#Calutlate mass flow distribution between circuits (iteratively)
+def massflowDistrib(m, TT_circuit1, TT_circuit2, Pin, hc_type_list, D, rug):
+    Nval=len(Pin)
+    Nmag=len(TT_circuit1)-1
+    dP1 = np.zeros([Nmag,Nval])
+    dP2 = np.zeros([Nmag,Nval])
+    dP1_tot = np.zeros(Nval)
+    dP2_tot = np.zeros(Nval)
+    x = np.zeros(Nval) # ratio of mass flow that goes into circuit 1.
+    rho1= np.zeros([Nmag,Nval])
+    rho2= np.zeros([Nmag,Nval])
+    mu1= np.zeros([Nmag,Nval])
+    mu2= np.zeros([Nmag,Nval])
+    
+    LD = 15              #dipole length
+    LQ = 8               #quadrupole length
+    
+    if hc_type_list == 0:
+        Lmag = [LQ,LD,LD,LD]
+    else:
+        Lmag = [LD,LD,LD,LQ]
+
+    for t in range(0,Nval):
+        if t==0:
+            x[t]=0.5
+        else:
+            x[t]=x[t-1]
+        
+        k=1 # iteration number
+        while((np.absolute(np.subtract(dP1_tot[t],dP2_tot[t]))>0.01 and k<20) or k==1 ):
+            
+            #loop over magnets
+            for s in range(0,Nmag):
+                
+                #Protect from faulty sensors
+                if TT_circuit1[s][t]==0:
+                    TT_circuit1[s][t] = TT_circuit2[s][t]
+             
+                if TT_circuit2[s][t] == 0:
+                    TT_circuit2[s][t] = TT_circuit1[s][t]
+
+                rho1[s,t] = hep.calculate(3,1,Pin[t]*1e5,2,TT_circuit1[s][t])
+                mu1[s,t] = hep.calculate(25,1,Pin[t]*1e5,2,TT_circuit1[s][t])
+                rho2[s,t] = hep.calculate(3,1,Pin[t]*1e5,2,TT_circuit2[s][t])
+                mu2[s,t] = hep.calculate(25,1,Pin[t]*1e5,2,TT_circuit2[s][t])
+                dP1[s,t]= pressureDrop(m=np.multiply(m[t],x[t]), mu=mu1[s,t], rho=rho1[s,t], D=D, L=Lmag[s], rug=rug)
+                dP2[s,t]= pressureDrop(m=np.multiply(m[t],np.subtract(1,x[t])), mu=mu2[s,t] , rho=rho2[s,t], D=D, L=Lmag[s], rug=rug)
+
+            dP1_tot[t]=np.sum(dP1[:,t])
+            dP2_tot[t]=np.sum(dP2[:,t])
+
+            # if pressure difference too big, set new x
+            if dP1_tot[t] > dP2_tot[t]:
+                x[t]=x[t]-0.005
+            else:
+                x[t]=x[t]+0.005
+            
+            k=k+1
+    return x 
+
 # Old function (possibly to be used for Run 1 data)
 # def compute_heat_load(P1, T1, T3, P4, CV, EH, Qs_calib, Kv_calib, R_calib,
 #         cell_length, n_channels, channel_radius, channel_roughness,
@@ -356,35 +434,34 @@ def extract_info_from_instrum_config_dict(config_dict):
             out_sensor_names_circuits)
 
 
-def build_instrumented_hl_dict(config_dict, circuit, Qbs_magnets_circuits):
+def build_instrumented_hl_dict(config_dict, circuit, Qbs_magnets_circuits, coriolis=False):
     dict_output = {}
+    cor = "_COR" if coriolis else ""
 
     magnet_beam_circuits = [config_dict['circuit_%s_beam'%cc]
                                     for cc in ['A', 'B']]
-
+    
+    noposst = circuit.split('.POSST')[0]
     magnet_names = config_dict['magnet_names']
     for i_circ in [0, 1]:
         magnets_beam_c = magnet_beam_circuits[i_circ]
 
         for i_mag, name_mag in enumerate(magnet_names):
-            dict_output[circuit.split('.POSST')[0]
-                   +'_%sB%s.POSST'%(name_mag, magnets_beam_c[i_mag])]=\
-            Qbs_magnets_circuits[i_circ][i_mag]
+            key = f"{noposst}_{name_mag}B{magnets_beam_c[i_mag]}{cor}.POSST"
+            dict_output[key] = Qbs_magnets_circuits[i_circ][i_mag]
 
     for name_mag in magnet_names:
-        dict_output[circuit.split('.POSST')[0]
-            +'_%s.POSST'%(name_mag)] = \
-             dict_output[circuit.split('.POSST')[0]
-                   +'_%sB%s.POSST'%(name_mag, 1)] +\
-             dict_output[circuit.split('.POSST')[0]
-                   +'_%sB%s.POSST'%(name_mag, 2)]
+        dict_output[f"{noposst}_{name_mag}{cor}.POSST"] =\
+             dict_output[f"{noposst}_{name_mag}B1{cor}.POSST"] +\
+             dict_output[f"{noposst}_{name_mag}B2{cor}.POSST"]
 
     # Hide last magnet
-    name_last_magnet = magnet_names[-1]
-    for kk in list(dict_output.keys()):
-        for bb in [1,2]:
-            if '_%sB%d'%(name_last_magnet, bb) in kk:
-                dict_output[kk] *= 0.
+    # # Commented out, why is this here??
+    # name_last_magnet = magnet_names[-1]
+    # for kk in list(dict_output.keys()):
+    #     for bb in [1,2]:
+    #         if '_%sB%d'%(name_last_magnet, bb) in kk:
+    #             dict_output[kk] *= 0.
 
     return dict_output
 
