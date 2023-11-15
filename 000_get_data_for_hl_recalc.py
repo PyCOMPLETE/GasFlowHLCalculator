@@ -20,7 +20,7 @@ flag_nxcals = True
 n_vars_per_extraction = 200
 
 default_json_filename = None
-h5_storage = H5_storage(h5_dir = '/eos/user/l/lhcecld/heatload_data_storage/')
+h5_storage = H5_storage(h5_dir = '/home/kparasch/workspace/Instrumented_HL_calc/heatload_data_storage/')
 
 # Config
 dt_seconds = 60
@@ -73,7 +73,7 @@ elif year == 2019:
 elif year == 2020:
     fills_json_name = '/afs/cern.ch/work/l/lhcecld/run3_test/Run2_LHC_followup_download_scripts/fills_and_bmodes.json'
 elif year == 2022:
-    fills_json_name = '/afs/cern.ch/work/l/lhcecld/run3_test/LHC_followup_download_scripts/fills_and_bmodes.json'
+    fills_json_name = '/afs/cern.ch/project/spsecloud/LHC_2022_data/LHC_followup_download_scripts/fills_and_bmodes.json'
 elif year == 2023:
     fills_json_name = '/afs/cern.ch/work/l/lhcecld/run3_test/LHC_followup_download_scripts/fills_and_bmodes.json'
 else:
